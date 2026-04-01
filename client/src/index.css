@@ -220,3 +220,17 @@
     inset: -1px;
   }
 }
+
+/* Safe area for notched phones */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Slide-up animation for mobile detail sheets */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-in.slide-in-from-bottom {
+  animation: slideUp 0.3s ease-out;
+}

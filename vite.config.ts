@@ -16,6 +16,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      external: ["maplibre-gl"],
+      output: {
+        globals: {
+          "maplibre-gl": "maplibregl",
+        },
+      },
+    },
   },
   server: {
     fs: {

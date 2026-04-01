@@ -1,0 +1,144 @@
+import { useState, useCallback, useMemo } from "react";
+import { wineRegions, type WineRegion } from "@/data/regions";
+import { producers, type Producer } from "@/data/producers";
+import { newsItems, type NewsItem } from "@/data/news";
+
+export type WineColor = "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified";
+export type PriceRange = "budget" | "mid" | "premium" | "luxury";
+
+export interface Filters {
+  wineTypes: WineColor[];
+  priceRanges: PriceRange[];
+  isNatural: boolean | null;
+  isAwardWinner: boolean | null;
+  selectedRegionId: string | null;
+  searchQuery: string;
+}
+
+export const defaultFilters: Filters = {
+  wineTypes: [],
+  priceRanges: [],
+  isNatural: null,
+  isAwardWinner: null,
+  selectedRegionId: null,
+  searchQuery: "",
+};
+
+export function useWineStore() {
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+  const [detailView, setDetailView] = useState<"none" | "region" | "producer">("none");
+
+  const updateFilter = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+  }, []);
+
+  const filteredProducers = useMemo(() => {
+    return producers.filter((p) => {
+      if (filters.wineTypes.length > 0) {
+        if (!p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
+      }
+      if (filters.priceRanges.length > 0) {
+        if (!filters.priceRanges.includes(p.priceRange)) return false;
+      }
+      if (filters.isNatural !== null) {
+        if (p.isNatural !== filters.isNatural) return false;
+      }
+      if (filters.isAwardWinner !== null) {
+        if (p.isAwardWinner !== filters.isAwardWinner) return false;
+      }
+      if (filters.selectedRegionId) {
+        if (p.regionId !== filters.selectedRegionId) return false;
+      }
+      if (filters.searchQuery) {
+        const q = filters.searchQuery.toLowerCase();
+        if (
+          !p.name.toLowerCase().includes(q) &&
+          !p.country.toLowerCase().includes(q) &&
+          !p.tasteProfile.some((t) => t.toLowerCase().includes(q))
+        )
+          return false;
+      }
+      return true;
+    });
+  }, [filters]);
+
+  const filteredNews = useMemo(() => {
+    // If a specific producer is selected, show news about that producer
+    if (selectedProducerId) {
+      const producerNews = newsItems.filter((n) =>
+        n.producerIds.includes(selectedProducerId)
+      );
+      if (producerNews.length > 0) return producerNews;
+    }
+
+    // If a region is selected (either from filter or direct selection), show regional news
+    const activeRegion = selectedRegionId || filters.selectedRegionId;
+    if (activeRegion) {
+      const regionNews = newsItems.filter((n) =>
+        n.regionIds.includes(activeRegion)
+      );
+      if (regionNews.length > 0) return regionNews;
+    }
+
+    // If wine type filters are active, show relevant news
+    if (filters.wineTypes.length > 0) {
+      const typeNews = newsItems.filter((n) =>
+        n.tags.some((t) => filters.wineTypes.includes(t as WineColor))
+      );
+      if (typeNews.length > 0) return typeNews;
+    }
+
+    // Default: show latest news
+    return newsItems.slice(0, 8);
+  }, [filters, selectedProducerId, selectedRegionId]);
+
+  const selectedProducer = useMemo(
+    () => producers.find((p) => p.id === selectedProducerId) || null,
+    [selectedProducerId]
+  );
+
+  const selectedRegion = useMemo(
+    () => wineRegions.find((r) => r.id === selectedRegionId) || null,
+    [selectedRegionId]
+  );
+
+  const selectProducer = useCallback((id: string | null) => {
+    setSelectedProducerId(id);
+    setDetailView(id ? "producer" : "none");
+    if (id) setSelectedRegionId(null);
+  }, []);
+
+  const selectRegion = useCallback((id: string | null) => {
+    setSelectedRegionId(id);
+    setDetailView(id ? "region" : "none");
+    if (id) setSelectedProducerId(null);
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setDetailView("none");
+    setSelectedProducerId(null);
+    setSelectedRegionId(null);
+  }, []);
+
+  return {
+    filters,
+    updateFilter,
+    resetFilters,
+    filteredProducers,
+    filteredNews,
+    selectedProducer,
+    selectedRegion,
+    detailView,
+    selectProducer,
+    selectRegion,
+    closeDetail,
+    allRegions: wineRegions,
+    allProducers: producers,
+  };
+}

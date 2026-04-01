@@ -18,7 +18,7 @@ export const wineRegions: WineRegion[] = [
   // ── FRANCE ──────────────────────────────────────────────────────────────────
   {
     id: "bordeaux",
-    image: "./regions/bordeaux.png",
+    image: "./regions/bordeaux.webp",
     name: "Bordeaux",
     country: "France",
     lat: 44.84,
@@ -38,7 +38,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "burgundy",
-    image: "./regions/burgundy.png",
+    image: "./regions/burgundy.webp",
     name: "Burgundy",
     country: "France",
     lat: 47.04,
@@ -58,7 +58,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "champagne",
-    image: "./regions/champagne.png",
+    image: "./regions/champagne.webp",
     name: "Champagne",
     country: "France",
     lat: 49.05,
@@ -78,7 +78,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "rhone",
-    image: "./regions/rhone.png",
+    image: "./regions/rhone.webp",
     name: "Rhône Valley",
     country: "France",
     lat: 44.13,
@@ -98,7 +98,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "loire",
-    image: "./regions/loire.png",
+    image: "./regions/loire.webp",
     name: "Loire Valley",
     country: "France",
     lat: 47.38,
@@ -118,7 +118,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "alsace",
-    image: "./regions/alsace.png",
+    image: "./regions/alsace.webp",
     name: "Alsace",
     country: "France",
     lat: 48.17,
@@ -139,7 +139,7 @@ export const wineRegions: WineRegion[] = [
   // ── ITALY ────────────────────────────────────────────────────────────────────
   {
     id: "tuscany",
-    image: "./regions/tuscany.png",
+    image: "./regions/tuscany.webp",
     name: "Tuscany",
     country: "Italy",
     lat: 43.35,
@@ -159,7 +159,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "piedmont",
-    image: "./regions/piedmont.png",
+    image: "./regions/piedmont.webp",
     name: "Piedmont",
     country: "Italy",
     lat: 44.69,
@@ -179,7 +179,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "sicily",
-    image: "./regions/sicily.png",
+    image: "./regions/sicily.webp",
     name: "Sicily",
     country: "Italy",
     lat: 37.73,
@@ -200,7 +200,7 @@ export const wineRegions: WineRegion[] = [
   // ── SPAIN ────────────────────────────────────────────────────────────────────
   {
     id: "rioja",
-    image: "./regions/rioja.png",
+    image: "./regions/rioja.webp",
     name: "Rioja",
     country: "Spain",
     lat: 42.47,
@@ -220,7 +220,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "priorat",
-    image: "./regions/priorat.png",
+    image: "./regions/priorat.webp",
     name: "Priorat",
     country: "Spain",
     lat: 41.20,
@@ -241,7 +241,7 @@ export const wineRegions: WineRegion[] = [
   // ── GERMANY ─────────────────────────────────────────────────────────────────
   {
     id: "mosel",
-    image: "./regions/mosel.png",
+    image: "./regions/mosel.webp",
     name: "Mosel",
     country: "Germany",
     lat: 49.97,
@@ -262,7 +262,7 @@ export const wineRegions: WineRegion[] = [
   // ── PORTUGAL ─────────────────────────────────────────────────────────────────
   {
     id: "douro",
-    image: "./regions/douro.png",
+    image: "./regions/douro.webp",
     name: "Douro Valley",
     country: "Portugal",
     lat: 41.16,
@@ -283,7 +283,7 @@ export const wineRegions: WineRegion[] = [
   // ── AUSTRIA ──────────────────────────────────────────────────────────────────
   {
     id: "wachau",
-    image: "./regions/wachau.png",
+    image: "./regions/wachau.webp",
     name: "Wachau",
     country: "Austria",
     lat: 48.37,
@@ -304,7 +304,7 @@ export const wineRegions: WineRegion[] = [
   // ── HUNGARY ──────────────────────────────────────────────────────────────────
   {
     id: "tokaj",
-    image: "./regions/tokaj.png",
+    image: "./regions/tokaj.webp",
     name: "Tokaj",
     country: "Hungary",
     lat: 48.12,
@@ -325,7 +325,7 @@ export const wineRegions: WineRegion[] = [
   // ── CROATIA ──────────────────────────────────────────────────────────────────
   {
     id: "istria-dalmatia",
-    image: "./regions/istria-dalmatia.png",
+    image: "./regions/istria-dalmatia.webp",
     name: "Istria & Dalmatia",
     country: "Croatia",
     lat: 43.50,
@@ -346,7 +346,7 @@ export const wineRegions: WineRegion[] = [
   // ── GEORGIA ──────────────────────────────────────────────────────────────────
   {
     id: "kakheti",
-    image: "./regions/kakheti.png",
+    image: "./regions/kakheti.webp",
     name: "Kakheti",
     country: "Georgia",
     lat: 41.65,
@@ -367,7 +367,7 @@ export const wineRegions: WineRegion[] = [
   // ── GREECE ───────────────────────────────────────────────────────────────────
   {
     id: "santorini",
-    image: "./regions/santorini.png",
+    image: "./regions/santorini.webp",
     name: "Santorini",
     country: "Greece",
     lat: 36.39,
@@ -388,7 +388,7 @@ export const wineRegions: WineRegion[] = [
   // ── ENGLAND ──────────────────────────────────────────────────────────────────
   {
     id: "english-sparkling",
-    image: "./regions/english-sparkling.png",
+    image: "./regions/english-sparkling.webp",
     name: "English Sparkling Wine",
     country: "England",
     lat: 51.05,
@@ -409,7 +409,7 @@ export const wineRegions: WineRegion[] = [
   // ── SOUTH AFRICA ─────────────────────────────────────────────────────────────
   {
     id: "stellenbosch",
-    image: "./regions/stellenbosch.png",
+    image: "./regions/stellenbosch.webp",
     name: "Stellenbosch",
     country: "South Africa",
     lat: -33.93,
@@ -429,7 +429,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "swartland",
-    image: "./regions/swartland.png",
+    image: "./regions/swartland.webp",
     name: "Swartland",
     country: "South Africa",
     lat: -33.45,
@@ -450,7 +450,7 @@ export const wineRegions: WineRegion[] = [
   // ── ARGENTINA ────────────────────────────────────────────────────────────────
   {
     id: "mendoza",
-    image: "./regions/mendoza.png",
+    image: "./regions/mendoza.webp",
     name: "Mendoza",
     country: "Argentina",
     lat: -33.00,
@@ -471,7 +471,7 @@ export const wineRegions: WineRegion[] = [
   // ── CHILE ────────────────────────────────────────────────────────────────────
   {
     id: "maipo-colchagua",
-    image: "./regions/maipo-colchagua.png",
+    image: "./regions/maipo-colchagua.webp",
     name: "Maipo & Colchagua Valleys",
     country: "Chile",
     lat: -34.50,
@@ -492,7 +492,7 @@ export const wineRegions: WineRegion[] = [
   // ── USA ──────────────────────────────────────────────────────────────────────
   {
     id: "napa-valley",
-    image: "./regions/napa-valley.png",
+    image: "./regions/napa-valley.webp",
     name: "Napa Valley",
     country: "USA",
     lat: 38.50,
@@ -512,7 +512,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "sonoma",
-    image: "./regions/sonoma.png",
+    image: "./regions/sonoma.webp",
     name: "Sonoma County",
     country: "USA",
     lat: 38.48,
@@ -532,7 +532,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "willamette",
-    image: "./regions/willamette.png",
+    image: "./regions/willamette.webp",
     name: "Willamette Valley",
     country: "USA",
     lat: 45.12,
@@ -552,7 +552,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "finger-lakes",
-    image: "./regions/finger-lakes.png",
+    image: "./regions/finger-lakes.webp",
     name: "Finger Lakes",
     country: "USA",
     lat: 42.65,
@@ -573,7 +573,7 @@ export const wineRegions: WineRegion[] = [
   // ── CANADA ───────────────────────────────────────────────────────────────────
   {
     id: "okanagan-valley",
-    image: "./regions/okanagan-valley.png",
+    image: "./regions/okanagan-valley.webp",
     name: "Okanagan Valley",
     country: "Canada",
     lat: 49.80,
@@ -594,7 +594,7 @@ export const wineRegions: WineRegion[] = [
   // ── MEXICO ────────────────────────────────────────────────────────────────────
   {
     id: "valle-de-guadalupe",
-    image: "./regions/valle-de-guadalupe.png",
+    image: "./regions/valle-de-guadalupe.webp",
     name: "Valle de Guadalupe",
     country: "Mexico",
     lat: 32.02,
@@ -615,7 +615,7 @@ export const wineRegions: WineRegion[] = [
   // ── AUSTRALIA ────────────────────────────────────────────────────────────────
   {
     id: "barossa-valley",
-    image: "./regions/barossa-valley.png",
+    image: "./regions/barossa-valley.webp",
     name: "Barossa Valley",
     country: "Australia",
     lat: -34.56,
@@ -635,7 +635,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "yarra-valley",
-    image: "./regions/yarra-valley.png",
+    image: "./regions/yarra-valley.webp",
     name: "Yarra Valley",
     country: "Australia",
     lat: -37.66,
@@ -656,7 +656,7 @@ export const wineRegions: WineRegion[] = [
   // ── NEW ZEALAND ──────────────────────────────────────────────────────────────
   {
     id: "marlborough",
-    image: "./regions/marlborough.png",
+    image: "./regions/marlborough.webp",
     name: "Marlborough",
     country: "New Zealand",
     lat: -41.52,
@@ -676,7 +676,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "central-otago",
-    image: "./regions/central-otago.png",
+    image: "./regions/central-otago.webp",
     name: "Central Otago",
     country: "New Zealand",
     lat: -45.03,
@@ -697,7 +697,7 @@ export const wineRegions: WineRegion[] = [
   // ── CHINA ────────────────────────────────────────────────────────────────────
   {
     id: "ningxia",
-    image: "./regions/ningxia.png",
+    image: "./regions/ningxia.webp",
     name: "Ningxia",
     country: "China",
     lat: 38.47,
@@ -718,7 +718,7 @@ export const wineRegions: WineRegion[] = [
   // ── LEBANON ──────────────────────────────────────────────────────────────────
   {
     id: "bekaa-valley",
-    image: "./regions/bekaa-valley.png",
+    image: "./regions/bekaa-valley.webp",
     name: "Bekaa Valley",
     country: "Lebanon",
     lat: 33.85,
@@ -739,7 +739,7 @@ export const wineRegions: WineRegion[] = [
   // ── FRANCE (CONTINUED) ──────────────────────────────────────────────────────
   {
     id: "provence",
-    image: "./regions/provence.png",
+    image: "./regions/provence.webp",
     name: "Provence",
     country: "France",
     lat: 43.53,
@@ -759,7 +759,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "languedoc-roussillon",
-    image: "./regions/languedoc-roussillon.png",
+    image: "./regions/languedoc-roussillon.webp",
     name: "Languedoc-Roussillon",
     country: "France",
     lat: 43.20,
@@ -780,7 +780,7 @@ export const wineRegions: WineRegion[] = [
   // ── ITALY (CONTINUED) ────────────────────────────────────────────────────────
   {
     id: "veneto",
-    image: "./regions/veneto.png",
+    image: "./regions/veneto.webp",
     name: "Veneto",
     country: "Italy",
     lat: 45.44,
@@ -801,7 +801,7 @@ export const wineRegions: WineRegion[] = [
   // ── SPAIN (CONTINUED) ────────────────────────────────────────────────────────
   {
     id: "ribera-del-duero",
-    image: "./regions/ribera-del-duero.png",
+    image: "./regions/ribera-del-duero.webp",
     name: "Ribera del Duero",
     country: "Spain",
     lat: 41.63,
@@ -821,7 +821,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "jerez",
-    image: "./regions/jerez.png",
+    image: "./regions/jerez.webp",
     name: "Jerez (Sherry)",
     country: "Spain",
     lat: 36.68,
@@ -842,7 +842,7 @@ export const wineRegions: WineRegion[] = [
   // ── AUSTRALIA (CONTINUED) ────────────────────────────────────────────────────
   {
     id: "margaret-river",
-    image: "./regions/margaret-river.png",
+    image: "./regions/margaret-river.webp",
     name: "Margaret River",
     country: "Australia",
     lat: -33.95,
@@ -862,7 +862,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "hunter-valley",
-    image: "./regions/hunter-valley.png",
+    image: "./regions/hunter-valley.webp",
     name: "Hunter Valley",
     country: "Australia",
     lat: -32.75,
@@ -883,7 +883,7 @@ export const wineRegions: WineRegion[] = [
   // ── NEW ZEALAND (CONTINUED) ───────────────────────────────────────────────────
   {
     id: "hawkes-bay",
-    image: "./regions/hawkes-bay.png",
+    image: "./regions/hawkes-bay.webp",
     name: "Hawke's Bay",
     country: "New Zealand",
     lat: -39.49,
@@ -904,7 +904,7 @@ export const wineRegions: WineRegion[] = [
   // ── USA (CONTINUED) ───────────────────────────────────────────────────────────
   {
     id: "paso-robles",
-    image: "./regions/paso-robles.png",
+    image: "./regions/paso-robles.webp",
     name: "Paso Robles",
     country: "USA",
     lat: 35.63,
@@ -925,7 +925,7 @@ export const wineRegions: WineRegion[] = [
   // ── GERMANY (CONTINUED) ───────────────────────────────────────────────────────
   {
     id: "rheingau",
-    image: "./regions/rheingau.png",
+    image: "./regions/rheingau.webp",
     name: "Rheingau",
     country: "Germany",
     lat: 50.02,
@@ -946,7 +946,7 @@ export const wineRegions: WineRegion[] = [
   // ── PORTUGAL (CONTINUED) ─────────────────────────────────────────────────────
   {
     id: "vinho-verde",
-    image: "./regions/vinho-verde.png",
+    image: "./regions/vinho-verde.webp",
     name: "Vinho Verde",
     country: "Portugal",
     lat: 41.70,
@@ -967,7 +967,7 @@ export const wineRegions: WineRegion[] = [
   // ── SOUTH AFRICA (CONTINUED) ─────────────────────────────────────────────────
   {
     id: "franschhoek",
-    image: "./regions/franschhoek.png",
+    image: "./regions/franschhoek.webp",
     name: "Franschhoek",
     country: "South Africa",
     lat: -33.91,
@@ -988,7 +988,7 @@ export const wineRegions: WineRegion[] = [
   // ── BRAZIL ───────────────────────────────────────────────────────────────────
   {
     id: "serra-gaucha",
-    image: "./regions/serra-gaucha.png",
+    image: "./regions/serra-gaucha.webp",
     name: "Serra Gaúcha",
     country: "Brazil",
     lat: -29.17,
@@ -1009,7 +1009,7 @@ export const wineRegions: WineRegion[] = [
   // ── JAPAN ─────────────────────────────────────────────────────────────────────
   {
     id: "yamanashi",
-    image: "./regions/yamanashi.png",
+    image: "./regions/yamanashi.webp",
     name: "Yamanashi",
     country: "Japan",
     lat: 35.66,
@@ -1030,7 +1030,7 @@ export const wineRegions: WineRegion[] = [
   // ── TURKEY ───────────────────────────────────────────────────────────────────
   {
     id: "cappadocia",
-    image: "./regions/cappadocia.png",
+    image: "./regions/cappadocia.webp",
     name: "Cappadocia",
     country: "Turkey",
     lat: 38.64,

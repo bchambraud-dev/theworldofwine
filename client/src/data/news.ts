@@ -11,6 +11,7 @@ export interface NewsItem {
 }
 
 export const newsItems: NewsItem[] = [
+  // ── EXISTING 20 ARTICLES ─────────────────────────────────────────────────────
   {
     id: "n1",
     title: "Bordeaux 2024 Vintage Declared 'Exceptional' by Union des Grands Crus",
@@ -215,8 +216,8 @@ export const newsItems: NewsItem[] = [
     summary: "Rising temperatures are opening new wine frontiers in Northern Europe. English sparkling wine continues to gain prestige while Denmark planted its first commercial Pinot Noir vineyards.",
     source: "The Guardian",
     date: "2026-02-05",
-    regionIds: [],
-    producerIds: [],
+    regionIds: ["english-sparkling"],
+    producerIds: ["nyetimber"],
     tags: ["climate", "sparkling"],
     url: "#"
   },
@@ -229,6 +230,139 @@ export const newsItems: NewsItem[] = [
     regionIds: ["rhone"],
     producerIds: ["guigal"],
     tags: ["red", "award winner"],
+    url: "#"
+  },
+  // ── NEW ARTICLES FOR NEW REGIONS ─────────────────────────────────────────────
+  {
+    id: "n21",
+    title: "Santorini Assyrtiko Declared 'The World's Most Distinctive White Wine' by Decanter",
+    summary: "Decanter's annual World Wine Awards have elevated Santorini Assyrtiko to a category of its own, with judges citing its unique combination of volcanic minerality, electric acidity, and saline depth as unmatched by any other white grape. Domaine Sigalas' Kavalieros bottling received the top score in the category.",
+    source: "Decanter",
+    date: "2026-03-27",
+    regionIds: ["santorini"],
+    producerIds: ["domaine-sigalas"],
+    tags: ["white", "award winner", "Greece"],
+    url: "#"
+  },
+  {
+    id: "n22",
+    title: "Georgia's Qvevri Wines Take Michelin-Starred Wine Lists by Storm",
+    summary: "Georgian amber wines fermented in traditional clay qvevri vessels are now appearing on wine lists at restaurants across New York, London, and Tokyo. Pheasant's Tears' Rkatsiteli has become the most-requested natural wine in several major cities, as sommeliers champion the cradle of wine civilization's unique heritage styles.",
+    source: "Wine Enthusiast",
+    date: "2026-03-24",
+    regionIds: ["kakheti"],
+    producerIds: ["pheasants-tears"],
+    tags: ["white", "natural", "amber wine", "Georgia"],
+    url: "#"
+  },
+  {
+    id: "n23",
+    title: "Château Musar Marks 95th Anniversary — Lebanon's Winemaking Legend Endures",
+    summary: "Château Musar is celebrating its 95th anniversary, a milestone made all the more extraordinary by the political and military turbulence Lebanon has endured. The winery, which continued producing wine through a 15-year civil war, has released a special 1995 retrospective vertical spanning five decades of Bekaa Valley vintages. The Hochar family describe each bottle as 'a testament to human persistence.'",
+    source: "Decanter",
+    date: "2026-03-21",
+    regionIds: ["bekaa-valley"],
+    producerIds: ["chateau-musar"],
+    tags: ["red", "anniversary", "Lebanon", "heritage"],
+    url: "#"
+  },
+  {
+    id: "n24",
+    title: "English Sparkling Wine Beats Champagne in Major London Blind Tasting",
+    summary: "For the fourth consecutive year, an English sparkling wine has topped a major blind tasting against prestigious Champagne houses. Nyetimber's 2018 Classic Cuvée outscored a panel of non-vintage Champagnes from five top houses, with judges praising its chalk-driven precision, fine bubbles, and brioche complexity. The result further cements England's place on the world sparkling wine map.",
+    source: "The Times",
+    date: "2026-03-19",
+    regionIds: ["english-sparkling", "champagne"],
+    producerIds: ["nyetimber"],
+    tags: ["sparkling", "award winner", "England"],
+    url: "#"
+  },
+  {
+    id: "n25",
+    title: "Wachau Smaragd Riesling: Austria's Gift to the World of White Wine",
+    summary: "F.X. Pichler and Domäne Wachau are leading a surge of international interest in Austria's Wachau Valley, where Grüner Veltliner and Riesling from impossibly steep Danube terraces are being recognized as among the world's finest white wines. Pichler's Unendlich Grüner Veltliner received a perfect score from two major critics, and allocation demand is outstripping supply.",
+    source: "Wine Spectator",
+    date: "2026-03-16",
+    regionIds: ["wachau"],
+    producerIds: ["fx-pichler", "domane-wachau"],
+    tags: ["white", "award winner", "Austria"],
+    url: "#"
+  },
+  {
+    id: "n26",
+    title: "Tokaj's Royal Tokaji Achieves Record Prices at Christie's Auction",
+    summary: "Royal Tokaji's 1999 Eszencia — one of the rarest and most extraordinary sweet wines on earth — fetched a record £18,000 per bottle at Christie's London spring auction, surpassing Sauternes and German TBA in the dessert wine category. The auction result signals growing global recognition for Hungary's historic wine treasure.",
+    source: "Christie's Wine Department",
+    date: "2026-03-14",
+    regionIds: ["tokaj"],
+    producerIds: ["royal-tokaji"],
+    tags: ["dessert", "luxury", "auction", "Hungary"],
+    url: "#"
+  },
+  {
+    id: "n27",
+    title: "China's Ao Yun Named 'Asian Wine of the Decade' at Hong Kong Fine Wine Forum",
+    summary: "LVMH's Himalayan wine project Ao Yun has been named Asian Wine of the Decade at the Hong Kong Fine Wine Forum, with judges citing its breathtaking 2,400-metre vineyard altitude, Bordeaux-trained precision, and the sheer audacity of producing world-class wine at the foot of the Himalayas. The 2020 vintage was poured alongside First Growth Bordeaux — and held its own.",
+    source: "South China Morning Post",
+    date: "2026-03-11",
+    regionIds: ["ningxia"],
+    producerIds: ["ao-yun"],
+    tags: ["red", "award winner", "China", "luxury"],
+    url: "#"
+  },
+  {
+    id: "n28",
+    title: "Swartland Revolution: Sadie Family Wines Cement South Africa's Natural Wine Crown",
+    summary: "Eben Sadie's Swartland Revolution — the annual winemaker gathering that sparked South Africa's natural wine movement — has celebrated its 15th edition, with the Sadie Family Wines' Columella 2023 receiving the highest score ever given to a South African red wine by Jancis Robinson MW. The Swartland is now attracting international winemakers who come to study its ancient dry-farmed Chenin and Syrah vines.",
+    source: "Jancis Robinson",
+    date: "2026-03-09",
+    regionIds: ["swartland"],
+    producerIds: ["sadie-family"],
+    tags: ["red", "natural", "award winner", "South Africa"],
+    url: "#"
+  },
+  {
+    id: "n29",
+    title: "Sicily's Etna Volcano Wines: The Burgundy of the Mediterranean",
+    summary: "Etna Rosso and Bianco continue their spectacular rise in global wine consciousness, with Benanti and a new generation of Etna producers now appearing on the lists of Michelin three-star restaurants worldwide. Wine critics are increasingly drawing parallels between Etna's volcanic terroir and Burgundy's limestone, calling Nerello Mascalese 'Pinot Noir's volcanic cousin.' The 2022 Etna vintage is being called historic.",
+    source: "Vinous",
+    date: "2026-03-07",
+    regionIds: ["sicily"],
+    producerIds: ["benanti", "frank-cornelissen"],
+    tags: ["red", "white", "Italy", "volcanic"],
+    url: "#"
+  },
+  {
+    id: "n30",
+    title: "Finger Lakes Riesling: America's Cool-Climate Wine Secret Breaks Through",
+    summary: "Dr. Konstantin Frank Winery and a new wave of Finger Lakes producers are finally receiving the global recognition wine insiders have long believed they deserve. The 2024 vintage — marked by a long, cool growing season and brilliant autumn — produced Rieslings that critics are comparing to the Mosel at its finest. The region's Dry Riesling was named 'Best American White Wine' by Wine & Spirits magazine.",
+    source: "Wine & Spirits",
+    date: "2026-03-04",
+    regionIds: ["finger-lakes"],
+    producerIds: ["dr-konstantin-frank"],
+    tags: ["white", "award winner", "USA", "Riesling"],
+    url: "#"
+  },
+  {
+    id: "n31",
+    title: "Valle de Guadalupe: Mexico's Wine Valley Conquers the World's Best Restaurants",
+    summary: "Baja California's Valle de Guadalupe is no longer a curiosity — it's a destination. L.A. Cetto and a new generation of artisan producers are landing their wines on the lists of New York and London's finest restaurants, while the valley's culinary scene — combining world-class food with rustic outdoor dining — has been featured in the New York Times, Condé Nast Traveller, and Food & Wine. The 2025 Nebbiolo from the region is drawing comparisons to Piedmont.",
+    source: "Food & Wine",
+    date: "2026-03-01",
+    regionIds: ["valle-de-guadalupe"],
+    producerIds: ["la-cetto"],
+    tags: ["red", "tourism", "Mexico", "emerging"],
+    url: "#"
+  },
+  {
+    id: "n32",
+    title: "Yarra Valley Named Australia's Most Exciting Wine Region for 2026",
+    summary: "The Yarra Valley has been named Australia's wine region of the year by James Halliday's Australian Wine Companion, with Giant Steps and a cluster of small biodynamic producers being cited for their extraordinary Pinot Noir and Chardonnay. The region's cooler vintages — favored by climate trends — are delivering wines of exceptional finesse that are winning major international trophies.",
+    source: "James Halliday Australian Wine Companion",
+    date: "2026-02-26",
+    regionIds: ["yarra-valley"],
+    producerIds: ["giant-steps"],
+    tags: ["red", "white", "award winner", "Australia"],
     url: "#"
   }
 ];

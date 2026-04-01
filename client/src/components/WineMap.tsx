@@ -1,4 +1,5 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
+import { regionBoundaries } from "@/data/regionBoundaries";
 
 // MapLibre GL JS loaded from CDN (global `maplibregl`)
 declare const maplibregl: typeof import("maplibre-gl").default;
@@ -14,6 +15,29 @@ interface WineMapProps {
   isDark: boolean;
 }
 
+const BOUNDARY_SOURCE = "region-boundaries";
+const BOUNDARY_FILL_LAYER = "region-fill";
+const BOUNDARY_LINE_LAYER = "region-line";
+const BOUNDARY_FILL_SELECTED = "region-fill-selected";
+const BOUNDARY_LINE_SELECTED = "region-line-selected";
+
+function buildGeoJSON(selectedId: string | null) {
+  return {
+    type: "FeatureCollection" as const,
+    features: regionBoundaries.map((rb) => ({
+      type: "Feature" as const,
+      properties: {
+        id: rb.id,
+        selected: rb.id === selectedId,
+      },
+      geometry: {
+        type: "Polygon" as const,
+        coordinates: rb.coordinates,
+      },
+    })),
+  };
+}
+
 export default function WineMap({
   producers,
   regions,
@@ -26,14 +50,13 @@ export default function WineMap({
   const map = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const regionMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const boundariesAdded = useRef(false);
 
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    const style = isDark
-      ? "https://tiles.openfreemap.org/styles/positron"
-      : "https://tiles.openfreemap.org/styles/positron";
+    const style = "https://tiles.openfreemap.org/styles/positron";
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -57,10 +80,144 @@ export default function WineMap({
       mapContainer.current.style.filter = "none";
     }
 
+    // Add GeoJSON boundary layers once map style loads
+    map.current.on("load", () => {
+      if (!map.current || boundariesAdded.current) return;
+      boundariesAdded.current = true;
+
+      const geojson = buildGeoJSON(selectedRegionId);
+
+      map.current.addSource(BOUNDARY_SOURCE, {
+        type: "geojson",
+        data: geojson as any,
+      });
+
+      // Unselected region fills — subtle, visible from zoom 4+
+      map.current.addLayer({
+        id: BOUNDARY_FILL_LAYER,
+        type: "fill",
+        source: BOUNDARY_SOURCE,
+        filter: ["!=", ["get", "selected"], true],
+        paint: {
+          "fill-color": "rgba(140, 40, 60, 0.08)",
+          "fill-opacity": [
+            "interpolate", ["linear"], ["zoom"],
+            3, 0,
+            4.5, 0.4,
+            7, 0.7,
+          ],
+        },
+      });
+
+      // Unselected region outlines
+      map.current.addLayer({
+        id: BOUNDARY_LINE_LAYER,
+        type: "line",
+        source: BOUNDARY_SOURCE,
+        filter: ["!=", ["get", "selected"], true],
+        paint: {
+          "line-color": "rgba(140, 40, 60, 0.45)",
+          "line-width": [
+            "interpolate", ["linear"], ["zoom"],
+            3, 0,
+            5, 1,
+            8, 2,
+          ],
+          "line-opacity": [
+            "interpolate", ["linear"], ["zoom"],
+            3, 0,
+            4.5, 0.5,
+            7, 0.8,
+          ],
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+      });
+
+      // Selected region fill — more prominent
+      map.current.addLayer({
+        id: BOUNDARY_FILL_SELECTED,
+        type: "fill",
+        source: BOUNDARY_SOURCE,
+        filter: ["==", ["get", "selected"], true],
+        paint: {
+          "fill-color": "rgba(140, 40, 60, 0.18)",
+          "fill-opacity": [
+            "interpolate", ["linear"], ["zoom"],
+            2, 0.3,
+            5, 0.7,
+            8, 0.85,
+          ],
+        },
+      });
+
+      // Selected region outline — bold
+      map.current.addLayer({
+        id: BOUNDARY_LINE_SELECTED,
+        type: "line",
+        source: BOUNDARY_SOURCE,
+        filter: ["==", ["get", "selected"], true],
+        paint: {
+          "line-color": "rgba(140, 40, 60, 0.85)",
+          "line-width": [
+            "interpolate", ["linear"], ["zoom"],
+            2, 1.5,
+            5, 2.5,
+            8, 3.5,
+          ],
+          "line-opacity": 1,
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+      });
+
+      // Click handler on boundary fills
+      map.current.on("click", BOUNDARY_FILL_LAYER, (e: any) => {
+        const feature = e.features?.[0];
+        if (feature?.properties?.id) {
+          onSelectRegion(feature.properties.id);
+        }
+      });
+      map.current.on("click", BOUNDARY_FILL_SELECTED, (e: any) => {
+        const feature = e.features?.[0];
+        if (feature?.properties?.id) {
+          onSelectRegion(feature.properties.id);
+        }
+      });
+
+      // Cursor change on hover over boundaries
+      map.current.on("mouseenter", BOUNDARY_FILL_LAYER, () => {
+        if (map.current) map.current.getCanvas().style.cursor = "pointer";
+      });
+      map.current.on("mouseleave", BOUNDARY_FILL_LAYER, () => {
+        if (map.current) map.current.getCanvas().style.cursor = "";
+      });
+      map.current.on("mouseenter", BOUNDARY_FILL_SELECTED, () => {
+        if (map.current) map.current.getCanvas().style.cursor = "pointer";
+      });
+      map.current.on("mouseleave", BOUNDARY_FILL_SELECTED, () => {
+        if (map.current) map.current.getCanvas().style.cursor = "";
+      });
+    });
+
     return () => {
+      boundariesAdded.current = false;
       map.current?.remove();
     };
   }, [isDark]);
+
+  // Update GeoJSON data when selection changes
+  useEffect(() => {
+    if (!map.current || !boundariesAdded.current) return;
+    const source = map.current.getSource(BOUNDARY_SOURCE) as any;
+    if (source?.setData) {
+      source.setData(buildGeoJSON(selectedRegionId));
+    }
+  }, [selectedRegionId]);
 
   // Region markers
   useEffect(() => {

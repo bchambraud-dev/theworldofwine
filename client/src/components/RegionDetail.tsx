@@ -46,7 +46,21 @@ export default function RegionDetail({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+        <div className="space-y-4">
+          {/* Hero Image */}
+          {region.image && (
+            <div className="relative w-full h-36 overflow-hidden">
+              <img
+                src={region.image}
+                alt={`${region.name} wine region`}
+                className="w-full h-full object-cover"
+                data-testid="region-hero-image"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+            </div>
+          )}
+
+          <div className="px-4 space-y-4">
           {/* Description */}
           <p className="text-xs leading-relaxed text-foreground/90">
             {region.description}
@@ -188,6 +202,7 @@ export default function RegionDetail({
               </div>
             </>
           )}
+          </div>
         </div>
       </ScrollArea>
     </div>

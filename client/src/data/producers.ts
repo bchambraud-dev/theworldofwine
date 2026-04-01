@@ -17,7 +17,7 @@ export interface Producer {
 }
 
 export const producers: Producer[] = [
-  // BORDEAUX
+  // ── BORDEAUX ─────────────────────────────────────────────────────────────────
   {
     id: "chateau-lafite",
     name: "Château Lafite Rothschild",
@@ -69,7 +69,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Plum", "Truffle", "Chocolate", "Velvet", "Mocha"],
     keyFacts: ["Nearly 100% Merlot", "Only 11.5 hectares of vines", "No official classification — universally acknowledged as supreme"]
   },
-  // BURGUNDY
+  // ── BURGUNDY ─────────────────────────────────────────────────────────────────
   {
     id: "drc",
     name: "Domaine de la Romanée-Conti",
@@ -104,7 +104,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Wild Strawberry", "Forest Floor", "Spice", "Iron", "Ethereal"],
     keyFacts: ["Strict biodynamic farming", "Yields often 50% below AOC maximum", "Portfolio of Grand Cru and Premier Cru holdings"]
   },
-  // CHAMPAGNE
+  // ── CHAMPAGNE ────────────────────────────────────────────────────────────────
   {
     id: "dom-perignon",
     name: "Dom Pérignon",
@@ -156,7 +156,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Apple", "Brioche", "Walnut", "Spice", "Cream"],
     keyFacts: ["James Bond's Champagne of choice", "Reserve wines aged in magnums under cork", "Still family-controlled after nearly 200 years"]
   },
-  // RHÔNE VALLEY
+  // ── RHÔNE VALLEY ─────────────────────────────────────────────────────────────
   {
     id: "guigal",
     name: "E. Guigal",
@@ -191,7 +191,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Blackberry", "Leather", "Pepper", "Herb", "Mineral"],
     keyFacts: ["All labels include Braille", "Fully biodynamic across all vineyards", "Holdings spanning the entire Rhône, plus Australia and Portugal"]
   },
-  // TUSCANY
+  // ── TUSCANY ──────────────────────────────────────────────────────────────────
   {
     id: "sassicaia",
     name: "Tenuta San Guido (Sassicaia)",
@@ -243,7 +243,25 @@ export const producers: Producer[] = [
     tasteProfile: ["Sour Cherry", "Leather", "Tea", "Tobacco", "Earth"],
     keyFacts: ["Invented Brunello di Montalcino", "The 1888 and 1891 Riservas are among Italy's most legendary bottles", "Only produced in the best vintages"]
   },
-  // PIEDMONT
+  // ── SICILY ───────────────────────────────────────────────────────────────────
+  {
+    id: "benanti",
+    name: "Benanti",
+    regionId: "sicily",
+    country: "Italy",
+    lat: 37.77,
+    lng: 15.09,
+    description: "The Benanti family were pioneers of the Etna wine revolution, bottling single-vineyard Etna Rosso and Bianco when no one else believed the volcanic mountain could produce world-class wine. Founded by Giuseppe Benanti in 1988, the estate farms pre-phylloxera Nerello Mascalese vines at up to 900 metres on Etna's southeastern slopes. Their Rovittello and Serra della Contessa crus are benchmarks for the appellation.",
+    founded: "1988",
+    flagshipWine: "Etna Rosso Serra della Contessa",
+    wineType: ["red", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Wild Cherry", "Blood Orange", "Volcanic Ash", "Rose Petal", "Mineral"],
+    keyFacts: ["Pioneers of the Etna wine renaissance from 1988", "Farms pre-phylloxera vines at 600–900m on the volcano", "Serra della Contessa (red) and Pietra Marina (white) are their benchmark single-vineyards"]
+  },
+  // ── PIEDMONT ─────────────────────────────────────────────────────────────────
   {
     id: "giacomo-conterno",
     name: "Giacomo Conterno",
@@ -278,7 +296,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Rose", "Cherry", "Licorice", "Mineral", "Smoke"],
     keyFacts: ["Five generations of winemaking", "Introduced French oak barrels to Piedmont", "Owns vineyards in Barolo, Barbaresco, and Tuscany"]
   },
-  // RIOJA
+  // ── RIOJA ────────────────────────────────────────────────────────────────────
   {
     id: "lopez-de-heredia",
     name: "López de Heredia",
@@ -313,7 +331,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Dark Fruit", "Cedar", "Leather", "Spice", "Tobacco"],
     keyFacts: ["Único ages 10+ years before release", "Spain's most iconic wine estate", "Also produces Valbuena (5-year release) and Alión"]
   },
-  // NAPA VALLEY
+  // ── NAPA VALLEY ──────────────────────────────────────────────────────────────
   {
     id: "opus-one",
     name: "Opus One",
@@ -365,7 +383,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Blackcurrant", "Iron", "Herb", "Cedar", "Mineral"],
     keyFacts: ["Monte Bello placed #1 in the 2006 Judgment of Paris re-tasting", "Full ingredient list on every label since 1970s", "Vineyards at 400m elevation in the Santa Cruz Mountains"]
   },
-  // SONOMA
+  // ── SONOMA ───────────────────────────────────────────────────────────────────
   {
     id: "kistler",
     name: "Kistler Vineyards",
@@ -383,7 +401,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Lemon Curd", "Hazelnut", "Mineral", "White Flowers", "Butter"],
     keyFacts: ["Burgundian approach to California Chardonnay", "Multiple single-vineyard designations", "One of the most allocated wines in America"]
   },
-  // BAROSSA VALLEY
+  // ── BAROSSA VALLEY ───────────────────────────────────────────────────────────
   {
     id: "penfolds",
     name: "Penfolds",
@@ -418,7 +436,25 @@ export const producers: Producer[] = [
     tasteProfile: ["Plum", "Spice", "Licorice", "Mint", "Dark Earth"],
     keyFacts: ["Hill of Grace vines are 160+ years old", "Six generations of family winemaking", "Certified biodynamic"]
   },
-  // MARLBOROUGH
+  // ── YARRA VALLEY ─────────────────────────────────────────────────────────────
+  {
+    id: "giant-steps",
+    name: "Giant Steps",
+    regionId: "yarra-valley",
+    country: "Australia",
+    lat: -37.67,
+    lng: 145.54,
+    description: "Giant Steps is one of the Yarra Valley's most acclaimed producers, crafting single-vineyard Pinot Noir and Chardonnay of exceptional precision from hillside sites across the valley. Founded by Phil Sexton, the winery is known for its laser-focused, single-vineyard approach that captures the individual character of sites like Wombat Creek, Sexton, and Tarraford. Their wines have established a benchmark for cool-climate Australian Pinot Noir.",
+    founded: "1997",
+    flagshipWine: "Wombat Creek Vineyard Pinot Noir",
+    wineType: ["red", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Red Cherry", "Raspberry", "Forest Floor", "Spice", "Fine Silk"],
+    keyFacts: ["Focus on single-vineyard Pinot Noir and Chardonnay", "Multiple Yarra Valley vineyard sources with distinct characters", "Acclaimed for capturing cool-climate Yarra terroir expression"]
+  },
+  // ── MARLBOROUGH ──────────────────────────────────────────────────────────────
   {
     id: "cloudy-bay",
     name: "Cloudy Bay",
@@ -436,7 +472,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Passionfruit", "Grapefruit", "Gooseberry", "Herb", "Mineral"],
     keyFacts: ["Put New Zealand wine on the global map", "Named after the bay at the north end of the South Island", "Now part of the LVMH luxury group"]
   },
-  // MOSEL
+  // ── MOSEL ────────────────────────────────────────────────────────────────────
   {
     id: "jj-prum",
     name: "Joh. Jos. Prüm",
@@ -471,7 +507,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Lime Zest", "Apricot", "Petrol", "Wet Stone", "Honey"],
     keyFacts: ["Most expensive white wine in the world", "Scharzhofberg vineyard dates to Roman times", "TBA produced only in exceptional years — sometimes just 100-200 bottles"]
   },
-  // DOURO
+  // ── DOURO ────────────────────────────────────────────────────────────────────
   {
     id: "taylors",
     name: "Taylor's Port",
@@ -489,7 +525,114 @@ export const producers: Producer[] = [
     tasteProfile: ["Blackberry", "Chocolate", "Spice", "Plum", "Cedar"],
     keyFacts: ["Family-owned for over 300 years", "Quinta de Vargellas is one of the Douro's finest estates", "Their 20-Year Tawny is considered the benchmark"]
   },
-  // STELLENBOSCH
+  // ── WACHAU ───────────────────────────────────────────────────────────────────
+  {
+    id: "domane-wachau",
+    name: "Domäne Wachau",
+    regionId: "wachau",
+    country: "Austria",
+    lat: 48.38,
+    lng: 15.53,
+    description: "Domäne Wachau is the largest and most important wine producer in the Wachau, a cooperative estate managing over 440 hectares of terraced hillside vineyards along the Danube. Their Grüner Veltliner and Riesling Smaragd bottlings — particularly from celebrated single vineyards like Achleiten, Kellerberg, and Singerriedel — are reference-point examples of Wachau's singular terroir. Biodynamic farming is increasingly practiced across their estate.",
+    founded: "1938",
+    flagshipWine: "Riesling Smaragd Singerriedel",
+    wineType: ["white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Lime", "White Pepper", "Stone Fruit", "Mineral", "Herb"],
+    keyFacts: ["Manages 440+ hectares across the Wachau's finest terraced sites", "Singerriedel and Achleiten are among Austria's most celebrated single vineyards", "Produces all three Wachau styles: Steinfeder, Federspiel, and Smaragd"]
+  },
+  {
+    id: "fx-pichler",
+    name: "F.X. Pichler",
+    regionId: "wachau",
+    country: "Austria",
+    lat: 48.40,
+    lng: 15.46,
+    description: "F.X. Pichler is perhaps the single most celebrated name in Austrian white wine. Franz Xaver Pichler created a legend with his M-numbered reserve bottlings and his uncompromising vision for Grüner Veltliner and Riesling of almost shocking concentration, richness, and longevity. Their Unendlich ('Infinity') and M-designation wines are among the most sought-after Austrian wines, representing the pinnacle of Wachau terroir.",
+    founded: "1968",
+    flagshipWine: "Grüner Veltliner Smaragd Unendlich",
+    wineType: ["white"],
+    priceRange: "luxury",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["White Pepper", "Grapefruit", "Stone Fruit", "Cream", "Mineral Intensity"],
+    keyFacts: ["Unendlich (Infinity) is Pichler's greatest expression", "M-designation wines represent the most selective picking", "Among the most celebrated white wine producers in the world"]
+  },
+  // ── TOKAJ ────────────────────────────────────────────────────────────────────
+  {
+    id: "royal-tokaji",
+    name: "Royal Tokaji",
+    regionId: "tokaj",
+    country: "Hungary",
+    lat: 48.13,
+    lng: 21.41,
+    description: "Royal Tokaji was founded in 1990 by a group including wine writer Hugh Johnson, with the mission of restoring Tokaj's historic greatness after decades of communist-era decline. Their single-vineyard Aszú wines — from first-classified sites like Nyulászó, Mézes Mály, and Betsek — are widely considered the finest produced in the modern era. Royal Tokaji's 6 Puttonyos and Essencia bottlings have redefined expectations for Hungarian sweet wine on the world stage.",
+    founded: "1990",
+    flagshipWine: "Royal Tokaji Aszú 6 Puttonyos",
+    wineType: ["dessert", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Apricot Jam", "Saffron", "Orange Marmalade", "Ginger", "Razor Acidity"],
+    keyFacts: ["Founded with Hugh Johnson's involvement to restore Tokaj's reputation", "Farms first-classified crus: Nyulászó, Mézes Mály, and Betsek", "The 6 Puttonyos is one of the world's great dessert wines"]
+  },
+  // ── KAKHETI (GEORGIA) ────────────────────────────────────────────────────────
+  {
+    id: "pheasants-tears",
+    name: "Pheasant's Tears",
+    regionId: "kakheti",
+    country: "Georgia",
+    lat: 41.74,
+    lng: 45.75,
+    description: "Pheasant's Tears was founded in 2007 by American painter John Wurdeman and Georgian winemaker Gela Patalishvili in the ancient village of Sighnaghi, Kakheti. Their wines — made using traditional qvevri clay vessel fermentation with extended skin contact — are among the most celebrated natural wines in the world, and played a pivotal role in sparking global interest in Georgian winemaking. Their Rkatsiteli amber and Saperavi red have appeared on the world's most adventurous wine lists.",
+    founded: "2007",
+    flagshipWine: "Rkatsiteli Qvevri",
+    wineType: ["white", "red"],
+    priceRange: "mid",
+    isNatural: true,
+    isAwardWinner: true,
+    tasteProfile: ["Dried Apricot", "Chamomile", "Walnut", "Tannic Texture", "Oxidative Richness"],
+    keyFacts: ["Named after the Georgian legend that pheasants cry tears of wine", "Fermentation and aging entirely in buried qvevri clay vessels", "John Wurdeman also founded the Tbilisi Wine Academy"]
+  },
+  // ── SANTORINI (GREECE) ───────────────────────────────────────────────────────
+  {
+    id: "domaine-sigalas",
+    name: "Domaine Sigalas",
+    regionId: "santorini",
+    country: "Greece",
+    lat: 36.42,
+    lng: 25.38,
+    description: "Domaine Sigalas, founded by Paris Sigalas in 1991, is the finest ambassador for Santorini's extraordinary Assyrtiko grape. Paris Sigalas, a mathematics professor turned winemaker, crafts Assyrtiko of electric acidity, volcanic minerality, and remarkable concentration from bush vines trained in the traditional kouloura basket formation. Their barrel-fermented Kavalieros single-vineyard bottling is a landmark Greek white wine.",
+    founded: "1991",
+    flagshipWine: "Sigalas Kavalieros Assyrtiko",
+    wineType: ["white", "dessert"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Lemon Zest", "Sea Salt", "Volcanic Stone", "White Peach", "Flint"],
+    keyFacts: ["Paris Sigalas was a mathematics professor before dedicating himself to wine", "Kavalieros single-vineyard Assyrtiko is one of Greece's finest whites", "Also produces Vinsanto from sun-dried Assyrtiko grapes — a Santorini tradition"]
+  },
+  // ── ENGLISH SPARKLING ────────────────────────────────────────────────────────
+  {
+    id: "nyetimber",
+    name: "Nyetimber",
+    regionId: "english-sparkling",
+    country: "England",
+    lat: 51.01,
+    lng: -0.57,
+    description: "Nyetimber is the pioneer of English sparkling wine. Founded in 1988 by American couple Sandy and Stuart Moss, who recognized that the Sussex chalk was identical to Champagne's, Nyetimber's 1992 Blanc de Blancs became the first English sparkling wine to beat Champagne in a major international competition. Today, under head winemaker Cherie Spriggs — named the world's best sparkling wine producer by Champagne & Sparkling Wine World Championships — Nyetimber is one of the world's great sparkling wine houses.",
+    founded: "1988",
+    flagshipWine: "Nyetimber Classic Cuvée",
+    wineType: ["sparkling"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Green Apple", "Brioche", "Citrus Zest", "Chalk Minerality", "Almond"],
+    keyFacts: ["Founded 1988 — the pioneer of English fine sparkling wine", "Winemaker Cherie Spriggs named world's best sparkling wine producer", "Consistently beats Champagne in major blind tastings"]
+  },
+  // ── STELLENBOSCH ─────────────────────────────────────────────────────────────
   {
     id: "kanonkop",
     name: "Kanonkop",
@@ -507,7 +650,25 @@ export const producers: Producer[] = [
     tasteProfile: ["Dark Berry", "Smoke", "Chocolate", "Earth", "Plum"],
     keyFacts: ["Named International Winery of the Year multiple times", "The benchmark for South African Pinotage", "Paul Sauer is a Bordeaux-style blend of Cab, Merlot, and Cab Franc"]
   },
-  // MENDOZA
+  // ── SWARTLAND ────────────────────────────────────────────────────────────────
+  {
+    id: "sadie-family",
+    name: "Sadie Family Wines",
+    regionId: "swartland",
+    country: "South Africa",
+    lat: -33.32,
+    lng: 18.65,
+    description: "Eben Sadie is the most influential winemaker in South Africa and the architect of the Swartland Revolution. His Columella (a Syrah-based blend) and Palladius (a white blend anchored by old-vine Chenin Blanc) are both ranked among the top 100 wines in the world. Sadie sources from very old, unirrigated vines on ancient Swartland soils, practicing minimal intervention and producing wines of extraordinary complexity.",
+    founded: "2000",
+    flagshipWine: "Columella",
+    wineType: ["red", "white"],
+    priceRange: "luxury",
+    isNatural: true,
+    isAwardWinner: true,
+    tasteProfile: ["Dark Olive", "Dark Berry", "Iron", "Dried Herbs", "Salty Minerality"],
+    keyFacts: ["Columella and Palladius are ranked among the world's top 100 wines", "Farms from very old (50–100 year) unirrigated Chenin, Syrah, and Cinsault vines", "Eben Sadie co-founded the Swartland Revolution to champion minimal-intervention farming"]
+  },
+  // ── MENDOZA ──────────────────────────────────────────────────────────────────
   {
     id: "catena-zapata",
     name: "Catena Zapata",
@@ -525,7 +686,42 @@ export const producers: Producer[] = [
     tasteProfile: ["Plum", "Violet", "Dark Chocolate", "Spice", "Earth"],
     keyFacts: ["Pioneered high-altitude Malbec in the Uco Valley", "Vineyards up to 1,500 meters elevation", "Mayan pyramid-inspired winery in Agrelo"]
   },
-  // WILLAMETTE VALLEY
+  // ── MAIPO & COLCHAGUA (CHILE) ────────────────────────────────────────────────
+  {
+    id: "don-melchor",
+    name: "Concha y Toro (Don Melchor)",
+    regionId: "maipo-colchagua",
+    country: "Chile",
+    lat: -33.63,
+    lng: -70.76,
+    description: "Concha y Toro is South America's largest wine company, but their icon wine Don Melchor is anything but mass-market. From the Puente Alto vineyard in Maipo Alto — some of Chile's finest Cabernet Sauvignon terroir at the foot of the Andes — Don Melchor competes with the world's greatest Cabernets. Decanted alongside Pétrus in the late 1970s by a panel of French experts, it was the wine that put Chile on the fine wine map.",
+    founded: "1883",
+    flagshipWine: "Don Melchor Cabernet Sauvignon",
+    wineType: ["red", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Cassis", "Eucalyptus", "Cedar", "Dark Chocolate", "Andean Mineral"],
+    keyFacts: ["Don Melchor from Maipo Alto is Chile's most iconic single-vineyard Cabernet", "Concha y Toro is South America's largest wine producer", "Consistently ranked in the world's top 100 wines"]
+  },
+  {
+    id: "montes",
+    name: "Montes",
+    regionId: "maipo-colchagua",
+    country: "Chile",
+    lat: -34.65,
+    lng: -71.20,
+    description: "Montes was founded in 1988 by Aurelio Montes Sr. with a radical ambition: to prove that Chile could produce world-class premium wine. Their Montes Alpha M and Purple Angel (Carménère) are global ambassadors for Chilean fine wine. The winery's hilltop chapel above the Apalta vineyard in Colchagua has become an iconic Chilean landmark.",
+    founded: "1988",
+    flagshipWine: "Montes Alpha M",
+    wineType: ["red", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Dark Plum", "Cassis", "Mocha", "Dark Chocolate", "Velvety Tannins"],
+    keyFacts: ["Montes Alpha M is Chile's flagship Bordeaux-style blend", "Purple Angel is one of the world's finest pure Carménère wines", "Apalta vineyard in Colchagua is recognized as one of South America's great terroirs"]
+  },
+  // ── WILLAMETTE VALLEY ────────────────────────────────────────────────────────
   {
     id: "domaine-drouhin",
     name: "Domaine Drouhin Oregon",
@@ -543,7 +739,97 @@ export const producers: Producer[] = [
     tasteProfile: ["Cherry", "Earth", "Spice", "Silk", "Mushroom"],
     keyFacts: ["Burgundy meets Oregon — Drouhin family investment", "Gravity-flow, four-level winery", "Véronique Boss-Drouhin is one of Oregon's most respected winemakers"]
   },
-  // LOIRE VALLEY
+  // ── FINGER LAKES ─────────────────────────────────────────────────────────────
+  {
+    id: "dr-konstantin-frank",
+    name: "Dr. Konstantin Frank Winery",
+    regionId: "finger-lakes",
+    country: "USA",
+    lat: 42.57,
+    lng: -77.05,
+    description: "Dr. Konstantin Frank is the founding father of the Finger Lakes wine industry. In 1962, the Ukrainian-born viticulture professor defied the conventional wisdom that European Vitis vinifera grapes could not survive New York winters, planting the first successful Riesling and Chardonnay in the region. Today, under the third generation of the Frank family, the winery produces some of America's finest Riesling — dry, off-dry, and late harvest — alongside compelling Cabernet Franc and sparkling wine.",
+    founded: "1962",
+    flagshipWine: "Dry Riesling",
+    wineType: ["white", "red", "sparkling", "dessert"],
+    priceRange: "mid",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Lime", "Green Apple", "Slate", "Ginger", "Electric Acidity"],
+    keyFacts: ["Planted the first Vitis vinifera in the Finger Lakes region in 1962", "Proved European grapes could thrive in upstate New York's harsh winters", "Third-generation family winery still leading Finger Lakes quality"]
+  },
+  // ── OKANAGAN VALLEY ──────────────────────────────────────────────────────────
+  {
+    id: "mission-hill",
+    name: "Mission Hill Family Estate",
+    regionId: "okanagan-valley",
+    country: "Canada",
+    lat: 49.87,
+    lng: -119.59,
+    description: "Mission Hill is the Okanagan Valley's most architecturally spectacular and internationally acclaimed winery. Founded by Anthony von Mandl in 1981, the estate was radically redeveloped into a Tuscan-inspired hilltop complex overlooking Okanagan Lake. Their Oculus — a Merlot-dominant Bordeaux blend — is Canada's most celebrated wine, frequently featuring in international fine wine competitions. Mission Hill's Perpetua Chardonnay and Quatrain red blend are also globally recognized.",
+    founded: "1981",
+    flagshipWine: "Oculus",
+    wineType: ["red", "white"],
+    priceRange: "premium",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Dark Plum", "Black Cherry", "Cedar", "Vanilla", "Silky Tannins"],
+    keyFacts: ["Oculus is Canada's most internationally recognized wine", "Stunning Tuscan-inspired hilltop winery above Okanagan Lake", "Also produces Icewine from naturally frozen Riesling and Vidal grapes"]
+  },
+  // ── VALLE DE GUADALUPE ───────────────────────────────────────────────────────
+  {
+    id: "la-cetto",
+    name: "L.A. Cetto",
+    regionId: "valle-de-guadalupe",
+    country: "Mexico",
+    lat: 32.07,
+    lng: -116.58,
+    description: "L.A. Cetto is the oldest and largest premium winery in Mexico, producing over 5 million bottles annually from its Baja California vineyards. Founded by the Cetto family — Italian immigrants who arrived in Mexico in the early 20th century — the winery was instrumental in establishing Baja California as Mexico's premier wine region. Their Nebbiolo and Petite Sirah have garnered particular international attention, and their limited-production Reserva wines compete on the world stage.",
+    founded: "1926",
+    flagshipWine: "L.A. Cetto Reserva Nebbiolo",
+    wineType: ["red", "white"],
+    priceRange: "mid",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Dark Cherry", "Dried Rose", "Earth", "Tobacco", "Leather"],
+    keyFacts: ["Oldest premium winery in Mexico — founded by Italian immigrants", "One of the first to demonstrate that Nebbiolo thrives in Baja's Mediterranean climate", "Helped establish Mexico as a serious wine-producing nation internationally"]
+  },
+  // ── NINGXIA (CHINA) ──────────────────────────────────────────────────────────
+  {
+    id: "ao-yun",
+    name: "Ao Yun",
+    regionId: "ningxia",
+    country: "China",
+    lat: 28.40,
+    lng: 99.07,
+    description: "Ao Yun ('flying above the clouds') is LVMH's breathtaking wine project in the foothills of the Himalayas in Yunnan Province, not far from Tibet. Planted at 2,200–2,600 metres above sea level — among the highest commercial vineyards in the world — the estate produces a Cabernet Sauvignon-dominant blend of extraordinary concentration and elegance. Although physically located in Yunnan rather than Ningxia, Ao Yun represents China's most ambitious fine wine statement and has been received with astonishment by the global wine world since its debut 2013 vintage.",
+    founded: "2013",
+    flagshipWine: "Ao Yun",
+    wineType: ["red"],
+    priceRange: "luxury",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Blackcurrant", "Dark Plum", "Floral", "Himalayan Mineral", "Silk"],
+    keyFacts: ["LVMH's flagship Chinese fine wine project, launched 2013", "Vineyards at 2,200–2,600m in the Himalayas — among the world's highest", "Debut 2013 vintage received near-perfect scores from major critics"]
+  },
+  // ── BEKAA VALLEY (LEBANON) ───────────────────────────────────────────────────
+  {
+    id: "chateau-musar",
+    name: "Château Musar",
+    regionId: "bekaa-valley",
+    country: "Lebanon",
+    lat: 33.89,
+    lng: 35.66,
+    description: "Château Musar is one of the wine world's most extraordinary stories. Founded by Gaston Hochar in 1930 and brought to international fame by his son Serge Hochar, the winery continued producing wine through Lebanon's 15-year civil war — missing only two vintages. Their signature red blend of Cabernet Sauvignon, Cinsault, and Carignan is vinified in an oxidative, deliberately unconventional style that produces wines of haunting complexity, capable of aging for 50+ years. Serge Hochar, who died in 2014, was one of the wine world's greatest characters.",
+    founded: "1930",
+    flagshipWine: "Château Musar Rouge",
+    wineType: ["red", "white"],
+    priceRange: "mid",
+    isNatural: false,
+    isAwardWinner: true,
+    tasteProfile: ["Dried Fruit", "Tobacco", "Earth", "Cedar", "Oxidative Complexity"],
+    keyFacts: ["Continued producing through Lebanon's 1975–1990 civil war — missing only 2 vintages", "Serge Hochar was awarded Decanter Man of the Year in 1984", "Musar wines routinely age 30–50+ years — among the longest-lived reds in the world"]
+  },
+  // ── LOIRE VALLEY ─────────────────────────────────────────────────────────────
   {
     id: "domaine-huet",
     name: "Domaine Huet",
@@ -561,7 +847,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Quince", "Honey", "Beeswax", "Citrus", "Mineral"],
     keyFacts: ["Biodynamic pioneer in the Loire", "Three legendary Vouvray parcels", "Wines can age for 50+ years"]
   },
-  // ALSACE
+  // ── ALSACE ───────────────────────────────────────────────────────────────────
   {
     id: "trimbach",
     name: "Trimbach",
@@ -579,7 +865,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Lime", "Petrol", "Mineral", "Flint", "Precision"],
     keyFacts: ["13 generations of family winemaking", "Clos Sainte Hune is just 1.67 hectares", "Pioneered the bone-dry Alsatian style"]
   },
-  // PRIORAT
+  // ── PRIORAT ──────────────────────────────────────────────────────────────────
   {
     id: "alvaro-palacios",
     name: "Álvaro Palacios",
@@ -597,7 +883,7 @@ export const producers: Producer[] = [
     tasteProfile: ["Wild Berry", "Mineral", "Licorice", "Smoke", "Floral"],
     keyFacts: ["Key figure in Priorat's 1990s renaissance", "L'Ermita vines are 80+ years old on pure slate", "Also produces legendary wines in Bierzo (Descendientes de J. Palacios)"]
   },
-  // CENTRAL OTAGO
+  // ── CENTRAL OTAGO ────────────────────────────────────────────────────────────
   {
     id: "felton-road",
     name: "Felton Road",
@@ -615,15 +901,15 @@ export const producers: Producer[] = [
     tasteProfile: ["Dark Cherry", "Thyme", "Earth", "Mineral", "Spice"],
     keyFacts: ["Certified biodynamic", "Single-block wines show extreme site expression", "Winemaker Blair Walter crafts some of the Southern Hemisphere's finest Pinots"]
   },
-  // NATURAL WINE PRODUCERS
+  // ── NATURAL WINE PRODUCERS ────────────────────────────────────────────────────
   {
     id: "frank-cornelissen",
     name: "Frank Cornelissen",
-    regionId: "tuscany",
+    regionId: "sicily",
     country: "Italy",
     lat: 37.75,
     lng: 15.00,
-    description: "Though technically on Mount Etna in Sicily, Frank Cornelissen is one of the natural wine world's most uncompromising figures. A Belgian who fell in love with Etna's volcanic terroir, he farms pre-phylloxera vines and vinifies without any additions — no sulfites, no temperature control, no new oak. Munjebel and Magma are raw, thrilling expressions of volcanic Nerello Mascalese.",
+    description: "Frank Cornelissen is one of the natural wine world's most uncompromising figures. A Belgian who fell in love with Etna's volcanic terroir, he farms pre-phylloxera vines and vinifies without any additions — no sulfites, no temperature control, no new oak. Munjebel and Magma are raw, thrilling expressions of volcanic Nerello Mascalese.",
     founded: "2001",
     flagshipWine: "Munjebel Rosso",
     wineType: ["red", "white", "rosé"],

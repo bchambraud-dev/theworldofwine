@@ -18,7 +18,7 @@ export const wineRegions: WineRegion[] = [
   // ── FRANCE ──────────────────────────────────────────────────────────────────
   {
     id: "bordeaux",
-    image: "/regions/bordeaux.png",
+    image: "./regions/bordeaux.png",
     name: "Bordeaux",
     country: "France",
     lat: 44.84,
@@ -38,7 +38,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "burgundy",
-    image: "/regions/burgundy.png",
+    image: "./regions/burgundy.png",
     name: "Burgundy",
     country: "France",
     lat: 47.04,
@@ -58,7 +58,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "champagne",
-    image: "/regions/champagne.png",
+    image: "./regions/champagne.png",
     name: "Champagne",
     country: "France",
     lat: 49.05,
@@ -78,7 +78,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "rhone",
-    image: "/regions/rhone.png",
+    image: "./regions/rhone.png",
     name: "Rhône Valley",
     country: "France",
     lat: 44.13,
@@ -98,7 +98,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "loire",
-    image: "/regions/loire.png",
+    image: "./regions/loire.png",
     name: "Loire Valley",
     country: "France",
     lat: 47.38,
@@ -118,7 +118,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "alsace",
-    image: "/regions/alsace.png",
+    image: "./regions/alsace.png",
     name: "Alsace",
     country: "France",
     lat: 48.17,
@@ -139,7 +139,7 @@ export const wineRegions: WineRegion[] = [
   // ── ITALY ────────────────────────────────────────────────────────────────────
   {
     id: "tuscany",
-    image: "/regions/tuscany.png",
+    image: "./regions/tuscany.png",
     name: "Tuscany",
     country: "Italy",
     lat: 43.35,
@@ -159,7 +159,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "piedmont",
-    image: "/regions/piedmont.png",
+    image: "./regions/piedmont.png",
     name: "Piedmont",
     country: "Italy",
     lat: 44.69,
@@ -179,7 +179,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "sicily",
-    image: "/regions/sicily.png",
+    image: "./regions/sicily.png",
     name: "Sicily",
     country: "Italy",
     lat: 37.73,
@@ -200,7 +200,7 @@ export const wineRegions: WineRegion[] = [
   // ── SPAIN ────────────────────────────────────────────────────────────────────
   {
     id: "rioja",
-    image: "/regions/rioja.png",
+    image: "./regions/rioja.png",
     name: "Rioja",
     country: "Spain",
     lat: 42.47,
@@ -220,7 +220,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "priorat",
-    image: "/regions/priorat.png",
+    image: "./regions/priorat.png",
     name: "Priorat",
     country: "Spain",
     lat: 41.20,
@@ -241,7 +241,7 @@ export const wineRegions: WineRegion[] = [
   // ── GERMANY ─────────────────────────────────────────────────────────────────
   {
     id: "mosel",
-    image: "/regions/mosel.png",
+    image: "./regions/mosel.png",
     name: "Mosel",
     country: "Germany",
     lat: 49.97,
@@ -262,7 +262,7 @@ export const wineRegions: WineRegion[] = [
   // ── PORTUGAL ─────────────────────────────────────────────────────────────────
   {
     id: "douro",
-    image: "/regions/douro.png",
+    image: "./regions/douro.png",
     name: "Douro Valley",
     country: "Portugal",
     lat: 41.16,
@@ -283,7 +283,7 @@ export const wineRegions: WineRegion[] = [
   // ── AUSTRIA ──────────────────────────────────────────────────────────────────
   {
     id: "wachau",
-    image: "/regions/wachau.png",
+    image: "./regions/wachau.png",
     name: "Wachau",
     country: "Austria",
     lat: 48.37,
@@ -304,7 +304,7 @@ export const wineRegions: WineRegion[] = [
   // ── HUNGARY ──────────────────────────────────────────────────────────────────
   {
     id: "tokaj",
-    image: "/regions/tokaj.png",
+    image: "./regions/tokaj.png",
     name: "Tokaj",
     country: "Hungary",
     lat: 48.12,
@@ -325,7 +325,7 @@ export const wineRegions: WineRegion[] = [
   // ── CROATIA ──────────────────────────────────────────────────────────────────
   {
     id: "istria-dalmatia",
-    image: "/regions/istria-dalmatia.png",
+    image: "./regions/istria-dalmatia.png",
     name: "Istria & Dalmatia",
     country: "Croatia",
     lat: 43.50,
@@ -346,7 +346,7 @@ export const wineRegions: WineRegion[] = [
   // ── GEORGIA ──────────────────────────────────────────────────────────────────
   {
     id: "kakheti",
-    image: "/regions/kakheti.png",
+    image: "./regions/kakheti.png",
     name: "Kakheti",
     country: "Georgia",
     lat: 41.65,
@@ -367,7 +367,7 @@ export const wineRegions: WineRegion[] = [
   // ── GREECE ───────────────────────────────────────────────────────────────────
   {
     id: "santorini",
-    image: "/regions/santorini.png",
+    image: "./regions/santorini.png",
     name: "Santorini",
     country: "Greece",
     lat: 36.39,
@@ -388,7 +388,7 @@ export const wineRegions: WineRegion[] = [
   // ── ENGLAND ──────────────────────────────────────────────────────────────────
   {
     id: "english-sparkling",
-    image: "/regions/english-sparkling.png",
+    image: "./regions/english-sparkling.png",
     name: "English Sparkling Wine",
     country: "England",
     lat: 51.05,
@@ -409,7 +409,7 @@ export const wineRegions: WineRegion[] = [
   // ── SOUTH AFRICA ─────────────────────────────────────────────────────────────
   {
     id: "stellenbosch",
-    image: "/regions/stellenbosch.png",
+    image: "./regions/stellenbosch.png",
     name: "Stellenbosch",
     country: "South Africa",
     lat: -33.93,
@@ -429,7 +429,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "swartland",
-    image: "/regions/swartland.png",
+    image: "./regions/swartland.png",
     name: "Swartland",
     country: "South Africa",
     lat: -33.45,
@@ -450,7 +450,7 @@ export const wineRegions: WineRegion[] = [
   // ── ARGENTINA ────────────────────────────────────────────────────────────────
   {
     id: "mendoza",
-    image: "/regions/mendoza.png",
+    image: "./regions/mendoza.png",
     name: "Mendoza",
     country: "Argentina",
     lat: -33.00,
@@ -471,7 +471,7 @@ export const wineRegions: WineRegion[] = [
   // ── CHILE ────────────────────────────────────────────────────────────────────
   {
     id: "maipo-colchagua",
-    image: "/regions/maipo-colchagua.png",
+    image: "./regions/maipo-colchagua.png",
     name: "Maipo & Colchagua Valleys",
     country: "Chile",
     lat: -34.50,
@@ -492,7 +492,7 @@ export const wineRegions: WineRegion[] = [
   // ── USA ──────────────────────────────────────────────────────────────────────
   {
     id: "napa-valley",
-    image: "/regions/napa-valley.png",
+    image: "./regions/napa-valley.png",
     name: "Napa Valley",
     country: "USA",
     lat: 38.50,
@@ -512,7 +512,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "sonoma",
-    image: "/regions/sonoma.png",
+    image: "./regions/sonoma.png",
     name: "Sonoma County",
     country: "USA",
     lat: 38.48,
@@ -532,7 +532,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "willamette",
-    image: "/regions/willamette.png",
+    image: "./regions/willamette.png",
     name: "Willamette Valley",
     country: "USA",
     lat: 45.12,
@@ -552,7 +552,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "finger-lakes",
-    image: "/regions/finger-lakes.png",
+    image: "./regions/finger-lakes.png",
     name: "Finger Lakes",
     country: "USA",
     lat: 42.65,
@@ -573,7 +573,7 @@ export const wineRegions: WineRegion[] = [
   // ── CANADA ───────────────────────────────────────────────────────────────────
   {
     id: "okanagan-valley",
-    image: "/regions/okanagan-valley.png",
+    image: "./regions/okanagan-valley.png",
     name: "Okanagan Valley",
     country: "Canada",
     lat: 49.80,
@@ -594,7 +594,7 @@ export const wineRegions: WineRegion[] = [
   // ── MEXICO ────────────────────────────────────────────────────────────────────
   {
     id: "valle-de-guadalupe",
-    image: "/regions/valle-de-guadalupe.png",
+    image: "./regions/valle-de-guadalupe.png",
     name: "Valle de Guadalupe",
     country: "Mexico",
     lat: 32.02,
@@ -615,7 +615,7 @@ export const wineRegions: WineRegion[] = [
   // ── AUSTRALIA ────────────────────────────────────────────────────────────────
   {
     id: "barossa-valley",
-    image: "/regions/barossa-valley.png",
+    image: "./regions/barossa-valley.png",
     name: "Barossa Valley",
     country: "Australia",
     lat: -34.56,
@@ -635,7 +635,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "yarra-valley",
-    image: "/regions/yarra-valley.png",
+    image: "./regions/yarra-valley.png",
     name: "Yarra Valley",
     country: "Australia",
     lat: -37.66,
@@ -656,7 +656,7 @@ export const wineRegions: WineRegion[] = [
   // ── NEW ZEALAND ──────────────────────────────────────────────────────────────
   {
     id: "marlborough",
-    image: "/regions/marlborough.png",
+    image: "./regions/marlborough.png",
     name: "Marlborough",
     country: "New Zealand",
     lat: -41.52,
@@ -676,7 +676,7 @@ export const wineRegions: WineRegion[] = [
   },
   {
     id: "central-otago",
-    image: "/regions/central-otago.png",
+    image: "./regions/central-otago.png",
     name: "Central Otago",
     country: "New Zealand",
     lat: -45.03,
@@ -697,7 +697,7 @@ export const wineRegions: WineRegion[] = [
   // ── CHINA ────────────────────────────────────────────────────────────────────
   {
     id: "ningxia",
-    image: "/regions/ningxia.png",
+    image: "./regions/ningxia.png",
     name: "Ningxia",
     country: "China",
     lat: 38.47,
@@ -718,7 +718,7 @@ export const wineRegions: WineRegion[] = [
   // ── LEBANON ──────────────────────────────────────────────────────────────────
   {
     id: "bekaa-valley",
-    image: "/regions/bekaa-valley.png",
+    image: "./regions/bekaa-valley.png",
     name: "Bekaa Valley",
     country: "Lebanon",
     lat: 33.85,
@@ -735,5 +735,318 @@ export const wineRegions: WineRegion[] = [
     climate: "Continental Mediterranean at altitude — very hot, dry summers; cold winters with snow",
     flavorProfile: "Musar-style blends: complex, oxidative, with dark fruit, tobacco, earth, dried herbs, and extraordinary savory depth. White Obaideh: nutty, oxidative, textured.",
     notableStyles: ["Cinsault-Cabernet Blends", "Musar-Style Reds", "Indigenous White Varieties"]
+  },
+  // ── FRANCE (CONTINUED) ──────────────────────────────────────────────────────
+  {
+    id: "provence",
+    image: "./regions/provence.png",
+    name: "Provence",
+    country: "France",
+    lat: 43.53,
+    lng: 5.45,
+    zoom: 8,
+    description: "Provence is the undisputed rosé capital of the world, responsible for over 40% of France's total rosé production. Stretching from the Mediterranean coast inland toward the Alps, its sun-drenched hillsides produce pale, dry rosés of extraordinary elegance. The region's star appellation, Bandol, also crafts bold reds from Mourvèdre aged in oak for years before release. Provence's wine culture dates back over 2,600 years, making it France's oldest wine region.",
+    facts: [
+      "Provence produces over 160 million bottles of rosé per year",
+      "Bandol Mourvèdre must be aged a minimum of 18 months in wood",
+      "The region has 9 AOC appellations including Cassis and Les Baux-de-Provence",
+      "Provence rosé commands premium prices globally — led by Whispering Angel"
+    ],
+    grapes: ["Grenache", "Cinsault", "Syrah", "Mourvèdre", "Rolle (Vermentino)", "Ugni Blanc"],
+    climate: "Mediterranean, with hot dry summers, mild winters, and the cooling mistral wind",
+    flavorProfile: "Dry, pale rosés with strawberry, peach, white pepper, and Provençal herbs. Bandol reds deliver earthy dark fruit, garrigue, leather, and remarkable longevity.",
+    notableStyles: ["Dry Rosé", "Red Blends (Bandol)", "Crisp Whites"]
+  },
+  {
+    id: "languedoc-roussillon",
+    image: "./regions/languedoc-roussillon.png",
+    name: "Languedoc-Roussillon",
+    country: "France",
+    lat: 43.20,
+    lng: 2.95,
+    zoom: 7,
+    description: "Languedoc-Roussillon is France's largest wine region by area and production volume, stretching 250 kilometres along the Mediterranean coast from the Rhône delta to the Spanish border. Once synonymous with cheap bulk wine, the region has undergone a dramatic quality revolution since the 1990s. Appellations like Pic Saint-Loup, Faugères, and Corbières now rival Rhône Valley wines for complexity and value. The sun-baked schist and limestone hillsides deliver wines of real terroir character at often astonishing prices.",
+    facts: [
+      "France's largest wine region — over 230,000 hectares of vines",
+      "Produces approximately one-third of all French wine by volume",
+      "Roussillon is France's top source of naturally sweet Muscat and Banyuls",
+      "Over 20 AOC/AOP appellations including Pic Saint-Loup and La Clape"
+    ],
+    grapes: ["Grenache", "Syrah", "Mourvèdre", "Carignan", "Cinsault", "Muscat", "Roussanne", "Marsanne"],
+    climate: "Hot Mediterranean with the lowest rainfall in France; mitigated by altitude in hillside appellations",
+    flavorProfile: "Robust reds with dark berry, garrigue, chocolate, and spice. Banyuls offers luscious dried-fruit richness. Whites show southern stone-fruit warmth with herbal freshness.",
+    notableStyles: ["Red Blends", "Banyuls (Fortified)", "Muscat de Rivesaltes", "Dry Whites"]
+  },
+  // ── ITALY (CONTINUED) ────────────────────────────────────────────────────────
+  {
+    id: "veneto",
+    image: "./regions/veneto.png",
+    name: "Veneto",
+    country: "Italy",
+    lat: 45.44,
+    lng: 11.99,
+    zoom: 8,
+    description: "The Veneto is Italy's most prolific quality wine region, producing more DOC/DOCG wine than any other Italian region. It is home to three globally famous styles: the rich, raisined Amarone della Valpolicella, the vivacious sparkling Prosecco from Valdobbiadene, and the delicate dry Soave Classico. The unique appassimento technique — drying harvested grapes on bamboo racks to concentrate sugars — gives Amarone its extraordinary depth and power. The region's diversity of soils and microclimates, from the Dolomite foothills to the Verona plains, supports an extraordinary range of wine styles.",
+    facts: [
+      "Veneto produces over 1 billion bottles of wine per year — Italy's largest by volume",
+      "Amarone della Valpolicella DOCG requires grapes to be dried for 90–120 days",
+      "Prosecco di Valdobbiadene DOCG was awarded UNESCO World Heritage status in 2019",
+      "Soave is one of Italy's most exported white wines"
+    ],
+    grapes: ["Corvina", "Corvinone", "Rondinella", "Glera (Prosecco)", "Garganega (Soave)", "Pinot Grigio"],
+    climate: "Continental in the foothills, Mediterranean near Lake Garda; frost risk in spring",
+    flavorProfile: "Amarone: intense dark cherry, dried fig, dark chocolate, and spice with velvety tannins. Prosecco: fresh pear, apple blossom, and cream. Soave: almond, white flower, and citrus zest.",
+    notableStyles: ["Amarone della Valpolicella", "Prosecco DOCG", "Soave Classico", "Recioto"]
+  },
+  // ── SPAIN (CONTINUED) ────────────────────────────────────────────────────────
+  {
+    id: "ribera-del-duero",
+    image: "./regions/ribera-del-duero.png",
+    name: "Ribera del Duero",
+    country: "Spain",
+    lat: 41.63,
+    lng: -3.68,
+    zoom: 8,
+    description: "Perched on a high plateau at 800–900 metres above sea level, Ribera del Duero is Spain's most prestigious red wine region after Rioja. The extreme continental climate — blazing summers, freezing winters, and dramatic day-night temperature swings during harvest — forces the Tempranillo vine (here called Tinto Fino) to produce wines of exceptional concentration and aromatic complexity. The region was formally established as a DO in 1982, but its quality was long anchored by Vega Sicilia, founded in 1864. Today it is home to some of Spain's most collectible and expensive wines.",
+    facts: [
+      "Vineyards sit at 800–900 metres altitude, creating some of Spain's greatest diurnal temperature ranges",
+      "Vega Sicilia Único can spend up to 10 years in oak and bottle before release",
+      "Dominio de Pingus 'Pingus' is considered Spain's most expensive cult wine",
+      "The DO spans 4 provinces along the Duero River valley"
+    ],
+    grapes: ["Tinto Fino (Tempranillo)", "Cabernet Sauvignon", "Merlot", "Malbec", "Albillo Mayor"],
+    climate: "Extreme continental — long cold winters, very hot summers, large diurnal temperature variation",
+    flavorProfile: "Dense black fruit, violets, graphite, toasted oak, and leather. Age reveals tertiary complexity of tobacco, cedar, and earthy mineral depth.",
+    notableStyles: ["Crianza", "Reserva", "Gran Reserva", "Roble"]
+  },
+  {
+    id: "jerez",
+    image: "./regions/jerez.png",
+    name: "Jerez (Sherry)",
+    country: "Spain",
+    lat: 36.68,
+    lng: -6.14,
+    zoom: 8,
+    description: "Jerez de la Frontera in Andalusia is the birthplace of Sherry — one of the world's most complex and misunderstood wines. The chalky albariza soil, unique solera aging system, and the flor yeast veil collectively create a spectrum of styles unmatched anywhere else: bone-dry Fino, nutty Amontillado, oxidative Oloroso, and lusciously sweet Pedro Ximénez. Sherry was once England's favourite wine, referenced by Shakespeare, and is experiencing a powerful global renaissance driven by sommeliers championing its extraordinary value and versatility with food.",
+    facts: [
+      "Sherry is produced under the 'Sherry Triangle' of Jerez, El Puerto de Santa María, and Sanlúcar de Barrameda",
+      "The solera system blends vintages across multiple barrels, creating consistent 'average age' wines",
+      "Fino Sherry is protected by a living yeast veil called flor",
+      "Pedro Ximénez grapes are sun-dried to create raisin-like sweetness"
+    ],
+    grapes: ["Palomino", "Pedro Ximénez", "Moscatel"],
+    climate: "Hot and dry Mediterranean, tempered by Atlantic winds; the Levante and Poniente winds play crucial roles",
+    flavorProfile: "Fino: saline, yeasty, almond, and chamomile. Oloroso: walnut, dried fruit, and toffee. PX: raisin, fig, chocolate, and molasses.",
+    notableStyles: ["Fino", "Manzanilla", "Amontillado", "Oloroso", "Palo Cortado", "Pedro Ximénez"]
+  },
+  // ── AUSTRALIA (CONTINUED) ────────────────────────────────────────────────────
+  {
+    id: "margaret-river",
+    image: "./regions/margaret-river.png",
+    name: "Margaret River",
+    country: "Australia",
+    lat: -33.95,
+    lng: 115.07,
+    zoom: 8,
+    description: "Margaret River, on the remote southwestern tip of Australia, punches far above its weight as one of the country's premier wine regions. Though it produces less than 3% of Australia's total wine volume, it accounts for over 20% of its premium wine by value. The narrow cape's unique maritime climate — moderated by the Indian and Southern Oceans — bears remarkable similarities to Bordeaux and Burgundy, making it ideal for Cabernet Sauvignon, Chardonnay, and their classic blending partners. The region was only planted commercially from the 1960s, making its rapid ascent to global prestige even more remarkable.",
+    facts: [
+      "Produces less than 3% of Australian wine but over 20% of its premium wine segment",
+      "Viticulture began here only in 1967 after a scientific report identified ideal growing conditions",
+      "The Cape Naturaliste to Cape Leeuwin peninsula creates two-ocean maritime moderation",
+      "Semillon-Sauvignon Blanc blends from Margaret River are considered Australia's finest dry whites"
+    ],
+    grapes: ["Cabernet Sauvignon", "Merlot", "Chardonnay", "Sauvignon Blanc", "Semillon", "Shiraz"],
+    climate: "Mediterranean maritime — warm dry summers, mild wet winters, cooled by Indian and Southern Ocean breezes",
+    flavorProfile: "Cabernet: cassis, graphite, olive, and dusty tannins. Chardonnay: white peach, grapefruit, and toasted oak. SSB blends: lemongrass, passionfruit, and cut grass.",
+    notableStyles: ["Cabernet Sauvignon", "Chardonnay", "Semillon-Sauvignon Blanc", "Red Bordeaux Blends"]
+  },
+  {
+    id: "hunter-valley",
+    image: "./regions/hunter-valley.png",
+    name: "Hunter Valley",
+    country: "Australia",
+    lat: -32.75,
+    lng: 151.28,
+    zoom: 8,
+    description: "The Hunter Valley is Australia's oldest wine region, with vineyards dating back to the 1820s. Located north of Sydney, it is renowned for two unique wine styles found virtually nowhere else: Hunter Semillon — harvested early and bone-dry, it transforms over decades into honeyed complexity — and Hunter Shiraz, a medium-bodied, earthy style quite different from the powerhouse Shiraz of the Barossa. The region's hot, humid climate would seem unsuitable for fine wine, yet the red volcanic soils and sea breezes conspire to produce some of Australia's most distinctive and age-worthy whites.",
+    facts: [
+      "Australia's oldest commercial wine region — vines planted in the 1820s",
+      "Hunter Semillon is arguably Australia's most distinctive and original wine style",
+      "Wines labeled 'Hermitage' in older vintages refer to Shiraz, a local historical naming tradition",
+      "Over 150 wineries and 120+ cellar doors make it Australia's most visited wine region"
+    ],
+    grapes: ["Semillon", "Shiraz", "Chardonnay", "Verdelho", "Cabernet Sauvignon"],
+    climate: "Hot and humid subtropical with summer rainfall — unusual for fine wine production",
+    flavorProfile: "Semillon: lemon curd and grass when young; honey, toast, and lanolin with 10+ years age. Shiraz: earthy, leathery, with red berry, black pepper, and soft tannins.",
+    notableStyles: ["Hunter Semillon", "Hunter Shiraz", "Unoaked Chardonnay"]
+  },
+  // ── NEW ZEALAND (CONTINUED) ───────────────────────────────────────────────────
+  {
+    id: "hawkes-bay",
+    image: "./regions/hawkes-bay.png",
+    name: "Hawke's Bay",
+    country: "New Zealand",
+    lat: -39.49,
+    lng: 176.91,
+    zoom: 8,
+    description: "Hawke's Bay on New Zealand's North Island is the country's premier red wine region and second-largest wine area. The region's crown jewel is the Gimblett Gravels — a uniquely free-draining shingle riverbed that radiates heat and produces New Zealand's finest Cabernet Sauvignon, Merlot, and Syrah. The Bay's sunny, warm climate is consistently one of New Zealand's driest and most reliable, giving it a significant advantage for ripening red varieties that Marlborough's cooler South Island cannot match. Hawke's Bay is also producing world-class Chardonnay and increasingly exciting Syrah.",
+    facts: [
+      "Gimblett Gravels is New Zealand's most celebrated wine sub-appellation",
+      "The region receives over 2,200 hours of sunshine per year — the most in New Zealand",
+      "Hawke's Bay has New Zealand's second-largest planted area with ~5,000 hectares of vines",
+      "Bordeaux varieties have been grown here since Mission Estate planted them in the 1850s"
+    ],
+    grapes: ["Merlot", "Cabernet Sauvignon", "Syrah", "Chardonnay", "Sauvignon Blanc", "Viognier"],
+    climate: "Warm, sunny maritime — New Zealand's most reliable ripening conditions for red varieties",
+    flavorProfile: "Gimblett Gravels reds: dark berry, plum, dusty tannins, and subtle spice. Chardonnay: stone fruit, citrus, and toasted oak. Syrah: black pepper, smoked meat, and violets.",
+    notableStyles: ["Red Bordeaux Blends", "Gimblett Gravels Syrah", "Chardonnay"]
+  },
+  // ── USA (CONTINUED) ───────────────────────────────────────────────────────────
+  {
+    id: "paso-robles",
+    image: "./regions/paso-robles.png",
+    name: "Paso Robles",
+    country: "USA",
+    lat: 35.63,
+    lng: -120.69,
+    zoom: 8,
+    description: "Paso Robles on California's Central Coast has evolved from a bulk wine producer into one of America's most exciting premium wine regions. Its defining characteristic is an extraordinary diurnal temperature swing — days can reach 40°C while nights plunge to near 10°C — which preserves freshness and acidity in fruit while achieving full ripeness. The region's Rhône and Bordeaux varietals are gaining national recognition, and its AVA system was expanded in 2014 to recognize distinct sub-appellations. Paso's wine scene has an approachable, unpretentious spirit that contrasts sharply with Napa's formality.",
+    facts: [
+      "Paso Robles experiences one of California's most extreme diurnal temperature swings — up to 50\u00b0F difference",
+      "The region has over 40 different soil types, creating remarkable diversity",
+      "DAOU's Soul of a Lion is California's fastest-growing cult Cabernet in recent years",
+      "Paso Robles has 40+ sub-AVAs including Adelaida District and Templeton Gap"
+    ],
+    grapes: ["Cabernet Sauvignon", "Zinfandel", "Grenache", "Syrah", "Mourvèdre", "Viognier", "Chardonnay"],
+    climate: "Semi-arid Mediterranean with dramatic diurnal temperature variation; cooled by Pacific fog and wind",
+    flavorProfile: "Bold Cabernet with dark cherry, cassis, and mocha. Rhône blends show earthy spice, lavender, and wild berry. Zinfandel delivers jammy plum, pepper, and vanilla.",
+    notableStyles: ["Cabernet Sauvignon", "Rhône Blends", "Zinfandel", "GSM Blends"]
+  },
+  // ── GERMANY (CONTINUED) ───────────────────────────────────────────────────────
+  {
+    id: "rheingau",
+    image: "./regions/rheingau.png",
+    name: "Rheingau",
+    country: "Germany",
+    lat: 50.02,
+    lng: 8.05,
+    zoom: 8,
+    description: "The Rheingau is Germany's most historically prestigious wine region, where the Rhine River flows westward — an unusual geographic quirk that creates a perfect south-facing slope of sun-drenched vineyards protected from northern winds. Riesling finds one of its purest expressions here, with wines from top estates like Schloss Johannisberg, Kloster Eberbach, and Weingut Leitz combining crystalline mineral precision with extraordinary age-worthiness. The region also pioneered the Spätlese style — legend holds that the 1775 vintage at Schloss Johannisberg was accidentally harvested late, creating the first intentionally late-picked wine.",
+    facts: [
+      "Schloss Johannisberg is credited with the invention of Spätlese in 1775",
+      "Kloster Eberbach was the model for Umberto Eco's monastery in 'The Name of the Rose'",
+      "The Rheingau is 80% Riesling — Germany's most Riesling-dominated region",
+      "Rüdesheimer Berg Schlossberg is considered one of Germany's greatest Riesling sites"
+    ],
+    grapes: ["Riesling", "Spätburgunder (Pinot Noir)"],
+    climate: "Cool continental, moderated by the Rhine River and Taunus Mountains; south-facing slopes maximize sun exposure",
+    flavorProfile: "Riesling: steely minerality, lime, green apple, and white peach. Aged Auslesen develop honey, petrol, and dried apricot. Spätburgunder offers silky red cherry and earthy elegance.",
+    notableStyles: ["Riesling Spätlese", "Riesling Auslese", "Sekt (Sparkling)", "Spätburgunder"]
+  },
+  // ── PORTUGAL (CONTINUED) ─────────────────────────────────────────────────────
+  {
+    id: "vinho-verde",
+    image: "./regions/vinho-verde.png",
+    name: "Vinho Verde",
+    country: "Portugal",
+    lat: 41.70,
+    lng: -8.30,
+    zoom: 8,
+    description: "Vinho Verde — literally 'green wine' — is one of Portugal's largest and most unique wine regions, spanning the entire northwestern corner of the country from Porto to the Spanish border. The name refers not to the wine's colour but to its youthful freshness. The region's Atlantic climate delivers high rainfall and humidity, and its rambling pergola-trained vines produce an extraordinary variety of indigenous grapes. While light, spritzy Alvarinho-Loureiro blends at pocket-friendly prices made the region famous globally, single-varietal Alvarinho from the Monção e Melgaço sub-region is one of the world's great mineral whites.",
+    facts: [
+      "Vinho Verde covers over 21,000 hectares — one of Europe's largest DOC wine regions",
+      "Alvarinho from Monção e Melgaço is considered Portugal's finest dry white wine",
+      "The region has over 50 authorized indigenous grape varieties",
+      "Traditional 'green wine' has slight natural effervescence from residual CO2"
+    ],
+    grapes: ["Alvarinho", "Loureiro", "Arinto", "Trajadura", "Azal", "Avesso"],
+    climate: "Atlantic oceanic — high rainfall, cool temperatures, high humidity; perfect for crisp, high-acid whites",
+    flavorProfile: "Lime zest, green apple, white peach, and a distinctive saline minerality. Alvarinho adds stone fruit depth and textural richness. Light effervescence adds freshness.",
+    notableStyles: ["Alvarinho", "Multi-varietal Blends", "Sparkling Vinho Verde"]
+  },
+  // ── SOUTH AFRICA (CONTINUED) ─────────────────────────────────────────────────
+  {
+    id: "franschhoek",
+    image: "./regions/franschhoek.png",
+    name: "Franschhoek",
+    country: "South Africa",
+    lat: -33.91,
+    lng: 19.12,
+    zoom: 8,
+    description: "Franschhoek — 'French Corner' in Dutch — was settled by Huguenot refugees fleeing religious persecution in France in 1688, and it retains a deeply French character to this day. Enclosed by dramatic granite mountain ranges on three sides, the valley's climate is cooled by altitude and mountain air, allowing for elegant, finely structured wines. The valley is South Africa's premier food and wine tourism destination, home to some of the country's finest restaurants and estates. Boekenhoutskloof's The Chocolate Block and Semillon from Huguenot estates are particularly celebrated.",
+    facts: [
+      "Huguenot settlers arrived in 1688, bringing French winemaking traditions",
+      "The valley sits at 200–300 metres altitude, creating cooler conditions than surrounding Winelands",
+      "Franschhoek is home to South Africa's highest concentration of fine-dining restaurants",
+      "Old vine Semillon from Franschhoek represents some of South Africa's rarest wine treasures"
+    ],
+    grapes: ["Semillon", "Chardonnay", "Shiraz", "Cabernet Sauvignon", "Grenache", "Chenin Blanc"],
+    climate: "Mediterranean with altitude cooling — warm dry summers, cool wet winters; mountain breezes moderate heat",
+    flavorProfile: "Semillon: waxy lemon, beeswax, and herbal complexity with age. Reds show dark fruit, violet, and fine-grained tannins. Chardonnay: stone fruit, hazelnut, and creamy texture.",
+    notableStyles: ["Semillon", "Red Blends", "Chardonnay", "Méthode Cap Classique Sparkling"]
+  },
+  // ── BRAZIL ───────────────────────────────────────────────────────────────────
+  {
+    id: "serra-gaucha",
+    image: "./regions/serra-gaucha.png",
+    name: "Serra Gaúcha",
+    country: "Brazil",
+    lat: -29.17,
+    lng: -51.18,
+    zoom: 8,
+    description: "Serra Gaúcha in the mountainous southern state of Rio Grande do Sul is Brazil's most important wine region, responsible for over 85% of the country's total wine production. Italian immigrants settled these highland valleys in the late 19th century, planting the familiar varieties of northern Italy. Today the region has reinvented itself as a producer of serious sparkling wines using the traditional Champagne method, earning international recognition. The high-altitude Vale dos Vinhedos sub-appellation, Brazil's first DOC, is producing still reds and whites of impressive finesse.",
+    facts: [
+      "Serra Gaúcha produces over 85% of Brazil's wine — approximately 300 million litres annually",
+      "Italian immigrants first planted vines here in 1875",
+      "Vale dos Vinhedos was Brazil's first DOC appellation, awarded in 2012",
+      "Brazilian sparkling wine (espumante) is winning international awards at growing pace"
+    ],
+    grapes: ["Moscato Giallo", "Chardonnay", "Pinot Noir", "Merlot", "Cabernet Sauvignon", "Tannat"],
+    climate: "Highland subtropical — cool nights, high rainfall; the most temperate climate in Brazil for wine",
+    flavorProfile: "Sparkling: fresh citrus, brioche, and cream. Merlot shows plum, herbs, and soft tannins. Moscato delivers sweet, floral grape richness with effervescence.",
+    notableStyles: ["Espumante (Sparkling)", "Merlot", "Moscato", "Tannat"]
+  },
+  // ── JAPAN ─────────────────────────────────────────────────────────────────────
+  {
+    id: "yamanashi",
+    image: "./regions/yamanashi.png",
+    name: "Yamanashi",
+    country: "Japan",
+    lat: 35.66,
+    lng: 138.57,
+    zoom: 8,
+    description: "Yamanashi Prefecture, nestled in the mountains southwest of Tokyo with Mount Fuji on its western border, is Japan's most celebrated wine region. The region is home to Koshu — a pink-skinned grape brought along the Silk Road over 1,000 years ago — which produces Japan's most distinctive white wine: delicate, dry, and marked by subtle citrus, mineral, and umami notes that pair flawlessly with Japanese cuisine. The region's winemakers are now exporting Koshu globally, and it has become one of the most fashionable wine varieties in international fine-dining circles.",
+    facts: [
+      "Koshu grapes have been grown in Yamanashi for over 1,000 years — Japan's oldest known wine grape",
+      "Japan's first commercial winery was established in Katsunuma, Yamanashi in 1877",
+      "Yamanashi accounts for over 30% of Japan's total wine production",
+      "Grace Wine's Koshu Kayagatake is Japan's most internationally awarded white wine"
+    ],
+    grapes: ["Koshu", "Muscat Bailey A", "Merlot", "Cabernet Sauvignon", "Chardonnay"],
+    climate: "Humid continental — warm summers with typhoon season rainfall, cold dry winters; challenging but character-building",
+    flavorProfile: "Koshu: pale and delicate with yuzu, peach, white flower, and saline mineral finish. Red varieties show soft red fruit and earthiness.",
+    notableStyles: ["Koshu (Dry White)", "Sparkling Koshu", "Muscat Bailey A Red"]
+  },
+  // ── TURKEY ───────────────────────────────────────────────────────────────────
+  {
+    id: "cappadocia",
+    image: "./regions/cappadocia.png",
+    name: "Cappadocia",
+    country: "Turkey",
+    lat: 38.64,
+    lng: 34.83,
+    zoom: 8,
+    description: "Cappadocia in central Anatolia is one of the world's most ancient and dramatically scenic wine regions. The volcanic landscape of fairy chimneys and underground cave cities has been home to viticulture for over 4,000 years. At 1,000–1,200 metres altitude, the region's high plateau experiences extreme temperature variation that concentrates flavour in indigenous varieties like Öküzgözü and Boğazkere. Modern producers — led by Turasan — are reviving ancient grape varieties and aging wine in the same cave cellars that have sheltered Cappadocians for millennia. Turkey has the world's fifth-largest planted vineyard area, yet much of its wine potential remains unexplored.",
+    facts: [
+      "Winemaking in Cappadocia dates back over 4,000 years to Hittite civilization",
+      "Turkey has the world's 5th largest planted vineyard area with over 500 indigenous grape varieties",
+      "Wines are aged in natural volcanic cave cellars, maintaining perfect temperature and humidity",
+      "Cappadocia's volcanic tuff soil (ignimbrite) is unique among the world's wine soils"
+    ],
+    grapes: ["Öküzgözü", "Boğazkere", "Emir", "Narince", "Kalecik Karas\u0131"],
+    climate: "Semi-arid continental at high altitude — hot summers, cold winters, dramatic diurnal swings",
+    flavorProfile: "Öküzgözü: cherry, mulberry, and earthy spice with medium tannins. Boğazkere: intense dark fruit, black pepper, and firm tannic structure. Emir: crisp citrus and mineral freshness.",
+    notableStyles: ["Öküzgözü Red", "Boğazkere Red", "Emir White", "Indigenous Variety Blends"]
   }
 ];
+

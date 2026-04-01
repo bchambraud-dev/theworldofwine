@@ -364,5 +364,149 @@ export const newsItems: NewsItem[] = [
     producerIds: ["giant-steps"],
     tags: ["red", "white", "award winner", "Australia"],
     url: "#"
+  },
+  // ── NEW REGIONS ARTICLES ──────────────────────────────────────────────────────────────────
+  {
+    id: "n33",
+    title: "Whispering Angel Rosé Sales Surge: Provence Surpasses 200 Million Bottles Exported",
+    summary: "Provence has set a new record for rosé exports, surpassing 200 million bottles in 2025 driven by the continued global dominance of Château d'Esclans' Whispering Angel and Domaines Ott's flagship cuvees. The US remains the largest single market, with year-on-year growth of 15%. Wine industry analysts attribute the boom to the 'pale and dry' movement reshaping global rosé consumption away from sweet, dark-pink styles.",
+    source: "Decanter",
+    date: "2026-04-01",
+    regionIds: ["provence"],
+    producerIds: ["chateau-desclans", "domaines-ott"],
+    tags: ["rosé", "market", "France"],
+    url: "#"
+  },
+  {
+    id: "n34",
+    title: "Vega Sicilia Único 2012 Vintage Named Spain's Wine of the Year",
+    summary: "Vega Sicilia's iconic Único from the 2012 vintage has been named Spain's Wine of the Year by Wine Spectator, receiving a score of 99 points and universal acclaim from critics worldwide. The wine, which spent eight years in oak before release, is described as 'the most complete Spanish red in a generation' — a synthesis of power, elegance, and the extraordinary blackcurrant, cedar, and violet complexity that defines this legendary Ribera del Duero estate.",
+    source: "Wine Spectator",
+    date: "2026-03-30",
+    regionIds: ["ribera-del-duero"],
+    producerIds: ["vega-sicilia"],
+    tags: ["red", "award winner", "Spain"],
+    url: "#"
+  },
+  {
+    id: "n35",
+    title: "Sherry Renaissance: Fino and Manzanilla See 30% Sales Jump at London Restaurants",
+    summary: "Fino and Manzanilla Sherry are experiencing their most dramatic commercial revival in decades, with London restaurant listings up 30% year-on-year according to a new industry report. González Byass's Tío Pepe En Rama — the minimally processed, seasonally released version of the classic Fino — has sold out within days of its annual release. Sommeliers cite a growing consumer appetite for low-alcohol, food-friendly, complex wines as the driving force behind Sherry's remarkable comeback.",
+    source: "The Drinks Business",
+    date: "2026-03-26",
+    regionIds: ["jerez"],
+    producerIds: ["gonzalez-byass"],
+    tags: ["fortified", "market", "Spain"],
+    url: "#"
+  },
+  {
+    id: "n36",
+    title: "Amarone 2020: Veneto Producers Declare the Finest Vintage Since 2015",
+    summary: "Veneto's leading Amarone producers have completed their extended appassimento drying period and are hailing the 2020 vintage as exceptional. Allegrini's winemaking team reports that the long, warm summer followed by a cool September produced Corvina grapes of extraordinary concentration and aromatic complexity. The 2020 Amarone is expected to be released in late 2026 after minimum DOCG aging requirements are met, with pre-release demand already breaking records.",
+    source: "Vinous",
+    date: "2026-03-23",
+    regionIds: ["veneto"],
+    producerIds: ["allegrini", "bisol"],
+    tags: ["red", "vintage report", "Italy"],
+    url: "#"
+  },
+  {
+    id: "n37",
+    title: "Margaret River's Cullen Wines Releases Carbon-Negative Vintage",
+    summary: "Cullen Wines has announced that its 2025 Diana Madeline Cabernet Sauvignon Merlot is the world's first commercially released carbon-negative wine, sequestering more carbon through biodynamic farming practices than was emitted in its entire production chain. Vanya Cullen's team, working with climate scientists at the University of Western Australia, developed a new methodology for calculating vine-to-bottle carbon impact that has attracted international attention and is being adopted as an industry standard.",
+    source: "James Halliday Australian Wine Companion",
+    date: "2026-03-20",
+    regionIds: ["margaret-river"],
+    producerIds: ["cullen-wines", "leeuwin-estate"],
+    tags: ["sustainability", "biodynamic", "Australia"],
+    url: "#"
+  },
+  {
+    id: "n38",
+    title: "Japan's Koshu Wins Best White Wine at Decanter World Wine Awards",
+    summary: "In a landmark moment for Japanese wine, Grace Wine's Koshu Kayagatake 2024 has won Best in Show White Wine at the Decanter World Wine Awards — the first Japanese wine ever to achieve this distinction. Head judge Jancis Robinson MW praised the wine's 'extraordinary delicacy and umami minerality that is impossible to replicate anywhere else on earth.' The result has sparked global interest in Japan's indigenous Koshu variety and dramatically increased order volumes from Asian and European fine-dining establishments.",
+    source: "Decanter",
+    date: "2026-03-17",
+    regionIds: ["yamanashi"],
+    producerIds: ["grace-wine"],
+    tags: ["white", "award winner", "Japan"],
+    url: "#"
+  },
+  {
+    id: "n39",
+    title: "Rheingau Riesling 2025: A Once-in-a-Generation Vintage According to Schloss Johannisberg",
+    summary: "Schloss Johannisberg's estate director has announced that 2025 will be remembered as one of the Rheingau's greatest ever Riesling vintages, comparable only to 1971 and 1990. An unusually warm, dry summer followed by a cold, clear October produced Riesling grapes of exceptional physiological maturity with retained natural acidity. The Auslese and Spätlese cuvees are described as 'electrifying,' with a precision and length that will reward decades of cellaring.",
+    source: "Wine & Spirits",
+    date: "2026-03-14",
+    regionIds: ["rheingau"],
+    producerIds: ["schloss-johannisberg"],
+    tags: ["white", "vintage report", "Germany"],
+    url: "#"
+  },
+  {
+    id: "n40",
+    title: "Vinho Verde's Premium Alvarinho Boom: Anselmo Mendes Exports Triple in Three Years",
+    summary: "Anselmo Mendes has reported a 300% increase in export volumes over three years as premium single-varietal Alvarinho from the Monção e Melgaço sub-region captures the imagination of wine buyers worldwide. The trend reflects a broader shift toward lighter, high-acid, lower-alcohol wines driven by millennial consumers and Mediterranean diet trends. Michelin-starred restaurants in New York, London, and Tokyo are competing for allocation of the limited-production Parcela Única bottling.",
+    source: "Wine Enthusiast",
+    date: "2026-03-10",
+    regionIds: ["vinho-verde"],
+    producerIds: ["anselmo-mendes"],
+    tags: ["white", "market", "Portugal"],
+    url: "#"
+  },
+  {
+    id: "n41",
+    title: "Hunter Valley Semillon: Tyrrell's Vat 1 1999 Scores 100 Points at 27 Years of Age",
+    summary: "Tyrrell's legendary Vat 1 Hunter Semillon 1999 has been awarded a perfect 100-point score by wine critic Campbell Mattinson, who describes it as 'the single most compelling argument for Australia's claim to produce wines of world-class longevity.' The wine, now 27 years old, has transformed its youthful citrus character into a symphony of honey, beeswax, toast, and lanolin that the critic compares to great aged white Burgundy. The result has reignited global interest in Hunter Semillon as a category.",
+    source: "Wine Companion",
+    date: "2026-03-06",
+    regionIds: ["hunter-valley"],
+    producerIds: ["tyrrells-wines"],
+    tags: ["white", "award winner", "Australia"],
+    url: "#"
+  },
+  {
+    id: "n42",
+    title: "Craggy Range Le Sol Syrah Named New Zealand's Greatest Red Wine",
+    summary: "Craggy Range's Le Sol Syrah from Gimblett Gravels has been named New Zealand's greatest red wine by an international panel assembled by Decanter, receiving votes from 15 of the 20 participating critics. The 2022 vintage — described as 'perfume and precision in a glass' — showcases the extraordinary potential of Hawke's Bay Syrah on its uniquely warm, free-draining gravel soils. The estate is now taking orders from international distributors who previously focused exclusively on Marlborough Sauvignon Blanc.",
+    source: "Decanter",
+    date: "2026-03-02",
+    regionIds: ["hawkes-bay"],
+    producerIds: ["craggy-range"],
+    tags: ["red", "award winner", "New Zealand"],
+    url: "#"
+  },
+  {
+    id: "n43",
+    title: "Cappadocia Wine Tourism Surges as Cave Cellar Experiences Go Viral",
+    summary: "Wine tourism in Turkey's Cappadocia region has grown 80% year-on-year following a viral social media trend showcasing the region's unique cave cellar wine experiences. Turasan Winery reports that bookings for their underground cellar tastings are now sold out six months in advance, and the Turkish government has announced a €15 million investment in wine tourism infrastructure for the region. International critics are also taking notice, with several calling Cappadocia 'the world's most dramatically beautiful wine destination.'",
+    source: "Travel + Leisure",
+    date: "2026-02-28",
+    regionIds: ["cappadocia"],
+    producerIds: ["turasan-winery"],
+    tags: ["tourism", "Turkey", "emerging"],
+    url: "#"
+  },
+  {
+    id: "n44",
+    title: "Franschhoek Boekenhoutskloof Syrah Fetches Record Price at Bonhams Cape Wine Auction",
+    summary: "A six-litre Impériale of Boekenhoutskloof's single-vineyard Syrah from the 2019 vintage fetched a record R280,000 (approximately $15,000) at Bonhams' annual Cape Wine auction, shattering all previous records for a South African wine sold at auction. The result underscores Franschhoek's growing reputation as South Africa's premier fine wine valley, with the valley's combination of old-vine Semillon, high-altitude Chardonnay, and Rhône-inspired Syrah drawing comparisons to France's Northern Rhône.",
+    source: "Decanter",
+    date: "2026-02-22",
+    regionIds: ["franschhoek"],
+    producerIds: ["boekenhoutskloof"],
+    tags: ["red", "auction", "South Africa", "luxury"],
+    url: "#"
+  },
+  {
+    id: "n45",
+    title: "DAOU Paso Robles' Soul of a Lion Defeats Napa Cult Wines in Blind Tasting",
+    summary: "DAOU Family Estates' Soul of a Lion Cabernet Sauvignon 2022 has topped a prestigious blind tasting against California's most collected cult Cabernets — including entries from Screaming Eagle and Harlan Estate — organized by Wine Spectator's team. The result sent shockwaves through California's premium wine establishment, validating DAOU's claim that Paso Robles' extreme diurnal temperature variation and limestone-rich soils can produce Cabernet Sauvignon of equal or greater complexity than the Napa Valley.",
+    source: "Wine Spectator",
+    date: "2026-02-18",
+    regionIds: ["paso-robles"],
+    producerIds: ["daou-family-estates"],
+    tags: ["red", "award winner", "USA"],
+    url: "#"
   }
 ];

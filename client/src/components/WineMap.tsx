@@ -13,6 +13,8 @@ interface WineMapProps {
   onSelectRegion: (id: string) => void;
   selectedRegionId: string | null;
   isDark: boolean;
+  showProducers: boolean;
+  showBoundaries: boolean;
 }
 
 const BOUNDARY_SOURCE = "region-boundaries";
@@ -45,6 +47,8 @@ export default function WineMap({
   onSelectRegion,
   selectedRegionId,
   isDark,
+  showProducers,
+  showBoundaries,
 }: WineMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -92,7 +96,7 @@ export default function WineMap({
         data: geojson as any,
       });
 
-      // Unselected region fills — subtle, visible from zoom 4+
+      // Unselected region fills
       map.current.addLayer({
         id: BOUNDARY_FILL_LAYER,
         type: "fill",
@@ -136,7 +140,7 @@ export default function WineMap({
         },
       });
 
-      // Selected region fill — more prominent
+      // Selected region fill
       map.current.addLayer({
         id: BOUNDARY_FILL_SELECTED,
         type: "fill",
@@ -153,7 +157,7 @@ export default function WineMap({
         },
       });
 
-      // Selected region outline — bold
+      // Selected region outline
       map.current.addLayer({
         id: BOUNDARY_LINE_SELECTED,
         type: "line",
@@ -175,21 +179,17 @@ export default function WineMap({
         },
       });
 
-      // Click handler on boundary fills
+      // Click handlers
       map.current.on("click", BOUNDARY_FILL_LAYER, (e: any) => {
         const feature = e.features?.[0];
-        if (feature?.properties?.id) {
-          onSelectRegion(feature.properties.id);
-        }
+        if (feature?.properties?.id) onSelectRegion(feature.properties.id);
       });
       map.current.on("click", BOUNDARY_FILL_SELECTED, (e: any) => {
         const feature = e.features?.[0];
-        if (feature?.properties?.id) {
-          onSelectRegion(feature.properties.id);
-        }
+        if (feature?.properties?.id) onSelectRegion(feature.properties.id);
       });
 
-      // Cursor change on hover over boundaries
+      // Cursor change
       map.current.on("mouseenter", BOUNDARY_FILL_LAYER, () => {
         if (map.current) map.current.getCanvas().style.cursor = "pointer";
       });
@@ -219,11 +219,23 @@ export default function WineMap({
     }
   }, [selectedRegionId]);
 
+  // Toggle boundary visibility
+  useEffect(() => {
+    if (!map.current || !boundariesAdded.current) return;
+    const visibility = showBoundaries ? "visible" : "none";
+    [BOUNDARY_FILL_LAYER, BOUNDARY_LINE_LAYER, BOUNDARY_FILL_SELECTED, BOUNDARY_LINE_SELECTED].forEach((id) => {
+      try {
+        if (map.current?.getLayer(id)) {
+          map.current.setLayoutProperty(id, "visibility", visibility);
+        }
+      } catch (_) { /* ignore */ }
+    });
+  }, [showBoundaries]);
+
   // Region markers
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing region markers
     regionMarkersRef.current.forEach((m) => m.remove());
     regionMarkersRef.current = [];
 
@@ -236,14 +248,14 @@ export default function WineMap({
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: ${selectedRegionId === region.id ? 'hsl(345, 55%, 38%)' : 'rgba(140, 40, 60, 0.35)'};
-          border: 2px solid ${selectedRegionId === region.id ? 'hsl(345, 55%, 30%)' : 'rgba(140, 40, 60, 0.6)'};
+          background: ${selectedRegionId === region.id ? '#8c1c2e' : 'rgba(140, 28, 46, 0.35)'};
+          border: 2px solid ${selectedRegionId === region.id ? '#6a1522' : 'rgba(140, 28, 46, 0.6)'};
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.2s ease;
-          box-shadow: 0 0 ${selectedRegionId === region.id ? '12px' : '8px'} rgba(140, 40, 60, ${selectedRegionId === region.id ? '0.5' : '0.25'});
+          box-shadow: 0 0 ${selectedRegionId === region.id ? '12px' : '8px'} rgba(140, 28, 46, ${selectedRegionId === region.id ? '0.5' : '0.25'});
         ">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
             <path d="M8 22h8M12 2v3M12 5a7 7 0 0 1 7 7c0 4-3.5 7-7 10-3.5-3-7-6-7-10a7 7 0 0 1 7-7Z"/>
@@ -266,13 +278,14 @@ export default function WineMap({
     });
   }, [regions, onSelectRegion, selectedRegionId]);
 
-  // Producer markers
+  // Producer markers — toggle visibility
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+
+    if (!showProducers) return;
 
     producers.forEach((producer) => {
       const el = document.createElement("div");
@@ -314,14 +327,13 @@ export default function WineMap({
         el.querySelector("div")!.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
       });
 
-      // Add tooltip popup
       const popup = new maplibregl.Popup({
         offset: 12,
         closeButton: false,
         closeOnClick: false,
         className: "producer-popup",
       }).setHTML(
-        `<div style="padding: 4px 8px; font-size: 12px; font-weight: 500; white-space: nowrap;">${producer.name}</div>`
+        `<div style="padding: 4px 8px; font-size: 12px; font-family: 'Fraunces', serif; font-weight: 500; white-space: nowrap; color: var(--text);">${producer.name}</div>`
       );
 
       el.addEventListener("mouseenter", () => {
@@ -337,7 +349,7 @@ export default function WineMap({
 
       markersRef.current.push(marker);
     });
-  }, [producers, onSelectProducer]);
+  }, [producers, onSelectProducer, showProducers]);
 
   // Fly to selected region
   useEffect(() => {

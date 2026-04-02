@@ -5,6 +5,8 @@ import { newsItems, type NewsItem } from "@/data/news";
 
 export type WineColor = "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified";
 export type PriceRange = "budget" | "mid" | "premium" | "luxury";
+export type AppView = "map" | "list" | "news";
+export type ListSubTab = "regions" | "producers";
 
 export interface Filters {
   wineTypes: WineColor[];
@@ -29,6 +31,10 @@ export function useWineStore() {
   const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<"none" | "region" | "producer">("none");
+  const [activeView, setActiveView] = useState<AppView>("map");
+  const [listSubTab, setListSubTab] = useState<ListSubTab>("regions");
+  const [showProducers, setShowProducers] = useState(true);
+  const [showBoundaries, setShowBoundaries] = useState(true);
 
   const updateFilter = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -68,6 +74,17 @@ export function useWineStore() {
     });
   }, [filters]);
 
+  const filteredRegions = useMemo(() => {
+    if (!filters.searchQuery) return wineRegions;
+    const q = filters.searchQuery.toLowerCase();
+    return wineRegions.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.country.toLowerCase().includes(q) ||
+        r.grapes.some((g) => g.toLowerCase().includes(q))
+    );
+  }, [filters.searchQuery]);
+
   const filteredNews = useMemo(() => {
     // If a specific producer is selected, show news about that producer
     if (selectedProducerId) {
@@ -95,8 +112,10 @@ export function useWineStore() {
     }
 
     // Default: show latest news
-    return newsItems.slice(0, 8);
+    return newsItems.slice(0, 12);
   }, [filters, selectedProducerId, selectedRegionId]);
+
+  const allNews = useMemo(() => newsItems, []);
 
   const selectedProducer = useMemo(
     () => producers.find((p) => p.id === selectedProducerId) || null,
@@ -131,7 +150,9 @@ export function useWineStore() {
     updateFilter,
     resetFilters,
     filteredProducers,
+    filteredRegions,
     filteredNews,
+    allNews,
     selectedProducer,
     selectedRegion,
     detailView,
@@ -140,5 +161,13 @@ export function useWineStore() {
     closeDetail,
     allRegions: wineRegions,
     allProducers: producers,
+    activeView,
+    setActiveView,
+    listSubTab,
+    setListSubTab,
+    showProducers,
+    setShowProducers,
+    showBoundaries,
+    setShowBoundaries,
   };
 }

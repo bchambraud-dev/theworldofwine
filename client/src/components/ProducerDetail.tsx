@@ -1,20 +1,7 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import {
-  X,
-  MapPin,
-  Calendar,
-  Wine,
-  Award,
-  Leaf,
-  DollarSign,
-  Info,
-  Star,
-} from "lucide-react";
+import { useMemo } from "react";
 import type { Producer } from "@/data/producers";
 import { wineRegions } from "@/data/regions";
+import { newsItems } from "@/data/news";
 
 interface ProducerDetailProps {
   producer: Producer;
@@ -22,21 +9,35 @@ interface ProducerDetailProps {
   onSelectRegion: (id: string) => void;
 }
 
-const priceLabels = {
+const priceLabels: Record<string, { label: string; desc: string }> = {
   budget: { label: "$", desc: "Under $20" },
-  mid: { label: "$$", desc: "$20-50" },
-  premium: { label: "$$$", desc: "$50-200" },
+  mid: { label: "$$", desc: "$20–50" },
+  premium: { label: "$$$", desc: "$50–200" },
   luxury: { label: "$$$$", desc: "$200+" },
 };
 
-const typeColors: Record<string, string> = {
-  red: "bg-red-900/80 text-white",
-  white: "bg-amber-100 text-amber-900",
-  rosé: "bg-pink-200 text-pink-900",
-  sparkling: "bg-yellow-100 text-yellow-900",
-  dessert: "bg-orange-200 text-orange-900",
-  fortified: "bg-stone-700 text-white",
+const flavorCategories: Record<string, string> = {
+  blackcurrant: "fruit", cassis: "fruit", cherry: "fruit", raspberry: "fruit",
+  plum: "fruit", strawberry: "fruit", citrus: "fruit", lemon: "fruit",
+  berry: "fruit", fig: "fruit", apple: "fruit", pear: "fruit", peach: "fruit",
+  earth: "earth", mushroom: "earth", truffle: "earth", soil: "earth",
+  tobacco: "earth", leather: "earth",
+  graphite: "mineral", mineral: "mineral", flint: "mineral", chalk: "mineral",
+  slate: "mineral", stone: "mineral",
+  cedar: "oak", oak: "oak", vanilla: "oak", butter: "oak",
+  toast: "oak", smoke: "oak",
+  violet: "floral", rose: "floral", floral: "floral", lavender: "floral",
+  jasmine: "floral", blossom: "floral", silk: "floral",
+  pepper: "spice", spice: "spice", cinnamon: "spice",
 };
+
+function classifyFlavor(flavor: string): string {
+  const lower = flavor.toLowerCase();
+  for (const [keyword, cat] of Object.entries(flavorCategories)) {
+    if (lower.includes(keyword)) return cat;
+  }
+  return "earth";
+}
 
 export default function ProducerDetail({
   producer,
@@ -44,132 +45,179 @@ export default function ProducerDetail({
   onSelectRegion,
 }: ProducerDetailProps) {
   const region = wineRegions.find((r) => r.id === producer.regionId);
-  const price = priceLabels[producer.priceRange];
+  const price = priceLabels[producer.priceRange] || { label: "?", desc: "" };
+  const producerNews = useMemo(
+    () => newsItems.filter((n) => n.producerIds.includes(producer.id)).slice(0, 4),
+    [producer.id]
+  );
 
   return (
-    <div className="flex flex-col h-full" data-testid="producer-detail">
+    <>
+      {/* Accent bar */}
+      <div className="sp-bar" />
+
+      {/* Back to region */}
+      {region && (
+        <button
+          className="sp-back"
+          onClick={() => onSelectRegion(region.id)}
+          data-testid="producer-back-to-region"
+        >
+          <span className="sp-back-arrow">←</span>
+          <span className="sp-back-lbl">Back to {region.name}</span>
+        </button>
+      )}
+
       {/* Header */}
-      <div className="px-4 py-3 flex items-start justify-between border-b border-border/50">
-        <div className="flex-1 min-w-0">
-          <button
-            onClick={() => region && onSelectRegion(region.id)}
-            className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary font-medium mb-0.5 hover:underline"
-            data-testid="producer-region-link"
-          >
-            <MapPin className="w-3 h-3" />
-            {region?.name}, {producer.country}
-          </button>
-          <h2 className="text-base font-bold text-foreground leading-tight">
-            {producer.name}
-          </h2>
+      <div className="sp-header">
+        <div className="sp-eyebrow">
+          {region?.name || producer.country} · Est. {producer.founded}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
+        <div className="sp-title" data-testid="producer-detail-title">{producer.name}</div>
+        <button
+          className="sp-close"
           onClick={onClose}
-          className="h-7 w-7 p-0 shrink-0"
           data-testid="close-producer-detail"
         >
-          <X className="w-4 h-4" />
-        </Button>
+          ✕
+        </button>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Quick badges */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {producer.wineType.map((t) => (
-              <Badge key={t} className={`text-[10px] ${typeColors[t]}`}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </Badge>
-            ))}
-            <Badge variant="outline" className="text-[10px] gap-1">
-              <DollarSign className="w-2.5 h-2.5" />
-              {price.label}
-              <span className="text-muted-foreground ml-0.5">{price.desc}</span>
-            </Badge>
-            {producer.isNatural && (
-              <Badge className="text-[10px] bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300">
-                <Leaf className="w-2.5 h-2.5 mr-0.5" />
-                Natural
-              </Badge>
-            )}
-            {producer.isAwardWinner && (
-              <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                <Award className="w-2.5 h-2.5 mr-0.5" />
-                Award Winner
-              </Badge>
-            )}
+      {/* Scrollable body */}
+      <div className="sp-body" data-testid="producer-detail">
+        {/* Tags row */}
+        <div style={{ padding: "12px 20px", display: "flex", flexWrap: "wrap", gap: 5, borderBottom: "1px solid var(--border-c)" }}>
+          {producer.wineType.map((t) => (
+            <span key={t} className="hero-tag">{t.charAt(0).toUpperCase() + t.slice(1)}</span>
+          ))}
+          <span className="hero-tag" style={{ color: "var(--gold)", borderColor: "rgba(184,134,11,0.3)", background: "var(--gold-pale)" }}>
+            {price.label} {price.desc}
+          </span>
+          {producer.isNatural && (
+            <span className="hero-tag" style={{ color: "var(--sage)", borderColor: "rgba(74,122,82,0.3)", background: "var(--sage-pale)" }}>
+              🌿 Natural
+            </span>
+          )}
+          {producer.isAwardWinner && (
+            <span className="hero-tag" style={{ color: "var(--plum)", borderColor: "rgba(74,26,110,0.2)", background: "rgba(74,26,110,0.07)" }}>
+              ★ Award Winner
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        <div className="producer-bio">{producer.description}</div>
+
+        {/* Stats */}
+        <div className="producer-stats-row">
+          <div className="p-stat">
+            <span className="p-stat-num">{producer.founded}</span>
+            <span className="p-stat-lbl">Founded</span>
           </div>
-
-          {/* Founded */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="w-3.5 h-3.5" />
-            Founded {producer.founded}
+          <div className="p-stat">
+            <span className="p-stat-num">{producer.wineType.length}</span>
+            <span className="p-stat-lbl">Wine Types</span>
           </div>
-
-          {/* Description */}
-          <p className="text-xs leading-relaxed text-foreground/90">
-            {producer.description}
-          </p>
-
-          {/* Flagship Wine */}
-          <div className="p-3 rounded-md bg-primary/5 border border-primary/10">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Wine className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Flagship Wine
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-foreground">
-              {producer.flagshipWine}
-            </p>
+          <div className="p-stat">
+            <span className="p-stat-num">{price.label}</span>
+            <span className="p-stat-lbl">Price Range</span>
           </div>
-
-          {/* Taste Profile */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Star className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Taste Profile
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {producer.tasteProfile.map((taste) => (
-                <span
-                  key={taste}
-                  className="inline-flex items-center px-2 py-1 rounded-full bg-accent text-[10px] font-medium"
-                >
-                  {taste}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="opacity-50" />
-
-          {/* Key Facts */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Info className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Key Facts
-              </span>
-            </div>
-            <ul className="space-y-1.5">
-              {producer.keyFacts.map((fact, i) => (
-                <li
-                  key={i}
-                  className="text-xs text-foreground/80 flex items-start gap-2"
-                >
-                  <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                  {fact}
-                </li>
-              ))}
-            </ul>
+          <div className="p-stat">
+            <span className="p-stat-num">{producer.keyFacts.length}</span>
+            <span className="p-stat-lbl">Key Facts</span>
           </div>
         </div>
-      </ScrollArea>
-    </div>
+
+        {/* Flagship Wine */}
+        <div className="section-head">Flagship Wine</div>
+        <div style={{
+          padding: "14px 20px",
+          borderBottom: "1px solid var(--border-c)",
+          background: "linear-gradient(135deg, var(--wine-pale) 0%, transparent 70%)",
+        }}>
+          <div style={{
+            fontFamily: "'Fraunces', serif",
+            fontSize: "1rem",
+            fontWeight: 500,
+            color: "var(--text)",
+            marginBottom: 2,
+          }}>
+            {producer.flagshipWine}
+          </div>
+          <div style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: "0.58rem",
+            textTransform: "uppercase" as const,
+            letterSpacing: "0.08em",
+            color: "var(--text3)",
+          }}>
+            {producer.name}
+          </div>
+        </div>
+
+        {/* Taste Profile */}
+        <div className="sp-flavors">
+          {producer.tasteProfile.map((taste, i) => (
+            <span key={i} className={`ftag ${classifyFlavor(taste)}`}>
+              {taste}
+            </span>
+          ))}
+        </div>
+
+        {/* Key Facts */}
+        <div className="section-head">Key Facts</div>
+        <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border-c)" }}>
+          {producer.keyFacts.map((fact, i) => (
+            <div key={i} style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              marginBottom: 8,
+              fontSize: "0.8rem",
+              fontWeight: 300,
+              color: "var(--text2)",
+              lineHeight: 1.6,
+            }}>
+              <span style={{
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: "var(--wine)",
+                marginTop: 7,
+                flexShrink: 0,
+              }} />
+              {fact}
+            </div>
+          ))}
+        </div>
+
+        {/* News about this producer */}
+        {producerNews.length > 0 && (
+          <>
+            <div className="section-head">Recent News</div>
+            <div style={{ padding: "12px 14px" }}>
+              {producerNews.map((item) => (
+                <div key={item.id} className="sp-news-card" data-testid={`producer-news-${item.id}`}>
+                  <div className="sp-news-cat">{item.tags[0] || "Wine"}</div>
+                  <div className="sp-news-title">{item.title}</div>
+                  <div className="sp-news-summary" style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}>{item.summary}</div>
+                  <div className="sp-news-footer">
+                    <span className="sp-news-source">{item.source}</span>
+                    <span className="sp-news-source">
+                      {new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }

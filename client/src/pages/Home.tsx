@@ -1,33 +1,16 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Sun,
-  Moon,
-  ChevronLeft,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeft,
-  Map,
-  SlidersHorizontal,
-  Newspaper,
-  X,
-} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import WineMap from "@/components/WineMap";
 import FilterPanel from "@/components/FilterPanel";
 import RegionDetail from "@/components/RegionDetail";
 import ProducerDetail from "@/components/ProducerDetail";
 import NewsFeed from "@/components/NewsFeed";
-import { useWineStore } from "@/lib/store";
-
-type MobileTab = "map" | "filters" | "news";
+import { useWineStore, type AppView } from "@/lib/store";
+import { producers } from "@/data/producers";
 
 export default function Home() {
   const [isDark, setIsDark] = useState(() =>
     window.matchMedia("(prefers-color-scheme: dark)").matches
   );
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
-  const [mobileTab, setMobileTab] = useState<MobileTab>("map");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -35,53 +18,41 @@ export default function Home() {
 
   const store = useWineStore();
 
-  // On mobile, when a region/producer is selected, show it
-  const hasDetail =
-    (store.detailView === "region" && store.selectedRegion) ||
-    (store.detailView === "producer" && store.selectedProducer);
+  // Determine if side panel should be open
+  const panelOpen =
+    (store.detailView === "region" && store.selectedRegion !== null) ||
+    (store.detailView === "producer" && store.selectedProducer !== null);
 
-  // When detail opens on mobile, switch to map tab so user sees it
+  // When region/producer selected, switch to map view
   useEffect(() => {
-    if (hasDetail) {
-      setMobileTab("map");
+    if (panelOpen && store.activeView !== "map") {
+      store.setActiveView("map");
     }
-  }, [hasDetail]);
+  }, [panelOpen]);
 
-  const leftContent =
-    store.detailView === "region" && store.selectedRegion ? (
-      <RegionDetail
-        region={store.selectedRegion}
-        producers={store.allProducers}
-        onClose={store.closeDetail}
-        onSelectProducer={store.selectProducer}
-      />
-    ) : store.detailView === "producer" && store.selectedProducer ? (
-      <ProducerDetail
-        producer={store.selectedProducer}
-        onClose={store.closeDetail}
-        onSelectRegion={store.selectRegion}
-      />
-    ) : (
-      <FilterPanel
-        filters={store.filters}
-        onUpdateFilter={store.updateFilter}
-        onReset={store.resetFilters}
-        producerCount={store.filteredProducers.length}
-      />
-    );
+  // List view filtered regions and producers
+  const listRegions = store.filteredRegions;
+  const listProducers = store.filteredProducers;
+
+  // Count producers per region for list view
+  const producerCountByRegion = useMemo(() => {
+    const counts: Record<string, number> = {};
+    producers.forEach((p) => {
+      counts[p.regionId] = (counts[p.regionId] || 0) + 1;
+    });
+    return counts;
+  }, []);
 
   return (
-    <div
-      className="h-screen w-screen flex flex-col overflow-hidden bg-background"
-      data-testid="app-root"
-    >
-      {/* Top Bar */}
-      <header className="h-12 shrink-0 flex items-center justify-between px-3 md:px-4 border-b border-border/50 bg-card/80 backdrop-blur-sm z-50">
-        <div className="flex items-center gap-2 md:gap-3">
-          {/* Logo */}
+    <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
+
+      {/* ══════ TOP BAR ══════ */}
+      <header className="topbar" data-testid="topbar">
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
           <svg
             viewBox="0 0 32 32"
-            className="w-6 h-6 md:w-7 md:h-7 text-primary"
+            style={{ width: 24, height: 24, color: "var(--wine)" }}
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -92,74 +63,60 @@ export default function Home() {
             <line x1="16" y1="25" x2="16" y2="30" />
             <line x1="12" y1="30" x2="20" y2="30" />
           </svg>
-          <div>
-            <h1 className="text-xs md:text-sm font-bold tracking-tight leading-none">
-              The World of Wine
-            </h1>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground leading-none mt-0.5 hidden sm:block">
-              Explore regions, producers & flavors
-            </p>
-          </div>
+          <span className="logo-text">The World of Wine</span>
         </div>
 
-        <div className="flex items-center gap-1">
-          {/* Desktop panel toggles */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLeftOpen(!leftOpen)}
-            className="h-8 w-8 p-0 hidden md:flex"
-            data-testid="toggle-left-panel"
-            title={leftOpen ? "Hide filters" : "Show filters"}
-          >
-            {leftOpen ? (
-              <PanelLeftClose className="w-4 h-4" />
-            ) : (
-              <PanelLeft className="w-4 h-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setRightOpen(!rightOpen)}
-            className="h-8 w-8 p-0 hidden md:flex"
-            data-testid="toggle-right-panel"
-            title={rightOpen ? "Hide news" : "Show news"}
-          >
-            {rightOpen ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+        <div className="topbar-divider desktop-only" />
+
+        {/* Search */}
+        <div className="search-wrap">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search regions, producers..."
+            value={store.filters.searchQuery}
+            onChange={(e) => store.updateFilter("searchQuery", e.target.value)}
+            data-testid="search-input"
+          />
+        </div>
+
+        {/* Filter chips */}
+        <FilterPanel
+          filters={store.filters}
+          onUpdateFilter={store.updateFilter}
+          onReset={store.resetFilters}
+          producerCount={store.filteredProducers.length}
+        />
+
+        <div className="topbar-divider desktop-only" />
+
+        {/* View switcher + dark mode */}
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {(["map", "list", "news"] as AppView[]).map((v) => (
+            <button
+              key={v}
+              className={`nav-btn ${store.activeView === v ? "active" : ""}`}
+              onClick={() => store.setActiveView(v)}
+              data-testid={`nav-${v}`}
+            >
+              {v}
+            </button>
+          ))}
+          <div className="topbar-divider" />
+          <button
+            className="nav-btn"
             onClick={() => setIsDark(!isDark)}
-            className="h-8 w-8 p-0"
             data-testid="theme-toggle"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {isDark ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
-          </Button>
+            {isDark ? "☀" : "☾"}
+          </button>
         </div>
       </header>
 
-      {/* ── DESKTOP LAYOUT (md+) ─────────────────────────────────── */}
-      <div className="flex-1 hidden md:flex overflow-hidden">
-        {/* Left Panel: Filters or Detail */}
-        {leftOpen && (
-          <aside className="w-72 shrink-0 border-r border-border/50 bg-card flex flex-col overflow-hidden">
-            {leftContent}
-          </aside>
-        )}
-
-        {/* Map */}
-        <main className="flex-1 relative overflow-hidden">
+      {/* ══════ MAP VIEW ══════ */}
+      {store.activeView === "map" && (
+        <div style={{ position: "fixed", top: "var(--topbar)", left: 0, right: 0, bottom: 0, zIndex: 1 }}>
           <WineMap
             producers={store.filteredProducers}
             regions={store.allRegions}
@@ -171,218 +128,219 @@ export default function Home() {
                 : store.filters.selectedRegionId
             }
             isDark={isDark}
+            showProducers={store.showProducers}
+            showBoundaries={store.showBoundaries}
           />
 
-          {/* Map legend */}
-          <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm rounded-md border border-border/50 px-3 py-2 text-[10px] space-y-1 shadow-sm z-10">
-            <div className="font-semibold text-foreground mb-1">Legend</div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[rgba(140,40,60,0.35)] border border-[rgba(140,40,60,0.6)]" />
-              <span className="text-muted-foreground">Wine Region</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#7a1e3a] border-2 border-white" />
-              <span className="text-muted-foreground">Red Producer</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#c4a747] border-2 border-white" />
-              <span className="text-muted-foreground">White Producer</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#d4a853] border-2 border-white" />
-              <span className="text-muted-foreground">Sparkling Producer</span>
-            </div>
-          </div>
-        </main>
-
-        {/* Right Panel: News */}
-        {rightOpen && (
-          <aside className="w-72 shrink-0 border-l border-border/50 bg-card flex flex-col overflow-hidden">
-            <NewsFeed
-              news={store.filteredNews}
-              onSelectRegion={store.selectRegion}
-              onSelectProducer={store.selectProducer}
-            />
-          </aside>
-        )}
-      </div>
-
-      {/* ── MOBILE LAYOUT (<md) ──────────────────────────────────── */}
-      <div className="flex-1 flex flex-col md:hidden overflow-hidden relative">
-        {/* Map always rendered */}
-        <div className="flex-1 relative">
-          <WineMap
-            producers={store.filteredProducers}
-            regions={store.allRegions}
-            onSelectProducer={store.selectProducer}
-            onSelectRegion={store.selectRegion}
-            selectedRegionId={
-              store.detailView === "region"
-                ? store.selectedRegion?.id || null
-                : store.filters.selectedRegionId
-            }
-            isDark={isDark}
-          />
-
-          {/* Compact mobile legend */}
-          {mobileTab === "map" && !hasDetail && (
-            <div className="absolute bottom-2 left-2 bg-card/90 backdrop-blur-sm rounded-md border border-border/50 px-2 py-1.5 text-[9px] space-y-0.5 shadow-sm z-10">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[rgba(140,40,60,0.35)] border border-[rgba(140,40,60,0.6)]" />
-                  Region
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#7a1e3a] border border-white" />
-                  Red
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#c4a747] border border-white" />
-                  White
-                </span>
+          {/* Progress badge */}
+          <div className="progress-badge" data-testid="progress-badge">
+            <div className="pb-title">Your Journey</div>
+            <div className="pb-stats">
+              <div className="pb-stat">
+                <span className="pb-num">{store.allRegions.length}</span>
+                <span className="pb-lbl">Regions</span>
+              </div>
+              <div className="pb-stat">
+                <span className="pb-num">{store.filteredProducers.length}</span>
+                <span className="pb-lbl">Producers</span>
+              </div>
+              <div className="pb-stat">
+                <span className="pb-num">{store.allNews.length}</span>
+                <span className="pb-lbl">Stories</span>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Producer count badge on map */}
-          {mobileTab === "map" && !hasDetail && (
-            <div className="absolute top-2 left-2 bg-card/90 backdrop-blur-sm rounded-full border border-border/50 px-3 py-1 text-[10px] font-medium shadow-sm z-10 text-muted-foreground">
-              {store.filteredProducers.length} producers
+          {/* Layers panel */}
+          <div className="layers-panel" data-testid="layers-panel">
+            <div className="layer-title">Map Layers</div>
+            <div className="layer-row" onClick={() => store.setShowProducers(!store.showProducers)}>
+              <button
+                className={`toggle-switch ${store.showProducers ? "on" : ""}`}
+                data-testid="toggle-producers"
+              />
+              <span className="layer-lbl">Producers</span>
+              <span className="layer-dot" style={{ background: "var(--wine)" }} />
             </div>
-          )}
+            <div className="layer-row" onClick={() => store.setShowBoundaries(!store.showBoundaries)}>
+              <button
+                className={`toggle-switch ${store.showBoundaries ? "on" : ""}`}
+                data-testid="toggle-boundaries"
+              />
+              <span className="layer-lbl">Region Boundaries</span>
+              <span className="layer-dot" style={{ background: "rgba(140,28,46,0.4)" }} />
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Mobile overlay panel for Filters */}
-        {mobileTab === "filters" && (
-          <div className="absolute inset-0 z-30 flex flex-col bg-background/95 backdrop-blur-md">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
-              <span className="text-xs font-semibold">Filters</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={() => setMobileTab("map")}
+      {/* ══════ LIST VIEW ══════ */}
+      {store.activeView === "list" && (
+        <div className="list-view" data-testid="list-view">
+          {/* Toolbar */}
+          <div className="lv-toolbar">
+            <div className="lv-tab-group">
+              <button
+                className={`lv-tab ${store.listSubTab === "regions" ? "active" : ""}`}
+                onClick={() => store.setListSubTab("regions")}
+                data-testid="list-tab-regions"
               >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <FilterPanel
-                filters={store.filters}
-                onUpdateFilter={store.updateFilter}
-                onReset={store.resetFilters}
-                producerCount={store.filteredProducers.length}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Mobile overlay panel for News */}
-        {mobileTab === "news" && (
-          <div className="absolute inset-0 z-30 flex flex-col bg-background/95 backdrop-blur-md">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
-              <span className="text-xs font-semibold">Wine News</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={() => setMobileTab("map")}
+                Regions
+              </button>
+              <button
+                className={`lv-tab ${store.listSubTab === "producers" ? "active" : ""}`}
+                onClick={() => store.setListSubTab("producers")}
+                data-testid="list-tab-producers"
               >
-                <X className="w-4 h-4" />
-              </Button>
+                Producers
+              </button>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <NewsFeed
-                news={store.filteredNews}
-                onSelectRegion={(id) => {
-                  store.selectRegion(id);
-                  setMobileTab("map");
-                }}
-                onSelectProducer={(id) => {
-                  store.selectProducer(id);
-                  setMobileTab("map");
-                }}
-              />
-            </div>
+            <span style={{
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: "0.62rem",
+              color: "var(--text3)",
+              whiteSpace: "nowrap",
+              marginLeft: "auto",
+            }}>
+              {store.listSubTab === "regions"
+                ? `${listRegions.length} regions`
+                : `${listProducers.length} producers`}
+            </span>
           </div>
-        )}
 
-        {/* Mobile detail sheet (slides up from bottom) */}
-        {hasDetail && (
-          <div className="absolute inset-x-0 bottom-0 z-40 max-h-[70vh] flex flex-col bg-background rounded-t-2xl shadow-2xl border-t border-border/50 overflow-hidden animate-in slide-in-from-bottom duration-300">
-            {/* Drag handle */}
-            <div className="flex justify-center pt-2 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              {store.detailView === "region" && store.selectedRegion ? (
-                <RegionDetail
-                  region={store.selectedRegion}
-                  producers={store.allProducers}
-                  onClose={store.closeDetail}
-                  onSelectProducer={store.selectProducer}
-                />
-              ) : store.detailView === "producer" && store.selectedProducer ? (
-                <ProducerDetail
-                  producer={store.selectedProducer}
-                  onClose={store.closeDetail}
-                  onSelectRegion={store.selectRegion}
-                />
-              ) : null}
-            </div>
-          </div>
-        )}
-
-        {/* Bottom tab bar */}
-        <nav className="shrink-0 h-14 flex items-stretch border-t border-border/50 bg-card/95 backdrop-blur-sm z-50 safe-area-bottom">
-          <button
-            onClick={() => setMobileTab("map")}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-              mobileTab === "map"
-                ? "text-primary"
-                : "text-muted-foreground"
-            }`}
-            data-testid="mobile-tab-map"
-          >
-            <Map className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Map</span>
-          </button>
-          <button
-            onClick={() =>
-              setMobileTab(mobileTab === "filters" ? "map" : "filters")
-            }
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-              mobileTab === "filters"
-                ? "text-primary"
-                : "text-muted-foreground"
-            }`}
-            data-testid="mobile-tab-filters"
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Filters</span>
-          </button>
-          <button
-            onClick={() =>
-              setMobileTab(mobileTab === "news" ? "map" : "news")
-            }
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative ${
-              mobileTab === "news"
-                ? "text-primary"
-                : "text-muted-foreground"
-            }`}
-            data-testid="mobile-tab-news"
-          >
-            <Newspaper className="w-5 h-5" />
-            <span className="text-[10px] font-medium">News</span>
-            {store.filteredNews.length > 0 && (
-              <span className="absolute top-1.5 right-1/4 w-4 h-4 text-[8px] font-bold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                {store.filteredNews.length > 9
-                  ? "9+"
-                  : store.filteredNews.length}
-              </span>
+          {/* Body */}
+          <div className="lv-body">
+            {store.listSubTab === "regions" ? (
+              listRegions.length === 0 ? (
+                <div className="lv-empty">
+                  <div className="lv-empty-icon">🗺️</div>
+                  <div className="lv-empty-title">No regions found</div>
+                  <div className="lv-empty-sub">Try adjusting your search</div>
+                </div>
+              ) : (
+                <div className="lv-regions-list">
+                  {listRegions.map((region) => (
+                    <div
+                      key={region.id}
+                      className="lv-region-card"
+                      onClick={() => {
+                        store.selectRegion(region.id);
+                        store.setActiveView("map");
+                      }}
+                      data-testid={`list-region-${region.id}`}
+                    >
+                      <div className="lv-rc-accent" />
+                      <div className="lv-rc-body">
+                        <div className="lv-rc-title">{region.name}</div>
+                        <div className="lv-rc-sub">{region.country}</div>
+                        <div className="lv-rc-desc">{region.description}</div>
+                        <div className="lv-rc-meta">
+                          <span className="lv-rc-stat">
+                            <b>{producerCountByRegion[region.id] || 0}</b> producers
+                          </span>
+                          <span className="lv-rc-stat">
+                            <b>{region.grapes.length}</b> grapes
+                          </span>
+                        </div>
+                        <div className="lv-rc-grapes">
+                          {region.grapes.slice(0, 4).map((g) => (
+                            <span key={g} className="lv-rc-grape">{g}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              listProducers.length === 0 ? (
+                <div className="lv-empty">
+                  <div className="lv-empty-icon">🍷</div>
+                  <div className="lv-empty-title">No producers found</div>
+                  <div className="lv-empty-sub">Try adjusting your filters</div>
+                </div>
+              ) : (
+                <div className="lv-producers-grid">
+                  {listProducers.map((producer) => {
+                    const region = store.allRegions.find((r) => r.id === producer.regionId);
+                    return (
+                      <div
+                        key={producer.id}
+                        className="lv-producer-card"
+                        onClick={() => {
+                          store.selectProducer(producer.id);
+                          store.setActiveView("map");
+                        }}
+                        data-testid={`list-producer-${producer.id}`}
+                      >
+                        <div className="lv-pc-icon">{producer.name.charAt(0)}</div>
+                        <div className="lv-pc-info">
+                          <div className="lv-pc-name">{producer.name}</div>
+                          <div className="lv-pc-sub">
+                            {region?.name || producer.country} · Est. {producer.founded}
+                          </div>
+                          <div className="lv-pc-bio">{producer.description}</div>
+                          <div className="lv-pc-pills">
+                            {producer.wineType.map((t) => (
+                              <span key={t} className="lv-pc-pill">{t}</span>
+                            ))}
+                            {producer.isAwardWinner && (
+                              <span className="lv-pc-pill" style={{
+                                background: "rgba(74,26,110,0.07)",
+                                color: "var(--plum)",
+                                borderColor: "rgba(74,26,110,0.2)",
+                              }}>★ award</span>
+                            )}
+                            {producer.isNatural && (
+                              <span className="lv-pc-pill" style={{
+                                background: "var(--sage-pale)",
+                                color: "var(--sage)",
+                                borderColor: "rgba(74,122,82,0.2)",
+                              }}>natural</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
             )}
-          </button>
-        </nav>
+          </div>
+        </div>
+      )}
+
+      {/* ══════ NEWS VIEW ══════ */}
+      {store.activeView === "news" && (
+        <NewsFeed
+          news={store.filteredNews}
+          onSelectRegion={(id) => {
+            store.selectRegion(id);
+            store.setActiveView("map");
+          }}
+          onSelectProducer={(id) => {
+            store.selectProducer(id);
+            store.setActiveView("map");
+          }}
+        />
+      )}
+
+      {/* ══════ SLIDE PANEL ══════ */}
+      <div className={`side-panel ${panelOpen ? "open" : ""}`} data-testid="side-panel">
+        {store.detailView === "region" && store.selectedRegion ? (
+          <RegionDetail
+            region={store.selectedRegion}
+            producers={store.allProducers}
+            onClose={store.closeDetail}
+            onSelectProducer={store.selectProducer}
+          />
+        ) : store.detailView === "producer" && store.selectedProducer ? (
+          <ProducerDetail
+            producer={store.selectedProducer}
+            onClose={store.closeDetail}
+            onSelectRegion={store.selectRegion}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -1,7 +1,5 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Newspaper, Calendar, ExternalLink } from "lucide-react";
-import type { NewsItem } from "@/data/news";
+import { useState, useMemo } from "react";
+import { newsItems, type NewsItem } from "@/data/news";
 
 interface NewsFeedProps {
   news: NewsItem[];
@@ -9,104 +7,171 @@ interface NewsFeedProps {
   onSelectProducer: (id: string) => void;
 }
 
+const categoryColors: Record<string, string> = {
+  red: "var(--wine)",
+  white: "var(--gold)",
+  sparkling: "var(--gold)",
+  sustainability: "var(--sage)",
+  biodynamic: "var(--sage)",
+  natural: "var(--sage)",
+  luxury: "var(--plum)",
+  "award winner": "var(--plum)",
+  climate: "var(--sage)",
+  rosé: "#d4607a",
+  "vintage report": "var(--wine)",
+};
+
+function getCategoryColor(tags: string[]): string {
+  for (const tag of tags) {
+    const c = categoryColors[tag.toLowerCase()];
+    if (c) return c;
+  }
+  return "var(--wine)";
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffDays = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  const weeks = Math.floor(diffDays / 7);
+  if (diffDays < 30) return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// Extract unique topics from all news for filter chips
+function getTopics(): string[] {
+  const topics = new Set<string>();
+  newsItems.forEach((n) => n.tags.forEach((t) => topics.add(t)));
+  return Array.from(topics).slice(0, 10);
+}
+
 export default function NewsFeed({
-  news,
+  news: _contextualNews,
   onSelectRegion,
   onSelectProducer,
 }: NewsFeedProps) {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+  const topics = useMemo(getTopics, []);
+
+  const filteredNews = useMemo(() => {
+    const all = newsItems;
+    if (!activeTopic) return all;
+    return all.filter((n) =>
+      n.tags.some((t) => t.toLowerCase() === activeTopic.toLowerCase())
     );
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    const weeks = Math.floor(diffDays / 7);
-    if (diffDays < 30) return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
+  }, [activeTopic]);
+
+  const featured = filteredNews[0];
+  const rest = filteredNews.slice(1);
 
   return (
-    <div className="flex flex-col h-full" data-testid="news-feed">
-      <div className="px-4 py-3 flex items-center gap-2 border-b border-border/50">
-        <Newspaper className="w-4 h-4 text-primary" />
-        <span className="text-sm font-semibold">Wine News</span>
-        <Badge variant="secondary" className="text-[10px] ml-auto">
-          {news.length}
-        </Badge>
+    <div className="news-view" data-testid="news-view">
+      {/* Toolbar */}
+      <div className="nv-toolbar">
+        <span className="nv-title">Wine News</span>
+        <span className="nv-subtitle">{filteredNews.length} Stories</span>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {news.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Newspaper className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="text-xs">No news matching your filters</p>
-            </div>
-          ) : (
-            news.map((item) => (
-              <article
-                key={item.id}
-                className="p-3 rounded-md hover:bg-accent/50 transition-colors cursor-default group"
-                data-testid={`news-item-${item.id}`}
-              >
-                <h3 className="text-xs font-semibold leading-snug text-foreground mb-1.5 line-clamp-2">
-                  {item.title}
-                </h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed mb-2 line-clamp-3">
-                  {item.summary}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="font-medium text-foreground/70">
-                      {item.source}
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Calendar className="w-2.5 h-2.5" />
-                      {formatDate(item.date)}
-                    </span>
+      {/* Topic filter chips */}
+      <div className="nv-topic-row">
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "0.58rem",
+          textTransform: "uppercase" as const,
+          letterSpacing: "0.08em",
+          color: "var(--text3)",
+          whiteSpace: "nowrap",
+          marginRight: 4,
+          flexShrink: 0,
+        }}>Topics</span>
+        <button
+          className={`chip ${!activeTopic ? "active" : ""}`}
+          onClick={() => setActiveTopic(null)}
+        >
+          All
+        </button>
+        {topics.map((topic) => (
+          <button
+            key={topic}
+            className={`chip ${activeTopic === topic ? "active" : ""}`}
+            onClick={() => setActiveTopic(activeTopic === topic ? null : topic)}
+            data-testid={`news-topic-${topic}`}
+          >
+            {topic}
+          </button>
+        ))}
+      </div>
+
+      {/* News body */}
+      <div className="nv-body">
+        {filteredNews.length === 0 ? (
+          <div className="lv-empty">
+            <div className="lv-empty-icon">📰</div>
+            <div className="lv-empty-title">No stories found</div>
+            <div className="lv-empty-sub">Try a different topic filter</div>
+          </div>
+        ) : (
+          <div className="nv-grid">
+            {/* Featured card */}
+            {featured && (
+              <div className="nv-hero">
+                <div className="news-card nc-hero">
+                  <div className="nc-accent" style={{ background: getCategoryColor(featured.tags) }} />
+                  <div className="nc-body">
+                    <div className="nc-cat" style={{ color: getCategoryColor(featured.tags) }}>
+                      {featured.tags[0] || "Wine"}
+                    </div>
+                    <div className="nc-title">{featured.title}</div>
+                    <div className="nc-summary">{featured.summary}</div>
+                    <div className="nc-tags">
+                      {featured.tags.map((tag) => (
+                        <span key={tag} className="nc-tag">{tag}</span>
+                      ))}
+                    </div>
+                    <div className="nc-footer">
+                      <span className="nc-source">{featured.source}</span>
+                      <span className="nc-date">{formatDate(featured.date)}</span>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    {item.tags.slice(0, 2).map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="text-[9px] h-4 px-1"
-                      >
-                        {tag}
-                      </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Rest of cards */}
+            {rest.map((item) => (
+              <div key={item.id} className="news-card" data-testid={`news-card-${item.id}`}>
+                <div className="nc-accent" style={{ background: getCategoryColor(item.tags) }} />
+                <div className="nc-body">
+                  <div className="nc-cat" style={{ color: getCategoryColor(item.tags) }}>
+                    {item.tags[0] || "Wine"}
+                  </div>
+                  <div className="nc-title">{item.title}</div>
+                  <div className="nc-summary" style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}>{item.summary}</div>
+                  <div className="nc-tags">
+                    {item.tags.slice(0, 3).map((tag) => (
+                      <span key={tag} className="nc-tag">{tag}</span>
                     ))}
                   </div>
+                  <div className="nc-footer">
+                    <span className="nc-source">{item.source}</span>
+                    <span className="nc-date">{formatDate(item.date)}</span>
+                  </div>
                 </div>
-
-                {/* Related links */}
-                <div className="flex flex-wrap gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.regionIds.slice(0, 2).map((rId) => (
-                    <button
-                      key={rId}
-                      onClick={() => onSelectRegion(rId)}
-                      className="text-[9px] text-primary hover:underline"
-                    >
-                      #{rId}
-                    </button>
-                  ))}
-                  {item.producerIds.slice(0, 2).map((pId) => (
-                    <button
-                      key={pId}
-                      onClick={() => onSelectProducer(pId)}
-                      className="text-[9px] text-primary hover:underline"
-                    >
-                      @{pId}
-                    </button>
-                  ))}
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-      </ScrollArea>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

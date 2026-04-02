@@ -5,7 +5,6 @@ import { newsItems, type NewsItem } from "@/data/news";
 
 export type WineColor = "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified";
 export type PriceRange = "budget" | "mid" | "premium" | "luxury";
-export type AppView = "map" | "list" | "news";
 export type ListSubTab = "regions" | "producers";
 
 export interface Filters {
@@ -31,7 +30,6 @@ export function useWineStore() {
   const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<"none" | "region" | "producer">("none");
-  const [activeView, setActiveView] = useState<AppView>("map");
   const [listSubTab, setListSubTab] = useState<ListSubTab>("regions");
   const [showProducers, setShowProducers] = useState(true);
   const [showBoundaries, setShowBoundaries] = useState(true);
@@ -75,26 +73,35 @@ export function useWineStore() {
   }, [filters]);
 
   const filteredRegions = useMemo(() => {
-    if (!filters.searchQuery) return wineRegions;
-    const q = filters.searchQuery.toLowerCase();
-    return wineRegions.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.country.toLowerCase().includes(q) ||
-        r.grapes.some((g) => g.toLowerCase().includes(q))
-    );
-  }, [filters.searchQuery]);
+    return wineRegions.filter((r) => {
+      if (filters.searchQuery) {
+        const q = filters.searchQuery.toLowerCase();
+        if (
+          !r.name.toLowerCase().includes(q) &&
+          !r.country.toLowerCase().includes(q) &&
+          !r.grapes.some((g) => g.toLowerCase().includes(q))
+        )
+          return false;
+      }
+      // Apply wine type filter to regions too — check if region has producers matching
+      if (filters.wineTypes.length > 0) {
+        const regionProducers = producers.filter((p) => p.regionId === r.id);
+        const hasMatchingProducer = regionProducers.some((p) =>
+          p.wineType.some((t) => filters.wineTypes.includes(t))
+        );
+        if (!hasMatchingProducer && regionProducers.length > 0) return false;
+      }
+      return true;
+    });
+  }, [filters]);
 
   const filteredNews = useMemo(() => {
-    // If a specific producer is selected, show news about that producer
     if (selectedProducerId) {
       const producerNews = newsItems.filter((n) =>
         n.producerIds.includes(selectedProducerId)
       );
       if (producerNews.length > 0) return producerNews;
     }
-
-    // If a region is selected (either from filter or direct selection), show regional news
     const activeRegion = selectedRegionId || filters.selectedRegionId;
     if (activeRegion) {
       const regionNews = newsItems.filter((n) =>
@@ -102,16 +109,12 @@ export function useWineStore() {
       );
       if (regionNews.length > 0) return regionNews;
     }
-
-    // If wine type filters are active, show relevant news
     if (filters.wineTypes.length > 0) {
       const typeNews = newsItems.filter((n) =>
         n.tags.some((t) => filters.wineTypes.includes(t as WineColor))
       );
       if (typeNews.length > 0) return typeNews;
     }
-
-    // Default: show latest news
     return newsItems.slice(0, 12);
   }, [filters, selectedProducerId, selectedRegionId]);
 
@@ -161,8 +164,6 @@ export function useWineStore() {
     closeDetail,
     allRegions: wineRegions,
     allProducers: producers,
-    activeView,
-    setActiveView,
     listSubTab,
     setListSubTab,
     showProducers,

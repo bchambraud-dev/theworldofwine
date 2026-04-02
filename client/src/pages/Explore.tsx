@@ -1,40 +1,31 @@
 import { useState, useEffect, useMemo } from "react";
+import { useRoute, useLocation } from "wouter";
 import WineMap from "@/components/WineMap";
-import FilterPanel from "@/components/FilterPanel";
+import FilterBar from "@/components/FilterBar";
 import RegionDetail from "@/components/RegionDetail";
 import ProducerDetail from "@/components/ProducerDetail";
-import NewsFeed from "@/components/NewsFeed";
-import { useWineStore, type AppView } from "@/lib/store";
+import { useWineStore } from "@/lib/store";
 import { producers } from "@/data/producers";
+import { useToast } from "@/hooks/use-toast";
 
-export default function Home() {
-  const [isDark, setIsDark] = useState(() =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
-
+export default function Explore() {
+  const [isListRoute] = useRoute("/explore/list");
+  const [, setLocation] = useLocation();
   const store = useWineStore();
+  const { toast } = useToast();
+
+  const isListView = isListRoute;
 
   // Determine if side panel should be open
   const panelOpen =
     (store.detailView === "region" && store.selectedRegion !== null) ||
     (store.detailView === "producer" && store.selectedProducer !== null);
 
-  // When region/producer selected, switch to map view
-  useEffect(() => {
-    if (panelOpen && store.activeView !== "map") {
-      store.setActiveView("map");
-    }
-  }, [panelOpen]);
-
-  // List view filtered regions and producers
+  // List view data
   const listRegions = store.filteredRegions;
   const listProducers = store.filteredProducers;
 
-  // Count producers per region for list view
+  // Count producers per region
   const producerCountByRegion = useMemo(() => {
     const counts: Record<string, number> = {};
     producers.forEach((p) => {
@@ -43,80 +34,62 @@ export default function Home() {
     return counts;
   }, []);
 
+  // Country grouping for regions
+  const regionsByCountry = useMemo(() => {
+    const grouped: Record<string, typeof listRegions> = {};
+    listRegions.forEach((r) => {
+      if (!grouped[r.country]) grouped[r.country] = [];
+      grouped[r.country].push(r);
+    });
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  }, [listRegions]);
+
+  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
+
+  // Start with all expanded
+  useEffect(() => {
+    setExpandedCountries(new Set(regionsByCountry.map(([c]) => c)));
+  }, [regionsByCountry]);
+
+  const toggleCountry = (country: string) => {
+    setExpandedCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(country)) next.delete(country);
+      else next.add(country);
+      return next;
+    });
+  };
+
+  // Favorite placeholder handler
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "Save to your journey",
+      description: "Coming soon!",
+    });
+  };
+
   return (
-    <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-
-      {/* ══════ TOP BAR ══════ */}
-      <header className="topbar" data-testid="topbar">
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-          <svg
-            viewBox="0 0 32 32"
-            style={{ width: 24, height: 24, color: "var(--wine)" }}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-label="The World of Wine"
-          >
-            <path d="M16 3C16 3 8 10 8 17a8 8 0 0 0 16 0c0-7-8-14-8-14Z" />
-            <path d="M12 17a4 4 0 0 0 8 0" strokeWidth="1" opacity="0.5" />
-            <line x1="16" y1="25" x2="16" y2="30" />
-            <line x1="12" y1="30" x2="20" y2="30" />
-          </svg>
-          <span className="logo-text">The World of Wine</span>
-        </div>
-
-        <div className="topbar-divider desktop-only" />
-
-        {/* Search */}
-        <div className="search-wrap">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search regions, producers..."
-            value={store.filters.searchQuery}
-            onChange={(e) => store.updateFilter("searchQuery", e.target.value)}
-            data-testid="search-input"
-          />
-        </div>
-
-        {/* Filter chips */}
-        <FilterPanel
-          filters={store.filters}
-          onUpdateFilter={store.updateFilter}
-          onReset={store.resetFilters}
-          producerCount={store.filteredProducers.length}
-        />
-
-        <div className="topbar-divider desktop-only" />
-
-        {/* View switcher + dark mode */}
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          {(["map", "list", "news"] as AppView[]).map((v) => (
-            <button
-              key={v}
-              className={`nav-btn ${store.activeView === v ? "active" : ""}`}
-              onClick={() => store.setActiveView(v)}
-              data-testid={`nav-${v}`}
-            >
-              {v}
-            </button>
-          ))}
-          <div className="topbar-divider" />
-          <button
-            className="nav-btn"
-            onClick={() => setIsDark(!isDark)}
-            data-testid="theme-toggle"
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {isDark ? "☀" : "☾"}
-          </button>
-        </div>
-      </header>
+    <>
+      {/* Filter bar (shared between map and list) */}
+      <FilterBar
+        filters={store.filters}
+        onUpdateFilter={store.updateFilter}
+        onReset={store.resetFilters}
+      />
 
       {/* ══════ MAP VIEW ══════ */}
-      {store.activeView === "map" && (
-        <div style={{ position: "fixed", top: "var(--topbar)", left: 0, right: 0, bottom: 0, zIndex: 1 }}>
+      {!isListView && (
+        <div
+          style={{
+            position: "fixed",
+            top: "calc(var(--topbar) + var(--filterbar))",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+          }}
+        >
           <WineMap
             producers={store.filteredProducers}
             regions={store.allRegions}
@@ -127,7 +100,6 @@ export default function Home() {
                 ? store.selectedRegion?.id || null
                 : store.filters.selectedRegionId
             }
-            isDark={isDark}
             showProducers={store.showProducers}
             showBoundaries={store.showBoundaries}
           />
@@ -175,7 +147,7 @@ export default function Home() {
       )}
 
       {/* ══════ LIST VIEW ══════ */}
-      {store.activeView === "list" && (
+      {isListView && (
         <div className="list-view" data-testid="list-view">
           {/* Toolbar */}
           <div className="lv-toolbar">
@@ -195,13 +167,15 @@ export default function Home() {
                 Producers
               </button>
             </div>
-            <span style={{
-              fontFamily: "'Geist Mono', monospace",
-              fontSize: "0.62rem",
-              color: "var(--text3)",
-              whiteSpace: "nowrap",
-              marginLeft: "auto",
-            }}>
+            <span
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "0.62rem",
+                color: "var(--text3)",
+                whiteSpace: "nowrap",
+                marginLeft: "auto",
+              }}
+            >
               {store.listSubTab === "regions"
                 ? `${listRegions.length} regions`
                 : `${listProducers.length} producers`}
@@ -218,36 +192,65 @@ export default function Home() {
                   <div className="lv-empty-sub">Try adjusting your search</div>
                 </div>
               ) : (
-                <div className="lv-regions-list">
-                  {listRegions.map((region) => (
-                    <div
-                      key={region.id}
-                      className="lv-region-card"
-                      onClick={() => {
-                        store.selectRegion(region.id);
-                        store.setActiveView("map");
-                      }}
-                      data-testid={`list-region-${region.id}`}
-                    >
-                      <div className="lv-rc-accent" />
-                      <div className="lv-rc-body">
-                        <div className="lv-rc-title">{region.name}</div>
-                        <div className="lv-rc-sub">{region.country}</div>
-                        <div className="lv-rc-desc">{region.description}</div>
-                        <div className="lv-rc-meta">
-                          <span className="lv-rc-stat">
-                            <b>{producerCountByRegion[region.id] || 0}</b> producers
-                          </span>
-                          <span className="lv-rc-stat">
-                            <b>{region.grapes.length}</b> grapes
-                          </span>
-                        </div>
-                        <div className="lv-rc-grapes">
-                          {region.grapes.slice(0, 4).map((g) => (
-                            <span key={g} className="lv-rc-grape">{g}</span>
+                <div style={{ padding: "0 0 16px" }}>
+                  {regionsByCountry.map(([country, regions]) => (
+                    <div key={country}>
+                      <div
+                        className="country-group-header"
+                        onClick={() => toggleCountry(country)}
+                      >
+                        <span
+                          className={`country-group-chevron ${expandedCountries.has(country) ? "open" : ""}`}
+                        >
+                          ›
+                        </span>
+                        {country} ({regions.length})
+                      </div>
+                      {expandedCountries.has(country) && (
+                        <div className="lv-regions-list" style={{ paddingTop: 0 }}>
+                          {regions.map((region) => (
+                            <div
+                              key={region.id}
+                              className="lv-region-card"
+                              onClick={() => {
+                                store.selectRegion(region.id);
+                                setLocation("/explore");
+                              }}
+                              data-testid={`list-region-${region.id}`}
+                            >
+                              <div className="lv-rc-accent" />
+                              <div className="lv-rc-body">
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div className="lv-rc-title" style={{ flex: 1 }}>{region.name}</div>
+                                  <button
+                                    className="fav-btn"
+                                    onClick={handleFavorite}
+                                    title="Save to your journey — coming soon!"
+                                    data-testid={`fav-region-${region.id}`}
+                                  >
+                                    ♡
+                                  </button>
+                                </div>
+                                <div className="lv-rc-sub">{region.country}</div>
+                                <div className="lv-rc-desc">{region.description}</div>
+                                <div className="lv-rc-meta">
+                                  <span className="lv-rc-stat">
+                                    <b>{producerCountByRegion[region.id] || 0}</b> producers
+                                  </span>
+                                  <span className="lv-rc-stat">
+                                    <b>{region.grapes.length}</b> grapes
+                                  </span>
+                                </div>
+                                <div className="lv-rc-grapes">
+                                  {region.grapes.slice(0, 4).map((g) => (
+                                    <span key={g} className="lv-rc-grape">{g}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -269,13 +272,23 @@ export default function Home() {
                         className="lv-producer-card"
                         onClick={() => {
                           store.selectProducer(producer.id);
-                          store.setActiveView("map");
+                          setLocation("/explore");
                         }}
                         data-testid={`list-producer-${producer.id}`}
                       >
                         <div className="lv-pc-icon">{producer.name.charAt(0)}</div>
                         <div className="lv-pc-info">
-                          <div className="lv-pc-name">{producer.name}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div className="lv-pc-name" style={{ flex: 1 }}>{producer.name}</div>
+                            <button
+                              className="fav-btn"
+                              onClick={handleFavorite}
+                              title="Save to your journey — coming soon!"
+                              data-testid={`fav-producer-${producer.id}`}
+                            >
+                              ♡
+                            </button>
+                          </div>
                           <div className="lv-pc-sub">
                             {region?.name || producer.country} · Est. {producer.founded}
                           </div>
@@ -310,21 +323,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* ══════ NEWS VIEW ══════ */}
-      {store.activeView === "news" && (
-        <NewsFeed
-          news={store.filteredNews}
-          onSelectRegion={(id) => {
-            store.selectRegion(id);
-            store.setActiveView("map");
-          }}
-          onSelectProducer={(id) => {
-            store.selectProducer(id);
-            store.setActiveView("map");
-          }}
-        />
-      )}
-
       {/* ══════ SLIDE PANEL ══════ */}
       <div className={`side-panel ${panelOpen ? "open" : ""}`} data-testid="side-panel">
         {store.detailView === "region" && store.selectedRegion ? (
@@ -342,6 +340,6 @@ export default function Home() {
           />
         ) : null}
       </div>
-    </div>
+    </>
   );
 }

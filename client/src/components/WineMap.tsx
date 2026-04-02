@@ -12,7 +12,6 @@ interface WineMapProps {
   onSelectProducer: (id: string) => void;
   onSelectRegion: (id: string) => void;
   selectedRegionId: string | null;
-  isDark: boolean;
   showProducers: boolean;
   showBoundaries: boolean;
 }
@@ -46,7 +45,6 @@ export default function WineMap({
   onSelectProducer,
   onSelectRegion,
   selectedRegionId,
-  isDark,
   showProducers,
   showBoundaries,
 }: WineMapProps) {
@@ -76,13 +74,6 @@ export default function WineMap({
       new maplibregl.NavigationControl({ showCompass: false }),
       "bottom-right"
     );
-
-    // Style map for dark mode using CSS filter
-    if (isDark && mapContainer.current) {
-      mapContainer.current.style.filter = "invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.15) saturate(0.7)";
-    } else if (mapContainer.current) {
-      mapContainer.current.style.filter = "none";
-    }
 
     // Add GeoJSON boundary layers once map style loads
     map.current.on("load", () => {
@@ -208,7 +199,7 @@ export default function WineMap({
       boundariesAdded.current = false;
       map.current?.remove();
     };
-  }, [isDark]);
+  }, []);
 
   // Update GeoJSON data when selection changes
   useEffect(() => {

@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════
-   WORLD OF WINE — Brand Design Tokens (v10)
+   WORLD OF WINE — Brand Design Tokens (Phase 1)
    Colors: Wine #8C1C2E, Gold #B8860B, Sage #4A7A52, Plum #4A1A6E
    Typography: Fraunces (display), Jost (body), Geist Mono (labels)
    Neutrals: #F7F4EF, #EDEAE3, #D4D1CA, #5A5248, #1A1410
+   LIGHT MODE ONLY — no dark mode in Phase 1
 ══════════════════════════════════════════════ */
 
 :root {
@@ -39,6 +40,7 @@
   --r: 12px;
   --r-sm: 7px;
   --topbar: 52px;
+  --filterbar: 36px;
 
   /* Tailwind HSL tokens */
   --button-outline: rgba(0,0,0, .10);
@@ -104,76 +106,6 @@
   --sidebar-accent-border: hsl(var(--sidebar-accent));
 }
 
-/* DARK MODE */
-.dark {
-  --wine: #c9495f;
-  --wine-l: #d4607a;
-  --wine-pale: rgba(200,73,95,0.12);
-  --gold: #d4a020;
-  --gold-pale: rgba(212,160,32,0.12);
-  --sage: #6aae74;
-  --sage-pale: rgba(106,174,116,0.1);
-  --plum: #8b5ebd;
-
-  --text: #eae6e0;
-  --text2: #b0a89e;
-  --text3: #7a7268;
-  --bg: #141210;
-  --bg2: #1e1b18;
-  --wh: #1e1b18;
-
-  --border-c: rgba(255,255,255,0.08);
-  --border2-c: rgba(255,255,255,0.13);
-
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
-  --background: 20 10% 7%;
-  --foreground: 35 12% 92%;
-  --border: 20 8% 18%;
-  --card: 20 10% 10%;
-  --card-foreground: 35 12% 92%;
-  --card-border: 20 8% 15%;
-  --sidebar: 20 10% 10%;
-  --sidebar-foreground: 35 12% 92%;
-  --sidebar-border: 20 8% 17%;
-  --sidebar-primary: 348 50% 52%;
-  --sidebar-primary-foreground: 35 15% 95%;
-  --sidebar-accent: 20 8% 18%;
-  --sidebar-accent-foreground: 35 12% 92%;
-  --sidebar-ring: 348 50% 52%;
-  --popover: 20 10% 12%;
-  --popover-foreground: 35 12% 92%;
-  --popover-border: 20 8% 19%;
-  --primary: 348 50% 52%;
-  --primary-foreground: 35 15% 95%;
-  --secondary: 20 8% 19%;
-  --secondary-foreground: 35 12% 92%;
-  --muted: 20 7% 20%;
-  --muted-foreground: 20 8% 58%;
-  --accent: 20 10% 18%;
-  --accent-foreground: 35 12% 92%;
-  --destructive: 0 72% 42%;
-  --destructive-foreground: 35 15% 95%;
-  --input: 20 8% 28%;
-  --ring: 348 50% 52%;
-  --chart-1: 348 50% 58%;
-  --chart-2: 38 70% 58%;
-  --chart-3: 140 30% 52%;
-  --chart-4: 40 65% 62%;
-  --chart-5: 210 45% 60%;
-
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --primary-border: hsl(var(--primary));
-  --secondary-border: hsl(var(--secondary));
-  --muted-border: hsl(var(--muted));
-  --accent-border: hsl(var(--accent));
-  --destructive-border: hsl(var(--destructive));
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
-}
-
 @layer base {
   * {
     @apply border-border;
@@ -211,9 +143,6 @@
   padding: 0 16px;
   gap: 12px;
   z-index: 1000;
-}
-.dark .topbar {
-  background: rgba(20,18,16,0.92);
 }
 
 .logo-text {
@@ -266,6 +195,32 @@
   pointer-events: none;
 }
 
+/* ── FILTER BAR ── */
+.filter-bar {
+  position: fixed;
+  top: var(--topbar);
+  left: 0; right: 0;
+  height: var(--filterbar);
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-c);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 6px;
+  z-index: 999;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-bar .fb-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border2-c);
+  flex-shrink: 0;
+}
+
 /* ── CHIPS ── */
 .chips {
   display: flex;
@@ -277,10 +232,10 @@
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   font-family: 'Geist Mono', monospace;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 5px 11px;
+  padding: 4px 10px;
   border-radius: 100px;
   border: 1px solid var(--border2-c);
   background: transparent;
@@ -324,7 +279,7 @@
 /* ── MAP FLOATING UI ── */
 .progress-badge {
   position: fixed;
-  top: 68px;
+  top: calc(var(--topbar) + var(--filterbar) + 16px);
   left: 16px;
   background: rgba(255,255,255,0.96);
   backdrop-filter: blur(12px);
@@ -337,9 +292,6 @@
   min-width: 160px;
   cursor: default;
   transition: box-shadow 0.18s;
-}
-.dark .progress-badge {
-  background: rgba(30,27,24,0.96);
 }
 .progress-badge:hover { box-shadow: var(--sh-md); }
 .pb-title {
@@ -383,9 +335,6 @@
   padding: 13px 15px;
   z-index: 500;
   min-width: 185px;
-}
-.dark .layers-panel {
-  background: rgba(30,27,24,0.96);
 }
 .layer-title {
   font-family: 'Geist Mono', monospace;
@@ -435,40 +384,6 @@
   border-radius: 50%;
   flex-shrink: 0;
   margin-left: auto;
-}
-
-/* ── MAP CONTROLS ── */
-.map-controls {
-  position: fixed;
-  bottom: 28px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 500;
-}
-.map-btn {
-  width: 38px;
-  height: 38px;
-  background: rgba(255,255,255,0.96);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-c);
-  border-radius: var(--r-sm);
-  box-shadow: var(--sh-sm);
-  color: var(--text2);
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-}
-.dark .map-btn { background: rgba(30,27,24,0.96); }
-.map-btn:hover {
-  border-color: var(--wine);
-  color: var(--wine);
-  background: white;
 }
 
 /* ── SLIDE PANEL ── */
@@ -643,13 +558,6 @@
 .ftag.floral { border-color: rgba(160,80,160,0.35); color: rgba(140,60,140,0.9); background: rgba(160,80,160,0.05); }
 .ftag.spice { border-color: rgba(180,100,40,0.3); color: rgba(150,80,20,0.9); background: rgba(180,100,40,0.05); }
 
-.dark .ftag.fruit { border-color: rgba(200,80,100,0.4); color: rgba(220,120,140,0.95); background: rgba(200,80,100,0.1); }
-.dark .ftag.earth { border-color: rgba(160,120,70,0.4); color: rgba(200,170,110,0.95); background: rgba(160,120,70,0.1); }
-.dark .ftag.mineral { border-color: rgba(100,140,200,0.4); color: rgba(140,180,240,0.95); background: rgba(100,140,200,0.1); }
-.dark .ftag.oak { border-color: rgba(190,150,60,0.4); color: rgba(220,180,80,0.95); background: rgba(190,150,60,0.1); }
-.dark .ftag.floral { border-color: rgba(190,120,190,0.4); color: rgba(220,160,220,0.95); background: rgba(190,120,190,0.1); }
-.dark .ftag.spice { border-color: rgba(210,140,70,0.4); color: rgba(240,170,90,0.95); background: rgba(210,140,70,0.1); }
-
 /* ── TABS inside panel ── */
 .sp-tabs {
   display: flex;
@@ -796,7 +704,7 @@
 /* ── LIST VIEW ── */
 .list-view {
   position: fixed;
-  top: var(--topbar);
+  top: calc(var(--topbar) + var(--filterbar));
   left: 0; right: 0; bottom: 0;
   background: var(--bg);
   z-index: 50;
@@ -1195,19 +1103,52 @@
   display: inline-block;
 }
 
-/* ── DARK MODE MAPLIBRE OVERRIDES ── */
-.dark .maplibregl-ctrl-group {
-  background: rgba(30,27,24,0.96) !important;
+/* ── SAVE / FAVORITE BUTTON ── */
+.fav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-c);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  color: var(--text3);
+  flex-shrink: 0;
 }
-.dark .maplibregl-ctrl-group button {
-  background-color: transparent !important;
-  color: var(--text2) !important;
+.fav-btn:hover {
+  color: var(--wine);
+  border-color: var(--wine);
+  background: var(--wine-pale);
 }
+
+/* ── COUNTRY GROUP (list view) ── */
+.country-group-header {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 12px 20px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.country-group-header:hover { color: var(--wine); }
+.country-group-chevron {
+  transition: transform 0.2s;
+  font-size: 0.6rem;
+}
+.country-group-chevron.open { transform: rotate(90deg); }
 
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 768px) {
   .search-wrap { display: none; }
-  .chips { display: none; }
+  .filter-bar { display: none; }
   .topbar-divider.desktop-only { display: none; }
   .topbar { gap: 8px; }
   .logo-text { font-size: 0.95rem; }
@@ -1215,7 +1156,21 @@
   .layer-title { font-size: 0.52rem; margin-bottom: 7px; }
   .layer-lbl { font-size: 0.72rem; }
   .progress-badge { display: none; }
+  .list-view { top: var(--topbar); }
 }
+
+/* ── SCROLLABLE PAGES (non-map) ── */
+.page-scroll {
+  position: fixed;
+  top: var(--topbar);
+  left: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg);
+  z-index: 50;
+}
+.page-scroll::-webkit-scrollbar { width: 4px; }
+.page-scroll::-webkit-scrollbar-thumb { background: var(--border2-c); border-radius: 2px; }
 
 /* ── SAFE AREA ── */
 .safe-area-bottom {

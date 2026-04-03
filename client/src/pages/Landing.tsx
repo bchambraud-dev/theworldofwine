@@ -661,6 +661,40 @@ export default function Landing() {
           </div>
         </div>
 
+        <div style={{ textAlign: "center", marginTop: 28 }}>
+          <button
+            onClick={() => setLocation("/discover")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 24px",
+              border: "1.5px solid var(--wine)",
+              borderRadius: "var(--r)",
+              background: "transparent",
+              color: "var(--wine)",
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: "0.72rem",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              cursor: "pointer",
+              transition: "all 0.18s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "var(--wine)";
+              (e.currentTarget as HTMLElement).style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.color = "var(--wine)";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Tell Us What You Like
+          </button>
+        </div>
+
         <div className="lp-divider" />
       </section>
 

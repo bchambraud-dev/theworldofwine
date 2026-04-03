@@ -128,7 +128,7 @@ export default function JourneyPlayer() {
   if (!journey) {
     return (
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
-        <div className="lv-empty-icon">🗺️</div>
+        <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
         <div className="lv-empty-title">Journey not found</div>
         <button
           className="chip"
@@ -252,7 +252,7 @@ export default function JourneyPlayer() {
         >
           {completed ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <div style={{ fontSize: "2rem", marginBottom: 12 }}>🎉</div>
+              <div style={{ marginBottom: 12 }}><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></div>
               <h2
                 style={{
                   fontFamily: "'Fraunces', serif",

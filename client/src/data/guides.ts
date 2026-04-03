@@ -27,7 +27,7 @@ export const guides: Guide[] = [
     description:
       "Terroir is French for 'a sense of place' — the idea that wine carries the fingerprint of the land it came from. This guide unpacks what that actually means, from soil chemistry to climate and the human factor.",
     readTimeMinutes: 8,
-    icon: "🌱",
+    icon: "terroir",
     sections: [
       {
         heading: "The Big Idea: Place Matters",
@@ -69,7 +69,7 @@ export const guides: Guide[] = [
     description:
       "Tasting wine isn't about having the right vocabulary or impressing people — it's about training your attention to notice things you'd otherwise miss. This guide makes the classic Look-Swirl-Smell-Taste-Finish framework actually useful.",
     readTimeMinutes: 7,
-    icon: "👁️",
+    icon: "tasting",
     sections: [
       {
         heading: "Why Tasting Matters (It's Not About Being Fancy)",
@@ -116,7 +116,7 @@ export const guides: Guide[] = [
     description:
       "A wine label is a compressed system of information — and once you know how to decode it, choosing a bottle becomes much easier. This guide cuts through the confusion of two very different labeling traditions.",
     readTimeMinutes: 6,
-    icon: "🏷️",
+    icon: "label",
     sections: [
       {
         heading: "Two Different Systems, One Goal",
@@ -158,7 +158,7 @@ export const guides: Guide[] = [
     description:
       "Wine scores are everywhere — 94 points, 97 points, 'Best in Class.' This guide explains who gives them, how they work, and why they're both useful and wildly overused in the wine industry.",
     readTimeMinutes: 6,
-    icon: "⭐",
+    icon: "scores",
     sections: [
       {
         heading: "The 100-Point Scale: How It Happened",
@@ -200,7 +200,7 @@ export const guides: Guide[] = [
     description:
       "Wine comes in more forms than most people realize. This guide maps the entire landscape — eight fundamental styles — giving you the vocabulary and framework to explore more confidently.",
     readTimeMinutes: 10,
-    icon: "🗺️",
+    icon: "styles",
     sections: [
       {
         heading: "Why Styles Matter More Than Grape Names",
@@ -250,7 +250,7 @@ export const guides: Guide[] = [
     description:
       "Pairing wine and food isn't a mysterious art reserved for sommeliers. It's based on a few practical principles that once understood, let you improvise confidently. This guide gives you the tools and the inspiration.",
     readTimeMinutes: 7,
-    icon: "🍽️",
+    icon: "pairing",
     sections: [
       {
         heading: "The Guiding Principle: Balance",
@@ -300,7 +300,7 @@ export const guides: Guide[] = [
     description:
       "Wine is older than the written word. This guide traces its journey from ancient Georgia to the tables of Roman emperors, through medieval monasteries to the New World and today's natural wine movement — the remarkable human story behind every glass.",
     readTimeMinutes: 10,
-    icon: "📜",
+    icon: "history",
     sections: [
       {
         heading: "The Beginning: Georgia and the Ancient World",
@@ -346,7 +346,7 @@ export const guides: Guide[] = [
     description:
       "These three terms are often used interchangeably, but they mean very different things. This guide explains each one precisely, identifies what they guarantee (and what they don't), and helps you decide what to look for based on your values.",
     readTimeMinutes: 8,
-    icon: "🌿",
+    icon: "natural",
     sections: [
       {
         heading: "Why This Matters (And Why It's Confusing)",

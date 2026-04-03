@@ -18,7 +18,7 @@ export default function QuizPage() {
   if (!quiz) {
     return (
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
-        <div className="lv-empty-icon">📝</div>
+        <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <div className="lv-empty-title">Quiz not found</div>
         <button className="chip" onClick={() => setLocation("/academy")} style={{ marginTop: 16 }}>
           Back to Academy
@@ -120,7 +120,13 @@ export default function QuizPage() {
             }}
           >
             <div style={{ fontSize: "2rem", marginBottom: 12 }}>
-              {score === quiz.questions.length ? "🏆" : score >= quiz.questions.length / 2 ? "🎉" : "📚"}
+              {score === quiz.questions.length ? (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+              ) : score >= quiz.questions.length / 2 ? (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--wine)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              ) : (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              )}
             </div>
             <h2
               style={{

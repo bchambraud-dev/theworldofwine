@@ -68,6 +68,7 @@ export default function Explore() {
             }
             showProducers={store.showProducers}
             showBoundaries={store.showBoundaries}
+            hasActiveFilter={store.hasActiveFilter}
           />
 
           {/* Zoom controls handled by MapLibre */}
@@ -115,7 +116,7 @@ export default function Explore() {
             {store.listSubTab === "regions" ? (
               listRegions.length === 0 ? (
                 <div className="lv-empty">
-                  <div className="lv-empty-icon">🗺️</div>
+                  <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
                   <div className="lv-empty-title">No regions found</div>
                   <div className="lv-empty-sub">Try adjusting your search</div>
                 </div>
@@ -183,7 +184,7 @@ export default function Explore() {
             ) : (
               listProducers.length === 0 ? (
                 <div className="lv-empty">
-                  <div className="lv-empty-icon">🍷</div>
+                  <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2h8l-1 9a4 4 0 0 1-3 3.5A4 4 0 0 1 9 11L8 2z"/><line x1="12" y1="14.5" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg></div>
                   <div className="lv-empty-title">No producers found</div>
                   <div className="lv-empty-sub">Try adjusting your filters</div>
                 </div>

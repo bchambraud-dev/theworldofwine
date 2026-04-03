@@ -127,7 +127,7 @@ export default function JourneysBrowse() {
       >
         {filtered.length === 0 ? (
           <div className="lv-empty" style={{ gridColumn: "1/-1" }}>
-            <div className="lv-empty-icon">🗺️</div>
+            <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
             <div className="lv-empty-title">No journeys match</div>
             <div className="lv-empty-sub">Try different filters</div>
           </div>

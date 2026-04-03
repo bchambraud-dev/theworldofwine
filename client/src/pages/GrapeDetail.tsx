@@ -13,7 +13,7 @@ export default function GrapeDetail() {
   if (!grape) {
     return (
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
-        <div className="lv-empty-icon">🍇</div>
+        <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0z"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="15" r="2"/></svg></div>
         <div className="lv-empty-title">Grape not found</div>
         <button className="chip" onClick={() => setLocation("/academy")} style={{ marginTop: 16 }}>
           Back to Academy
@@ -341,7 +341,7 @@ export default function GrapeDetail() {
             borderRadius: "var(--r)",
           }}
         >
-          <span style={{ fontSize: "1.2rem" }}>🌡️</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
           <div>
             <div
               style={{

@@ -3,6 +3,7 @@ import { guides } from "@/data/guides";
 import { grapes } from "@/data/grapes";
 import { quizzes } from "@/data/quizzes";
 import { useTrack } from "@/hooks/use-track";
+import GuideIcon from "@/components/GuideIcon";
 
 const categoryColors: Record<string, string> = {
   fundamentals: "var(--wine)",
@@ -94,7 +95,7 @@ export default function AcademyHub() {
                 (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
               }}
             >
-              <span style={{ fontSize: "1.3rem" }}>{g.icon}</span>
+              <GuideIcon icon={g.icon} size={22} />
               <h3
                 style={{
                   fontFamily: "'Fraunces', serif",
@@ -331,7 +332,7 @@ export default function AcademyHub() {
                 (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
               }}
             >
-              <div style={{ fontSize: "1.2rem", marginBottom: 6 }}>📝</div>
+              <div style={{ marginBottom: 6 }}><GuideIcon icon="quiz" size={22} /></div>
               <h3
                 style={{
                   fontFamily: "'Fraunces', serif",

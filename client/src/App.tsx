@@ -18,6 +18,7 @@ import GuideDetail from "@/pages/GuideDetail";
 import GrapeDetail from "@/pages/GrapeDetail";
 import QuizPage from "@/pages/QuizPage";
 import NotFound from "@/pages/not-found";
+import DiscoverQuiz from "@/pages/DiscoverQuiz";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 
@@ -77,7 +78,7 @@ function NavBar() {
 
       {/* Search */}
       <div className="search-wrap">
-        <span className="search-icon">🔍</span>
+        <span className="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <input
           type="text"
           placeholder="Search regions, producers..."
@@ -117,6 +118,7 @@ function AppRouter() {
       <Route path="/academy/:guideId" component={GuideDetail} />
       <Route path="/quiz/:quizId" component={QuizPage} />
       <Route path="/news" component={News} />
+      <Route path="/discover" component={DiscoverQuiz} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -154,7 +154,7 @@ export default function RegionDetail({
           {activeTab === "producers" ? (
             regionProducers.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text3)" }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: 8, opacity: 0.4 }}>🍷</div>
+                <div style={{ marginBottom: 8, opacity: 0.4 }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2h8l-1 9a4 4 0 0 1-3 3.5A4 4 0 0 1 9 11L8 2z"/><line x1="12" y1="14.5" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg></div>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.9rem" }}>
                   No producers listed yet
                 </div>
@@ -193,7 +193,7 @@ export default function RegionDetail({
           ) : (
             regionNews.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text3)" }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: 8, opacity: 0.4 }}>📰</div>
+                <div style={{ marginBottom: 8, opacity: 0.4 }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6z"/></svg></div>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.9rem" }}>
                   No news for this region
                 </div>

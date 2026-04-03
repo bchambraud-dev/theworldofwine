@@ -95,7 +95,7 @@ export default function ProducerDetail({
           </span>
           {producer.isNatural && (
             <span className="hero-tag" style={{ color: "var(--sage)", borderColor: "rgba(74,122,82,0.3)", background: "var(--sage-pale)" }}>
-              🌿 Natural
+              Natural
             </span>
           )}
           {producer.isAwardWinner && (

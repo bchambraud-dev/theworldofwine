@@ -14,6 +14,7 @@ interface WineMapProps {
   selectedRegionId: string | null;
   showProducers: boolean;
   showBoundaries: boolean;
+  hasActiveFilter?: boolean;
 }
 
 const BOUNDARY_SOURCE = "region-boundaries";
@@ -47,6 +48,7 @@ export default function WineMap({
   selectedRegionId,
   showProducers,
   showBoundaries,
+  hasActiveFilter = false,
 }: WineMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -230,10 +232,19 @@ export default function WineMap({
     regionMarkersRef.current.forEach((m) => m.remove());
     regionMarkersRef.current = [];
 
+    // Build a set of region IDs that have matching producers
+    const regionIdsWithProducers = new Set(producers.map((p) => p.regionId));
+
     regions.forEach((region) => {
+      const hasMatchingProducers = !hasActiveFilter || regionIdsWithProducers.has(region.id);
+      const dimmed = hasActiveFilter && !hasMatchingProducers;
+
       const el = document.createElement("div");
       el.className = "region-marker";
       el.setAttribute("data-testid", `region-marker-${region.id}`);
+      el.style.opacity = dimmed ? "0.25" : "1";
+      el.style.filter = dimmed ? "grayscale(1)" : "none";
+      el.style.transition = "opacity 0.3s ease, filter 0.3s ease";
       el.innerHTML = `
         <div style="
           width: 32px;
@@ -241,7 +252,7 @@ export default function WineMap({
           border-radius: 50%;
           background: ${selectedRegionId === region.id ? '#8c1c2e' : 'rgba(140, 28, 46, 0.35)'};
           border: 2px solid ${selectedRegionId === region.id ? '#6a1522' : 'rgba(140, 28, 46, 0.6)'};
-          cursor: pointer;
+          cursor: ${dimmed ? 'default' : 'pointer'};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -253,13 +264,15 @@ export default function WineMap({
           </svg>
         </div>
       `;
-      el.addEventListener("click", () => onSelectRegion(region.id));
-      el.addEventListener("mouseenter", () => {
-        el.querySelector("div")!.style.transform = "scale(1.2)";
-      });
-      el.addEventListener("mouseleave", () => {
-        el.querySelector("div")!.style.transform = "scale(1)";
-      });
+      if (!dimmed) {
+        el.addEventListener("click", () => onSelectRegion(region.id));
+        el.addEventListener("mouseenter", () => {
+          el.querySelector("div")!.style.transform = "scale(1.2)";
+        });
+        el.addEventListener("mouseleave", () => {
+          el.querySelector("div")!.style.transform = "scale(1)";
+        });
+      }
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([region.lng, region.lat])
@@ -267,7 +280,7 @@ export default function WineMap({
 
       regionMarkersRef.current.push(marker);
     });
-  }, [regions, onSelectRegion, selectedRegionId]);
+  }, [regions, onSelectRegion, selectedRegionId, producers, hasActiveFilter]);
 
   // Producer markers — toggle visibility
   useEffect(() => {
@@ -341,6 +354,31 @@ export default function WineMap({
       markersRef.current.push(marker);
     });
   }, [producers, onSelectProducer, showProducers]);
+
+  // Auto-fit bounds when filters are active
+  useEffect(() => {
+    if (!map.current || !hasActiveFilter || producers.length === 0) return;
+
+    // Calculate bounding box of all visible (filtered) producers
+    let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    producers.forEach((p) => {
+      if (p.lng < minLng) minLng = p.lng;
+      if (p.lng > maxLng) maxLng = p.lng;
+      if (p.lat < minLat) minLat = p.lat;
+      if (p.lat > maxLat) maxLat = p.lat;
+    });
+
+    if (minLng !== Infinity) {
+      // Add padding so markers aren't at the very edge
+      const lngPad = Math.max((maxLng - minLng) * 0.2, 1);
+      const latPad = Math.max((maxLat - minLat) * 0.2, 1);
+      const bounds: [[number, number], [number, number]] = [
+        [minLng - lngPad, minLat - latPad],
+        [maxLng + lngPad, maxLat + latPad],
+      ];
+      map.current.fitBounds(bounds, { padding: 60, duration: 1000, maxZoom: 10 });
+    }
+  }, [hasActiveFilter, producers]);
 
   // Fly to selected region
   useEffect(() => {

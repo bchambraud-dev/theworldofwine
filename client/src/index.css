@@ -116,6 +116,7 @@
   }
   body {
     font-family: 'Jost', sans-serif;
+    font-size: 0.92rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: var(--bg);
@@ -358,6 +359,9 @@
 .fb-dd-footer {
   border-top: 1px solid var(--border-c);
   padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .fb-dd-clear {
   font-family: 'Geist Mono', monospace;
@@ -371,6 +375,23 @@
   padding: 4px 0;
 }
 .fb-dd-clear:hover { text-decoration: underline; }
+.fb-dd-apply {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--wine);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 9px 0;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-weight: 500;
+}
+.fb-dd-apply:hover { background: var(--wine-l); }
+.fb-dd-apply:disabled { opacity: 0.45; cursor: default; }
 
 /* Active filter chips (horizontal scroll) */
 .fb-chips {
@@ -738,7 +759,7 @@
 
 .sp-desc {
   padding: 13px 20px;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 300;
   line-height: 1.7;
   color: var(--text2);
@@ -894,7 +915,7 @@
 /* ── PRODUCER DETAIL ── */
 .producer-bio {
   padding: 14px 20px;
-  font-size: 0.84rem;
+  font-size: 0.95rem;
   font-weight: 300;
   line-height: 1.72;
   color: var(--text2);
@@ -1104,7 +1125,7 @@
   line-height: 1.25;
 }
 .lv-rc-desc {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 300;
   color: var(--text2);
   line-height: 1.6;

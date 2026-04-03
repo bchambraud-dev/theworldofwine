@@ -3,6 +3,7 @@ import { journeys } from "@/data/journeys";
 import { wineRegions } from "@/data/regions";
 import { guides } from "@/data/guides";
 import { newsItems } from "@/data/news";
+import JourneyIcon from "@/components/JourneyIcon";
 import { useTrack } from "@/hooks/use-track";
 
 const featuredJourneys = journeys.slice(0, 4);
@@ -127,7 +128,7 @@ export default function Landing() {
         }
         .lp-intro-text {
           font-family: 'Jost', sans-serif;
-          font-size: clamp(1rem, 1.8vw, 1.08rem);
+          font-size: 1.05rem;
           font-weight: 300;
           line-height: 1.85;
           color: var(--text2);
@@ -686,7 +687,7 @@ export default function Landing() {
                 }}
               >
                 <div>
-                  <div className="lp-journey-icon">{j.icon}</div>
+                  <div className="lp-journey-icon"><JourneyIcon icon={j.icon} size={26} /></div>
                   <div className="lp-journey-title">{j.title}</div>
                   <div className="lp-journey-subtitle">{j.subtitle}</div>
                 </div>

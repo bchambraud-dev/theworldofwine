@@ -129,7 +129,7 @@ export default function GuideDetail() {
               <p
                 key={pi}
                 style={{
-                  fontSize: "0.9rem",
+                  fontSize: "0.95rem",
                   fontWeight: 300,
                   color: "var(--text2)",
                   lineHeight: 1.8,

@@ -17,7 +17,7 @@ export interface Journey {
   estimatedMinutes: number;
   stopCount: number;
   coverGradient: string; // CSS gradient for card (use brand colors)
-  icon: string; // emoji
+  icon: string; // icon ID for JourneyIcon component
   stops: JourneyStop[];
 }
 
@@ -34,7 +34,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 15,
     stopCount: 6,
     coverGradient: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%)",
-    icon: "🍇",
+    icon: "grapes",
     stops: [
       {
         id: "cab-sauv-bordeaux",
@@ -51,7 +51,7 @@ export const journeys: Journey[] = [
         targetId: "burgundy",
         title: "Pinot Noir — Burgundy, France",
         narrative:
-          "Pinot Noir is the grape that drives wine people slightly mad — and for good reason. It's the most transparent grape in the world, meaning it shows every detail of where it was grown and how it was made. There's nowhere to hide. In Burgundy, on those ancient limestone and clay slopes, Pinot Noir makes wines of haunting beauty: cherry, raspberry, dried rose, forest floor, a silkiness that seems impossible for something made from fermented grape juice. The same grape in the wrong hands? Thin, jammy, forgettable. That tension — between transcendence and disaster — is what makes it so fascinating.",
+          "Pinot Noir is the grape that drives wine people slightly mad — and for good reason. It's the <strong>most transparent grape in the world</strong>, meaning it shows every detail of where it was grown and how it was made. There's nowhere to hide. In Burgundy, on those ancient limestone and clay slopes, Pinot Noir makes wines of haunting beauty: cherry, raspberry, dried rose, forest floor, a silkiness that seems impossible for something made from fermented grape juice. The same grape in the wrong hands? Thin, jammy, forgettable. That tension — between transcendence and disaster — is what makes it so fascinating.",
         mapCenter: { lat: 47.04, lng: 4.84, zoom: 8 },
       },
       {
@@ -105,7 +105,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 12,
     stopCount: 6,
     coverGradient: "linear-gradient(135deg, #b45309 0%, #d97706 50%, #fbbf24 100%)",
-    icon: "🌍",
+    icon: "globe",
     stops: [
       {
         id: "ow-nw-concept",
@@ -174,7 +174,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 15,
     stopCount: 5,
     coverGradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #93c5fd 100%)",
-    icon: "🇫🇷",
+    icon: "france",
     stops: [
       {
         id: "france-bordeaux",
@@ -200,7 +200,7 @@ export const journeys: Journey[] = [
         targetId: "champagne",
         title: "Champagne — The Science Behind the Celebration",
         narrative:
-          "Champagne is famous for the bubbles, but let's talk about what's underneath them. This is one of the world's most northerly major wine regions — so cold that grapes barely ripen, producing wines with ferocious acidity and relatively low sugar. That acidity is precisely what makes Champagne so brilliant: it's the architecture that allows the wine to age for years, developing extraordinary complexity. The méthode champenoise — the painstaking process of secondary fermentation in bottle — traps carbon dioxide and creates those persistent, fine bubbles. The chalk soils here are so distinctive that you can taste the minerality through every glass. There's a reason 'Champagne' as a word means celebration.",
+          "Champagne is famous for the bubbles, but let's talk about what's underneath them. This is one of the world's most northerly major wine regions — so cold that grapes barely ripen, producing wines with ferocious acidity and relatively low sugar. That acidity is precisely what makes Champagne so brilliant: it's the architecture that allows the wine to age for years, developing extraordinary complexity. The <strong>méthode champenoise</strong> — the painstaking process of secondary fermentation in bottle — traps carbon dioxide and creates those persistent, fine bubbles. The chalk soils here are so distinctive that you can taste the minerality through every glass. There's a reason 'Champagne' as a word means celebration.",
         mapCenter: { lat: 49.05, lng: 3.95, zoom: 8 },
       },
       {
@@ -236,7 +236,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 12,
     stopCount: 4,
     coverGradient: "linear-gradient(135deg, #15803d 0%, #22c55e 50%, #86efac 100%)",
-    icon: "🇮🇹",
+    icon: "italy",
     stops: [
       {
         id: "italy-piedmont",
@@ -289,7 +289,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 10,
     stopCount: 5,
     coverGradient: "linear-gradient(135deg, #065f46 0%, #10b981 50%, #6ee7b7 100%)",
-    icon: "🌿",
+    icon: "leaf",
     stops: [
       {
         id: "natural-concept",
@@ -349,7 +349,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 12,
     stopCount: 5,
     coverGradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fde047 100%)",
-    icon: "🥂",
+    icon: "sparkle",
     stops: [
       {
         id: "sparkling-champagne",
@@ -357,7 +357,7 @@ export const journeys: Journey[] = [
         targetId: "champagne",
         title: "Champagne — The Standard by Which All Others Are Judged",
         narrative:
-          "Everything in sparkling wine comes back to Champagne — the reference point, the benchmark, the wine that other regions aspire to or deliberately avoid comparison with. What makes it special? The combination of cool climate (wines with naturally high acidity, perfect for aging), chalk soils (intense minerality), a unique blending tradition (combining multiple vintages and grape varieties to achieve a consistent 'house style'), and the painstaking méthode champenoise that creates bubbles inside each individual bottle. Non-vintage Champagne represents the winemaker's art of consistency. Vintage Champagne shows what one exceptional year can achieve. Prestige cuvées — Dom Pérignon, Krug, Cristal — are the pinnacle. All of it is worth understanding.",
+          "Everything in sparkling wine comes back to Champagne — the reference point, the benchmark, the wine that other regions aspire to or deliberately avoid comparison with. What makes it special? The combination of cool climate (wines with naturally high acidity, perfect for aging), chalk soils (intense minerality), a unique blending tradition (combining multiple vintages and grape varieties to achieve a consistent 'house style'), and the painstaking <strong>méthode champenoise</strong> that creates bubbles inside each individual bottle. Non-vintage Champagne represents the winemaker's art of consistency. Vintage Champagne shows what one exceptional year can achieve. Prestige cuvées — Dom Pérignon, Krug, Cristal — are the pinnacle. All of it is worth understanding.",
         mapCenter: { lat: 49.05, lng: 3.95, zoom: 8 },
       },
       {
@@ -411,7 +411,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 15,
     stopCount: 6,
     coverGradient: "linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #ef4444 100%)",
-    icon: "🍷",
+    icon: "glass",
     stops: [
       {
         id: "big-reds-bordeaux",
@@ -482,7 +482,7 @@ export const journeys: Journey[] = [
     estimatedMinutes: 15,
     stopCount: 6,
     coverGradient: "linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #38bdf8 100%)",
-    icon: "💎",
+    icon: "gem",
     stops: [
       {
         id: "hidden-santorini",
@@ -547,13 +547,13 @@ export const journeys: Journey[] = [
     title: "White Wine Deep Dive",
     subtitle: "Five regions, five completely different expressions of what white wine can be",
     description:
-      "White wine is vastly underestimated as a category for serious drinking. This journey explores five regions and styles that show the full spectrum — from rich, oaky Chardonnay to bone-dry Grüner Veltliner, from peach-blossom Riesling to zingy Sauvignon Blanc — and argues that the best whites can be as profound as any red.",
+      "White wine is vastly underestimated as a category for serious drinking. This journey explores five regions and styles that show the full spectrum — from rich, oaky Chardonnay to bone-dry <strong>Grüner Veltliner</strong>, from peach-blossom Riesling to zingy Sauvignon Blanc — and argues that the best whites can be as profound as any red.",
     category: "grape",
     difficulty: "intermediate",
     estimatedMinutes: 12,
     stopCount: 5,
     coverGradient: "linear-gradient(135deg, #713f12 0%, #a16207 50%, #fef08a 100%)",
-    icon: "🥂",
+    icon: "drop",
     stops: [
       {
         id: "white-burgundy",
@@ -595,9 +595,9 @@ export const journeys: Journey[] = [
         id: "white-wachau",
         type: "region",
         targetId: "wachau",
-        title: "Wachau — Grüner Veltliner's Dramatic Home",
+        title: "Wachau — <strong>Grüner Veltliner</strong>'s Dramatic Home",
         narrative:
-          "The Wachau is a UNESCO World Heritage Site — and when you see those impossibly steep terraced vineyards above the Danube, you understand why. Grüner Veltliner, Austria's signature white grape, reaches its peak on these rocky terraces: dry, mineral, with a distinctive white pepper spice, refreshing acidity, and real body and depth. The three-tier Wachau classification — Steinfeder (lightest), Federspiel (medium), Smaragd (richest, from the finest sites) — gives you a useful roadmap. The best Smaragd Grüner Veltliner from producers like FX Pichler and Domäne Wachau are genuinely world-class wines that can age for a decade or more. Austria's wine renaissance is real and the Wachau is its crown jewel.",
+          "The Wachau is a UNESCO World Heritage Site — and when you see those impossibly steep terraced vineyards above the Danube, you understand why. <strong>Grüner Veltliner</strong>, Austria's signature white grape, reaches its peak on these rocky terraces: dry, mineral, with a distinctive white pepper spice, refreshing acidity, and real body and depth. The three-tier Wachau classification — Steinfeder (lightest), Federspiel (medium), Smaragd (richest, from the finest sites) — gives you a useful roadmap. The best Smaragd <strong>Grüner Veltliner</strong> from producers like FX Pichler and Domäne Wachau are genuinely world-class wines that can age for a decade or more. Austria's wine renaissance is real and the Wachau is its crown jewel.",
         mapCenter: { lat: 48.37, lng: 15.43, zoom: 9 },
       },
     ],
@@ -615,14 +615,14 @@ export const journeys: Journey[] = [
     estimatedMinutes: 10,
     stopCount: 6,
     coverGradient: "linear-gradient(135deg, #166534 0%, #16a34a 50%, #4ade80 100%)",
-    icon: "🌱",
+    icon: "earth",
     stops: [
       {
         id: "terroir-concept",
         type: "concept",
         title: "What Is Terroir?",
         narrative:
-          "Here's the idea: place matters. Not in an abstract or romantic way, but in a measurable, tasted, proven way. Terroir encompasses everything about a place that affects the wine — the soil composition, the climate, the aspect (which direction the vines face), the altitude, the proximity to water. But it also includes something less tangible: the accumulated human knowledge of that place, the centuries of learning which plots grow the best fruit, which varieties thrive, which methods work. When you taste a great Riesling from the Mosel, you're tasting the slate. When you taste a great Assyrtiko from Santorini, you're tasting the volcano. Terroir is real, and once you start noticing it, you can't stop.",
+          "Here's the idea: place matters. Not in an abstract or romantic way, but in a measurable, tasted, proven way. Terroir encompasses everything about a place that affects the wine — the soil composition, the climate, the aspect (which direction the vines face), the altitude, the proximity to water. But it also includes something less tangible: the accumulated human knowledge of that place, the centuries of learning which plots grow the best fruit, which varieties thrive, which methods work. When you taste a great Riesling from the Mosel, you're tasting the slate. When you taste a great <strong>Assyrtiko from Santorini</strong>, you're tasting the volcano. Terroir is real, and once you start noticing it, you can't stop.",
         mapCenter: { lat: 45, lng: 10, zoom: 3 },
       },
       {

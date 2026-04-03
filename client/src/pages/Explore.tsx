@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
 import WineMap from "@/components/WineMap";
 import RegionDetail from "@/components/RegionDetail";
@@ -32,32 +32,6 @@ export default function Explore() {
     });
     return counts;
   }, []);
-
-  // Country grouping for regions
-  const regionsByCountry = useMemo(() => {
-    const grouped: Record<string, typeof listRegions> = {};
-    listRegions.forEach((r) => {
-      if (!grouped[r.country]) grouped[r.country] = [];
-      grouped[r.country].push(r);
-    });
-    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
-  }, [listRegions]);
-
-  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
-
-  // Start with all expanded
-  useEffect(() => {
-    setExpandedCountries(new Set(regionsByCountry.map(([c]) => c)));
-  }, [regionsByCountry]);
-
-  const toggleCountry = (country: string) => {
-    setExpandedCountries((prev) => {
-      const next = new Set(prev);
-      if (next.has(country)) next.delete(country);
-      else next.add(country);
-      return next;
-    });
-  };
 
   // Favorite placeholder handler
   const handleFavorite = (e: React.MouseEvent) => {
@@ -146,81 +120,62 @@ export default function Explore() {
                   <div className="lv-empty-sub">Try adjusting your search</div>
                 </div>
               ) : (
-                <div style={{ padding: "0 0 16px" }}>
-                  {regionsByCountry.map(([country, regions]) => (
-                    <div key={country}>
-                      <div
-                        className="country-group-header"
-                        onClick={() => toggleCountry(country)}
-                      >
-                        <span
-                          className={`country-group-chevron ${expandedCountries.has(country) ? "open" : ""}`}
+                <div className="lv-regions-grid" style={{ padding: "12px 0 16px" }}>
+                  {listRegions.map((region) => (
+                    <div
+                      key={region.id}
+                      className={`lv-region-card${(region as any)._dimmed ? ' lv-rc-dimmed' : ''}`}
+                      onClick={() => {
+                        store.selectRegion(region.id);
+                        setLocation("/explore");
+                      }}
+                      data-testid={`list-region-${region.id}`}
+                    >
+                      {/* Hero image */}
+                      <div className="lv-rc-img">
+                        {region.image && (
+                          <img
+                            src={region.image}
+                            alt={region.name}
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="lv-rc-img-overlay" />
+                        <button
+                          className="lv-rc-fav"
+                          onClick={handleFavorite}
+                          title="Save to your journey — coming soon!"
+                          data-testid={`fav-region-${region.id}`}
                         >
-                          ›
-                        </span>
-                        {country} ({regions.length})
-                      </div>
-                      {expandedCountries.has(country) && (
-                        <div className="lv-regions-grid">
-                          {regions.map((region) => (
-                            <div
-                              key={region.id}
-                              className={`lv-region-card${(region as any)._dimmed ? ' lv-rc-dimmed' : ''}`}
-                              onClick={() => {
-                                store.selectRegion(region.id);
-                                setLocation("/explore");
-                              }}
-                              data-testid={`list-region-${region.id}`}
-                            >
-                              {/* Hero image */}
-                              <div className="lv-rc-img">
-                                {region.image && (
-                                  <img
-                                    src={region.image}
-                                    alt={region.name}
-                                    loading="lazy"
-                                  />
-                                )}
-                                <div className="lv-rc-img-overlay" />
-                                <button
-                                  className="lv-rc-fav"
-                                  onClick={handleFavorite}
-                                  title="Save to your journey — coming soon!"
-                                  data-testid={`fav-region-${region.id}`}
-                                >
-                                  ♡
-                                </button>
-                                <div className="lv-rc-img-label">
-                                  <span className="lv-rc-country">{region.country}</span>
-                                </div>
-                              </div>
-                              {/* Content */}
-                              <div className="lv-rc-content">
-                                <h3 className="lv-rc-title">{region.name}</h3>
-                                <p className="lv-rc-desc">{region.description}</p>
-                                <div className="lv-rc-footer">
-                                  <div className="lv-rc-stats">
-                                    {store.hasActiveFilter && (region as any)._matchCount !== 999 ? (
-                                      <span className="lv-rc-match"><strong>{(region as any)._matchCount}</strong> match{(region as any)._matchCount !== 1 ? 'es' : ''}</span>
-                                    ) : null}
-                                    <span><strong>{producerCountByRegion[region.id] || 0}</strong> producers</span>
-                                    <span><strong>{region.grapes.length}</strong> grapes</span>
-                                    <span><strong>{region.notableStyles.length}</strong> styles</span>
-                                  </div>
-                                  <div className="lv-rc-grapes">
-                                    {region.grapes.slice(0, 3).map((g) => (
-                                      <span key={g} className="lv-rc-grape">{g}</span>
-                                    ))}
-                                    {region.grapes.length > 3 && (
-                                      <span className="lv-rc-grape lv-rc-grape-more">+{region.grapes.length - 3}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                          ♡
+                        </button>
+                        <div className="lv-rc-img-label">
+                          <span className="lv-rc-country">{region.country}</span>
                         </div>
-                      )}
+                      </div>
+                      {/* Content */}
+                      <div className="lv-rc-content">
+                        <h3 className="lv-rc-title">{region.name}</h3>
+                        <p className="lv-rc-desc" dangerouslySetInnerHTML={{ __html: region.description }} />
+                        <div className="lv-rc-footer">
+                          <div className="lv-rc-stats">
+                            {store.hasActiveFilter && (region as any)._matchCount !== 999 ? (
+                              <span className="lv-rc-match"><strong>{(region as any)._matchCount}</strong> match{(region as any)._matchCount !== 1 ? 'es' : ''}</span>
+                            ) : null}
+                            <span><strong>{producerCountByRegion[region.id] || 0}</strong> producers</span>
+                            <span><strong>{region.grapes.length}</strong> grapes</span>
+                            <span><strong>{region.notableStyles.length}</strong> styles</span>
+                          </div>
+                          <div className="lv-rc-grapes">
+                            {region.grapes.slice(0, 3).map((g) => (
+                              <span key={g} className="lv-rc-grape">{g}</span>
+                            ))}
+                            {region.grapes.length > 3 && (
+                              <span className="lv-rc-grape lv-rc-grape-more">+{region.grapes.length - 3}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -262,7 +217,7 @@ export default function Explore() {
                           <div className="lv-pc-sub">
                             {region?.name || producer.country} · Est. {producer.founded}
                           </div>
-                          <div className="lv-pc-bio">{producer.description}</div>
+                          <div className="lv-pc-bio" dangerouslySetInnerHTML={{ __html: producer.description }} />
                           <div className="lv-pc-pills">
                             {producer.wineType.map((t) => (
                               <span key={t} className="lv-pc-pill">{t}</span>

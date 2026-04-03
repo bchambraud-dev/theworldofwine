@@ -104,7 +104,7 @@ export default function RegionDetail({
         )}
 
         {/* Description */}
-        <div className="sp-desc">{region.description}</div>
+        <div className="sp-desc" dangerouslySetInnerHTML={{ __html: region.description }} />
 
         {/* Stats */}
         <div className="sp-stats">

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { Filters, WineColor, PriceRange } from "@/lib/store";
+import { wineRegions } from "@/data/regions";
+import WineLoader from "@/components/WineLoader";
 
 interface FilterBarProps {
   filters: Filters;
@@ -82,9 +84,27 @@ const chipLabels: Record<string, string> = {
   luxury: "$$$$",
 };
 
+// Extract unique countries from regions data (sorted)
+const allCountries: string[] = Array.from(
+  new Set(wineRegions.map((r) => r.country))
+).sort();
+
 export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Pending state — mirrors filters but not applied until Apply is clicked
+  const [pending, setPending] = useState<Filters>(filters);
+
+  // Show loader after apply
+  const [showLoader, setShowLoader] = useState(false);
+
+  // Sync pending when dropdown opens
+  useEffect(() => {
+    if (dropdownOpen) {
+      setPending(filters);
+    }
+  }, [dropdownOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -97,6 +117,54 @@ export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBa
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
+  const togglePendingWineType = (type: WineColor) => {
+    const next = pending.wineTypes.includes(type)
+      ? pending.wineTypes.filter((t) => t !== type)
+      : [...pending.wineTypes, type];
+    setPending((p) => ({ ...p, wineTypes: next }));
+  };
+
+  const togglePendingPrice = (price: PriceRange) => {
+    const next = pending.priceRanges.includes(price)
+      ? pending.priceRanges.filter((p) => p !== price)
+      : [...pending.priceRanges, price];
+    setPending((p) => ({ ...p, priceRanges: next }));
+  };
+
+  const togglePendingTaste = (taste: string) => {
+    const next = pending.tasteProfiles.includes(taste)
+      ? pending.tasteProfiles.filter((t) => t !== taste)
+      : [...pending.tasteProfiles, taste];
+    setPending((p) => ({ ...p, tasteProfiles: next }));
+  };
+
+  const togglePendingNatural = () => {
+    setPending((p) => ({ ...p, isNatural: p.isNatural === true ? null : true }));
+  };
+
+  const togglePendingAward = () => {
+    setPending((p) => ({ ...p, isAwardWinner: p.isAwardWinner === true ? null : true }));
+  };
+
+  const togglePendingCountry = (country: string) => {
+    const next = pending.countries.includes(country)
+      ? pending.countries.filter((c) => c !== country)
+      : [...pending.countries, country];
+    setPending((p) => ({ ...p, countries: next }));
+  };
+
+  const applyFilters = () => {
+    setDropdownOpen(false);
+    // Apply all pending filters at once
+    (Object.keys(pending) as (keyof Filters)[]).forEach((key) => {
+      onUpdateFilter(key, pending[key] as Filters[typeof key]);
+    });
+    // Show loader for 800ms
+    setShowLoader(true);
+    setTimeout(() => setShowLoader(false), 800);
+  };
+
+  // Chip-based removes act directly on live filters (bypass pending)
   const toggleWineType = (type: WineColor) => {
     const next = filters.wineTypes.includes(type)
       ? filters.wineTypes.filter((t) => t !== type)
@@ -124,6 +192,13 @@ export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBa
 
   const toggleAward = () => {
     onUpdateFilter("isAwardWinner", filters.isAwardWinner === true ? null : true);
+  };
+
+  const toggleCountry = (country: string) => {
+    const next = filters.countries.includes(country)
+      ? filters.countries.filter((c) => c !== country)
+      : [...filters.countries, country];
+    onUpdateFilter("countries", next);
   };
 
   // Collect all active filter chips
@@ -175,134 +250,191 @@ export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBa
     });
   }
 
+  filters.countries.forEach((c) => {
+    activeChips.push({
+      key: `country-${c}`,
+      label: c,
+      category: "Region",
+      onRemove: () => toggleCountry(c),
+    });
+  });
+
   const hasActive = activeChips.length > 0;
 
+  // Count pending changes to know if Apply should be enabled
+  const hasPendingChanges = JSON.stringify(pending) !== JSON.stringify(filters);
+
   return (
-    <div className="fb" data-testid="filter-bar">
-      {/* Filter button + dropdown */}
-      <div className="fb-dropdown-wrap" ref={dropdownRef}>
-        <button
-          className={`fb-trigger ${dropdownOpen ? "open" : ""} ${hasActive ? "has-active" : ""}`}
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          data-testid="filter-trigger"
+    <>
+      {/* WineLoader overlay when applying filters */}
+      {showLoader && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(247,244,239,0.88)",
+            backdropFilter: "blur(4px)",
+          }}
+          data-testid="filter-loader-overlay"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-          </svg>
-          <span>Filters</span>
-          {hasActive && <span className="fb-badge">{activeChips.length}</span>}
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: dropdownOpen ? "rotate(180deg)" : "", transition: "0.2s" }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
+          <WineLoader size="md" />
+        </div>
+      )}
 
-        {dropdownOpen && (
-          <div className="fb-dropdown" data-testid="filter-dropdown">
-            <div className="fb-dd-scroll">
-              {/* Wine Type */}
-              <div className="fb-dd-group">
-                <div className="fb-dd-label">Wine Type</div>
-                <div className="fb-dd-options">
-                  {wineTypeOptions.map((o) => (
-                    <button
-                      key={o.value}
-                      className={`fb-dd-opt ${filters.wineTypes.includes(o.value) ? "selected" : ""}`}
-                      onClick={() => toggleWineType(o.value)}
-                    >
-                      <span className="fb-dd-check">{filters.wineTypes.includes(o.value) ? "✓" : ""}</span>
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      <div className="fb" data-testid="filter-bar">
+        {/* Filter button + dropdown */}
+        <div className="fb-dropdown-wrap" ref={dropdownRef}>
+          <button
+            className={`fb-trigger ${dropdownOpen ? "open" : ""} ${hasActive ? "has-active" : ""}`}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            data-testid="filter-trigger"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span>Filters</span>
+            {hasActive && <span className="fb-badge">{activeChips.length}</span>}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: dropdownOpen ? "rotate(180deg)" : "", transition: "0.2s" }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
 
-              {/* Price Range */}
-              <div className="fb-dd-group">
-                <div className="fb-dd-label">Price Range</div>
-                <div className="fb-dd-options">
-                  {priceOptions.map((o) => (
-                    <button
-                      key={o.value}
-                      className={`fb-dd-opt ${filters.priceRanges.includes(o.value) ? "selected" : ""}`}
-                      onClick={() => togglePrice(o.value)}
-                    >
-                      <span className="fb-dd-check">{filters.priceRanges.includes(o.value) ? "✓" : ""}</span>
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Style */}
-              <div className="fb-dd-group">
-                <div className="fb-dd-label">Style</div>
-                <div className="fb-dd-options">
-                  <button
-                    className={`fb-dd-opt ${filters.isNatural === true ? "selected" : ""}`}
-                    onClick={toggleNatural}
-                  >
-                    <span className="fb-dd-check">{filters.isNatural === true ? "✓" : ""}</span>
-                    Natural Wine
-                  </button>
-                  <button
-                    className={`fb-dd-opt ${filters.isAwardWinner === true ? "selected" : ""}`}
-                    onClick={toggleAward}
-                  >
-                    <span className="fb-dd-check">{filters.isAwardWinner === true ? "✓" : ""}</span>
-                    Award Winners
-                  </button>
-                </div>
-              </div>
-
-              {/* Taste Profile categories */}
-              {tasteCategories.map((cat) => (
-                <div key={cat.category} className="fb-dd-group">
-                  <div className="fb-dd-label">{cat.category}</div>
+          {dropdownOpen && (
+            <div className="fb-dropdown" data-testid="filter-dropdown">
+              <div className="fb-dd-scroll">
+                {/* Region / Country */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Region</div>
                   <div className="fb-dd-options fb-dd-options-wrap">
-                    {cat.options.map((o) => (
+                    {allCountries.map((country) => (
                       <button
-                        key={o}
-                        className={`fb-dd-opt fb-dd-opt-pill ${filters.tasteProfiles.includes(o) ? "selected" : ""}`}
-                        onClick={() => toggleTaste(o)}
+                        key={country}
+                        className={`fb-dd-opt fb-dd-opt-pill ${pending.countries.includes(country) ? "selected" : ""}`}
+                        onClick={() => togglePendingCountry(country)}
                       >
-                        {o}
+                        {country}
                       </button>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Footer */}
-            {hasActive && (
+                {/* Wine Type */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Wine Type</div>
+                  <div className="fb-dd-options">
+                    {wineTypeOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`fb-dd-opt ${pending.wineTypes.includes(o.value) ? "selected" : ""}`}
+                        onClick={() => togglePendingWineType(o.value)}
+                      >
+                        <span className="fb-dd-check">{pending.wineTypes.includes(o.value) ? "✓" : ""}</span>
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Price Range</div>
+                  <div className="fb-dd-options">
+                    {priceOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`fb-dd-opt ${pending.priceRanges.includes(o.value) ? "selected" : ""}`}
+                        onClick={() => togglePendingPrice(o.value)}
+                      >
+                        <span className="fb-dd-check">{pending.priceRanges.includes(o.value) ? "✓" : ""}</span>
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Style */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Style</div>
+                  <div className="fb-dd-options">
+                    <button
+                      className={`fb-dd-opt ${pending.isNatural === true ? "selected" : ""}`}
+                      onClick={togglePendingNatural}
+                    >
+                      <span className="fb-dd-check">{pending.isNatural === true ? "✓" : ""}</span>
+                      Natural Wine
+                    </button>
+                    <button
+                      className={`fb-dd-opt ${pending.isAwardWinner === true ? "selected" : ""}`}
+                      onClick={togglePendingAward}
+                    >
+                      <span className="fb-dd-check">{pending.isAwardWinner === true ? "✓" : ""}</span>
+                      Award Winners
+                    </button>
+                  </div>
+                </div>
+
+                {/* Taste Profile categories */}
+                {tasteCategories.map((cat) => (
+                  <div key={cat.category} className="fb-dd-group">
+                    <div className="fb-dd-label">{cat.category}</div>
+                    <div className="fb-dd-options fb-dd-options-wrap">
+                      {cat.options.map((o) => (
+                        <button
+                          key={o}
+                          className={`fb-dd-opt fb-dd-opt-pill ${pending.tasteProfiles.includes(o) ? "selected" : ""}`}
+                          onClick={() => togglePendingTaste(o)}
+                        >
+                          {o}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer */}
               <div className="fb-dd-footer">
-                <button className="fb-dd-clear" onClick={() => { onReset(); setDropdownOpen(false); }}>
-                  Clear all filters
+                {hasActive && (
+                  <button className="fb-dd-clear" onClick={() => { onReset(); setDropdownOpen(false); }}>
+                    Clear all filters
+                  </button>
+                )}
+                <button
+                  className="fb-dd-apply"
+                  onClick={applyFilters}
+                  disabled={!hasPendingChanges}
+                  data-testid="apply-filters-btn"
+                >
+                  APPLY FILTERS
                 </button>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
-      {/* Active filter chips (L-R horizontal scroll) */}
-      <div className="fb-chips">
-        {activeChips.map((chip) => (
-          <span
-            key={chip.key}
-            className={`fb-chip fb-chip-${chip.category.toLowerCase()}`}
-            data-testid={`active-filter-${chip.key}`}
-          >
-            {chip.label}
-            <button className="fb-chip-x" onClick={(e) => { e.stopPropagation(); chip.onRemove(); }}>✕</button>
-          </span>
-        ))}
-        {hasActive && (
-          <button className="fb-clear-all" onClick={onReset}>
-            Clear all
-          </button>
-        )}
+        {/* Active filter chips (L-R horizontal scroll) */}
+        <div className="fb-chips">
+          {activeChips.map((chip) => (
+            <span
+              key={chip.key}
+              className={`fb-chip fb-chip-${chip.category.toLowerCase()}`}
+              data-testid={`active-filter-${chip.key}`}
+            >
+              {chip.label}
+              <button className="fb-chip-x" onClick={(e) => { e.stopPropagation(); chip.onRemove(); }}>✕</button>
+            </span>
+          ))}
+          {hasActive && (
+            <button className="fb-clear-all" onClick={onReset}>
+              Clear all
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

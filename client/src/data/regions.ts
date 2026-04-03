@@ -24,7 +24,7 @@ export const wineRegions: WineRegion[] = [
     lat: 44.84,
     lng: -0.58,
     zoom: 8,
-    description: "When people picture a wine cellar — candlelit, cobwebbed, bottles stretching into the dark — they're picturing Bordeaux. This is the region that invented the modern concept of a wine estate, a wine classification, and a wine investment. The Left Bank is Cabernet country, all gravel soils and cassis and cedar; the Right Bank is softer, rounder Merlot territory. And somewhere in Sauternes, grapes are rotting in exactly the right way to become something golden and transcendent.",
+    description: "When people picture a <strong>wine cellar</strong> — candlelit, cobwebbed, bottles stretching into the dark — they're picturing Bordeaux. This is the region that invented the modern concept of a wine estate, a wine classification, and a wine investment. The <strong>Left Bank</strong> is Cabernet country, all <strong>gravel soils</strong> and cassis and cedar; the Right Bank is softer, rounder Merlot territory. And somewhere in Sauternes, grapes are <strong>rotting in exactly the right way</strong> to become something golden and transcendent.",
     facts: [
       "Over 7,000 wine producers and 60 appellations — you could spend a lifetime exploring it",
       "The 1855 Classification ranked 61 châteaux and has barely changed since Napoleon III requested it",
@@ -44,7 +44,7 @@ export const wineRegions: WineRegion[] = [
     lat: 47.04,
     lng: 4.84,
     zoom: 8,
-    description: "Burgundy is where wine gets almost spiritual. A single vineyard — sometimes just a few rows of vines — can produce something that haunts you for years. The monks who mapped these plots a thousand years ago weren't messing around. Pinot Noir and Chardonnay are the only grapes grown here, but the variations between villages, between plots, between vintages are almost infinite. That's the whole point — and the obsession.",
+    description: "Burgundy is where wine gets <strong>almost spiritual</strong>. A single vineyard — sometimes just a few rows of vines — can produce something that haunts you for years. The monks who mapped these plots <strong>a thousand years ago</strong> weren't messing around. <strong>Pinot Noir</strong> and Chardonnay are the only grapes grown here, but the <strong>variations between villages, between plots, between vintages</strong> are almost infinite. That's the whole point — and the obsession.",
     facts: [
       "Over 100 appellations squeezed into a region smaller than many wine counties elsewhere",
       "Grand Cru vineyards make up just 1% of total production — and command 100% of the mystique",
@@ -64,7 +64,7 @@ export const wineRegions: WineRegion[] = [
     lat: 49.05,
     lng: 3.95,
     zoom: 8,
-    description: "No other wine in the world carries the weight of human celebration the way Champagne does. Weddings, victories, new years, apologies — Champagne is there for all of it. But here's the thing: the reason it tastes so good isn't magic, it's geography. These northern chalk soils sit right at the edge of where grapes can ripen, creating wines with electric acidity that survive — and thrive after — years of aging. The bubbles are just the beginning.",
+    description: "No other wine in the world carries the <strong>weight of human celebration</strong> the way Champagne does. Weddings, victories, new years, apologies — Champagne is there for all of it. But here's the thing: the reason it tastes so good isn't magic, it's geography. These <strong>northern chalk soils</strong> sit right at the edge of where grapes can ripen, creating wines with <strong>electric acidity</strong> that survive — and thrive after — years of aging. The bubbles are <strong>just the beginning</strong>.",
     facts: [
       "Only 34,000 hectares are planted — and every one of them is fiercely protected",
       "The chalk beneath these vineyards runs up to 200 meters deep, providing perfect drainage and signature minerality",
@@ -84,7 +84,7 @@ export const wineRegions: WineRegion[] = [
     lat: 44.13,
     lng: 4.81,
     zoom: 8,
-    description: "Two completely different wine worlds share a river. In the north, Syrah clings to near-vertical granite slopes at Côte-Rôtie and Hermitage — wines of smoked meat and violet and iron that can age for decades. Head south and the whole thing opens up: sunshine, garrigue, and the wide plains of Châteauneuf-du-Pape, where Grenache takes the lead in blends that can involve up to thirteen different grapes. One valley, two completely different bottles.",
+    description: "Two completely different wine worlds share a river. In the north, Syrah clings to <strong>near-vertical granite slopes</strong> at Côte-Rôtie and Hermitage — wines of <strong>smoked meat and violet and iron</strong> that can age for decades. Head south and the whole thing opens up: sunshine, garrigue, and the wide plains of Châteauneuf-du-Pape, where Grenache takes the lead in blends that can involve <strong>up to thirteen different grapes</strong>. <strong>One valley, two completely different bottles</strong>.",
     facts: [
       "Châteauneuf-du-Pape permits 13 different grape varieties in its blend — a creative playground",
       "Hermitage has been celebrated wine country since Roman times — they knew what they had",
@@ -104,7 +104,7 @@ export const wineRegions: WineRegion[] = [
     lat: 47.38,
     lng: 0.69,
     zoom: 7,
-    description: "France's longest river winds through a valley so beautiful it's lined with actual châteaux, but the wines are the real treasure. The Loire is a shape-shifter — bone-dry, flinty Sancerre at one end; honeyed, almost immortal Chenin Blanc from Vouvray in the middle; earthy, raspberry-scented Cabernet Franc from Chinon further west; and briny Muscadet right where the river meets the Atlantic. Four completely different styles, one extraordinary valley. And the prices? Often shockingly fair.",
+    description: "France's longest river winds through a valley so beautiful it's lined with actual châteaux, but the wines are the real treasure. The Loire is a <strong>shape-shifter</strong> — <strong>bone-dry, flinty Sancerre</strong> at one end; <strong>honeyed, almost immortal Chenin Blanc</strong> from Vouvray in the middle; earthy, raspberry-scented Cabernet Franc from Chinon further west; and briny Muscadet right where the river meets the Atlantic. Four completely different styles, one extraordinary valley. And the prices? <strong>Often shockingly fair</strong>.",
     facts: [
       "France's third-largest wine region by volume — somehow still underrated",
       "The château-dotted valley is a UNESCO World Heritage Site for its Renaissance architecture alone",
@@ -124,7 +124,7 @@ export const wineRegions: WineRegion[] = [
     lat: 48.17,
     lng: 7.30,
     zoom: 8,
-    description: "Wedged between the Vosges Mountains and the Rhine, Alsace is France's great anomaly — a region where wines are named after their grapes instead of their villages, where the food leans German but the wine laws are French, and where dry Riesling achieves a stony, petrol-edged complexity that takes years to fully understand. The Vosges act as a giant umbrella, making this one of the driest places in France — and those sunny, dry conditions build intensity in every grape that grows here.",
+    description: "Wedged between the <strong>Vosges Mountains</strong> and the Rhine, Alsace is <strong>France's great anomaly</strong> — a region where wines are <strong>named after their grapes</strong> instead of their villages, where the food leans German but the wine laws are French, and where dry Riesling achieves a stony, petrol-edged complexity that takes years to fully understand. The Vosges act as a giant umbrella, making this one of the driest places in France — and those sunny, dry conditions build intensity in every grape that grows here.",
     facts: [
       "51 Grand Cru vineyards, each with its own distinct geological personality",
       "The only French wine region where labels name the grape rather than the village — revolutionary in France",
@@ -145,7 +145,7 @@ export const wineRegions: WineRegion[] = [
     lat: 43.35,
     lng: 11.32,
     zoom: 8,
-    description: "Rolling cypress-lined hills, ancient hilltop villages, and Sangiovese vines as far as the eye can see — Tuscany is Italy's wine heartland, and it wears that crown with swagger. Brunello di Montalcino needs years of patience before it opens; Chianti Classico delivers rustic charm with genuine depth. And then there are the Super Tuscans — wines born in the 1970s when certain producers got fed up with local rules and started blending Cabernet Sauvignon in ways that were technically illegal and absolutely world-class.",
+    description: "Rolling cypress-lined hills, ancient hilltop villages, and <strong>Sangiovese</strong> vines as far as the eye can see — Tuscany is Italy's wine heartland, and it wears that crown with swagger. <strong>Brunello di Montalcino</strong> needs years of patience before it opens; Chianti Classico delivers rustic charm with genuine depth. And then there are the Super Tuscans — wines born in the 1970s when certain producers got fed up with local rules and started blending <strong>Cabernet Sauvignon</strong> in ways that were technically illegal and absolutely world-class.",
     facts: [
       "Brunello di Montalcino must age at least 5 years before you're allowed to touch it",
       "Super Tuscans were born in the 1970s when producers rebelled against restrictive local regulations",
@@ -165,7 +165,7 @@ export const wineRegions: WineRegion[] = [
     lat: 44.69,
     lng: 8.04,
     zoom: 8,
-    description: "At the foot of the Alps, in the misty, truffle-scented hills of the Langhe, Italy's most serious wine country begins. Barolo and Barbaresco — both from the proud, uncompromising Nebbiolo grape — are the King and Queen of Italian wine, and they earn those titles. They're tannic, perfumed, and slow to reveal themselves. But patience is rewarded with something extraordinary: tar and roses, dried cherry and tobacco, and a complexity that keeps unfolding in the glass for hours.",
+    description: "At the foot of the Alps, in the misty, truffle-scented hills of the Langhe, Italy's most serious wine country begins. <strong>Barolo and Barbaresco</strong> — both from the proud, uncompromising <strong>Nebbiolo</strong> grape — are the King and Queen of Italian wine, and they earn those titles. They're tannic, perfumed, and slow to reveal themselves. But patience is rewarded with something extraordinary: tar and roses, dried cherry and tobacco, and a complexity that keeps unfolding in the glass for hours.",
     facts: [
       "Barolo must age at least 38 months before release — including a minimum of 18 months in oak",
       "The Langhe wine landscape, including its hilltop villages and cellars, is a UNESCO World Heritage Site",
@@ -185,7 +185,7 @@ export const wineRegions: WineRegion[] = [
     lat: 37.73,
     lng: 14.80,
     zoom: 8,
-    description: "For years, Sicily was Italy's forgotten giant — producing vast quantities of wine mostly destined to beef up blends further north. Then Mount Etna changed everything. The world's top sommeliers discovered that ancient, gnarled vines planted at altitude on black volcanic lava could produce something haunting — wild cherry, blood orange, volcanic mineral, with a lightness that defied the hot southern sun. The Etna revolution spread outward, and now the whole island is buzzing with possibility.",
+    description: "For years, Sicily was Italy's forgotten giant — producing vast quantities of wine mostly destined to beef up blends further north. Then Mount Etna changed everything. The world's top sommeliers discovered that ancient, gnarled vines planted at <strong>altitude</strong> on black volcanic lava could produce something haunting — wild cherry, blood orange, volcanic mineral, with a lightness that defied the hot southern sun. The Etna revolution spread outward, and now the whole island is buzzing with possibility.",
     facts: [
       "Etna's vineyards sit at 600–1,000 metres above sea level — some of Europe's highest",
       "Many Etna vines pre-date phylloxera, planted directly in volcanic soil on their own roots",
@@ -206,14 +206,14 @@ export const wineRegions: WineRegion[] = [
     lat: 42.47,
     lng: -2.45,
     zoom: 8,
-    description: "Rioja is Spain's wine heartland — and it's been aging its wines in oak longer than almost anywhere else on earth. The result is a style of red that's unlike anything from France or Italy: warm vanilla, dried cherry, old leather, and a smoothness that comes from years spent in American oak barrels. A Rioja Gran Reserva has been sitting in a cellar for years before you even get to buy it. Increasingly, a new generation of producers is also doing something different — single vineyards, old vines, terroir front and center.",
+    description: "Rioja is Spain's wine heartland — and it's been aging its wines in oak longer than almost anywhere else on earth. The result is a style of red that's unlike anything from France or Italy: warm vanilla, dried cherry, old leather, and a smoothness that comes from years spent in <strong>American oak</strong> barrels. A Rioja Gran Reserva has been sitting in a cellar for years before you even get to buy it. Increasingly, a new generation of producers is also doing something different — single vineyards, old vines, terroir front and center.",
     facts: [
       "Gran Reserva must age at least 5 years total, with 2 of those in oak — patience is built into the law",
       "Rioja was Spain's first DOCa (the highest quality classification) back in 1991",
       "Three distinct sub-regions — Rioja Alta, Alavesa, and Oriental — each with their own personality",
       "American oak gives traditional Rioja its vanilla-coconut signature; French oak is the modern producer's choice"
     ],
-    grapes: ["Tempranillo", "Garnacha", "Graciano", "Mazuelo", "Viura"],
+    grapes: ["<strong>Tempranillo</strong>", "Garnacha", "Graciano", "Mazuelo", "Viura"],
     climate: "Mix of Atlantic, Continental, and Mediterranean influences",
     flavorProfile: "Vanilla, leather, cherry, strawberry, and tobacco from oak aging. Modern styles emphasize fruit purity.",
     notableStyles: ["Crianza", "Reserva", "Gran Reserva", "White Rioja"]
@@ -226,7 +226,7 @@ export const wineRegions: WineRegion[] = [
     lat: 41.20,
     lng: 0.81,
     zoom: 9,
-    description: "Hidden in the Catalan mountains, Priorat is dramatic in every sense — steep black slate hillsides, terraced vines that look practically vertical, and wines of almost shocking concentration and mineral intensity. The special llicorella soil — black slate and quartz — doesn't retain water, so vines sink their roots impossibly deep to survive. The result is tiny yields of ferociously concentrated Garnacha and Cariñena. For most of the 20th century, this place was all but abandoned. Then, in the late 1980s, a handful of visionaries arrived and changed everything.",
+    description: "Hidden in the Catalan mountains, Priorat is dramatic in every sense — steep black slate hillsides, terraced vines that look practically vertical, and wines of almost shocking concentration and mineral intensity. The special <strong>llicorella</strong> soil — black slate and quartz — doesn't retain water, so vines sink their roots impossibly deep to survive. The result is tiny yields of ferociously concentrated Garnacha and Cariñena. For most of the 20th century, this place was all but abandoned. Then, in the late 1980s, a handful of visionaries arrived and changed everything.",
     facts: [
       "One of only two Spanish wine regions to hold the DOCa classification — the highest level",
       "Llicorella slate soil can run up to 2 meters deep — vines have no choice but to work for it",
@@ -289,7 +289,7 @@ export const wineRegions: WineRegion[] = [
     lat: 48.37,
     lng: 15.42,
     zoom: 9,
-    description: "Imagine a postcard: castle ruins on a cliff, a bend in the Danube, and terraced vineyards carved from sheer rock face glowing gold in the afternoon sun. That's the Wachau — Austria's most jaw-dropping wine region. The Grüner Veltliner and Riesling that emerge from these gneiss and granite slopes have a purity and mineral intensity that's genuinely breathtaking. The Wachau even invented its own classification — Steinfeder, Federspiel, Smaragd — named after local wildlife. The Smaragd, named after a green lizard that suns itself in the vineyards, is the one you want.",
+    description: "Imagine a postcard: castle ruins on a cliff, a bend in the Danube, and <strong>terraced vineyards</strong> carved from sheer rock face glowing gold in the afternoon sun. That's the Wachau — Austria's most jaw-dropping wine region. The <strong>Grüner Veltliner</strong> and Riesling that emerge from these gneiss and granite slopes have a purity and mineral intensity that's genuinely breathtaking. The Wachau even invented its own classification — Steinfeder, Federspiel, <strong>Smaragd</strong> — named after local wildlife. The <strong>Smaragd</strong>, named after a green lizard that suns itself in the vineyards, is the one you want.",
     facts: [
       "UNESCO World Heritage site — vineyards, medieval monasteries, and baroque castles all in one valley",
       "Smaragd is the highest ripeness classification, named after the local emerald-green lizard",
@@ -310,7 +310,7 @@ export const wineRegions: WineRegion[] = [
     lat: 48.12,
     lng: 21.40,
     zoom: 9,
-    description: "When Louis XIV called Tokaji 'the wine of kings, the king of wines,' he wasn't being diplomatic — he genuinely meant it. The sweet wines made in these northeastern Hungarian hills from botrytis-infected Furmint grapes are among the most extraordinary liquids ever produced. The noble rot concentrates everything — sugars, acids, aromas — into something between wine and poetry. They've been doing this here since at least the 16th century, and the volcanic soils and misty autumn conditions still create the same liquid gold today.",
+    description: "When Louis XIV called Tokaji 'the wine of kings, the king of wines,' he wasn't being diplomatic — he genuinely meant it. The sweet wines made in these northeastern Hungarian hills from botrytis-infected Furmint grapes are among the most extraordinary liquids ever produced. The <strong>noble rot</strong> concentrates everything — sugars, acids, aromas — into something between wine and poetry. They've been doing this here since at least the 16th century, and the volcanic soils and misty autumn conditions still create the same liquid gold today.",
     facts: [
       "Tokaj was the world's first legally demarcated wine region, classified all the way back in 1730",
       "Tokaji Aszú is rated in puttonyos — 'baskets' of shriveled grapes — from 3 to 6; higher means sweeter",
@@ -373,7 +373,7 @@ export const wineRegions: WineRegion[] = [
     lat: 36.39,
     lng: 25.46,
     zoom: 10,
-    description: "Everything about Santorini's wines is extreme. The vines are trained in tight baskets close to the ground to survive the fierce Meltemi winds. The soil is volcanic ash and pumice — no phylloxera has ever touched it. The island barely gets any rain, so the vines pull moisture from sea fog. And the Assyrtiko grape that grows here produces whites of ferocious concentration and acidity, with a saline mineral quality that tastes almost literally like the Aegean. Some of those basket-shaped vines are over 200 years old and still producing.",
+    description: "Everything about Santorini's wines is extreme. The vines are trained in tight baskets close to the ground to survive the fierce Meltemi winds. The soil is volcanic ash and pumice — no phylloxera has ever touched it. The island barely gets any rain, so the vines pull moisture from sea fog. And the <strong>Assyrtiko</strong> grape that grows here produces whites of ferocious concentration and acidity, with a saline mineral quality that tastes almost literally like the Aegean. Some of those basket-shaped vines are over 200 years old and still producing.",
     facts: [
       "Santorini's volcanic soils have never been touched by phylloxera — the vines grow ungrafted",
       "The traditional kouloura basket training protects vines from winds exceeding 100 km/h",
@@ -415,7 +415,7 @@ export const wineRegions: WineRegion[] = [
     lat: -33.93,
     lng: 18.86,
     zoom: 9,
-    description: "Stellenbosch is the Cape's wine capital — a gorgeous university town surrounded by granite mountains, ancient oaks, and some of the most beautiful wine estates on earth. The cooling influence of False Bay keeps things honest despite the African sun, and the soils here range from ancient decomposed granite to sandstone in ways that create real differences between estates. Cabernet Sauvignon is serious business here. So is old-vine Chenin Blanc — called Steen locally — which at its best is one of the world's great white wines.",
+    description: "Stellenbosch is the Cape's wine capital — a gorgeous university town surrounded by granite mountains, ancient oaks, and some of the most beautiful wine estates on earth. The cooling influence of False Bay keeps things honest despite the African sun, and the soils here range from ancient decomposed granite to sandstone in ways that create real differences between estates. <strong>Cabernet Sauvignon</strong> is serious business here. So is old-vine Chenin Blanc — called Steen locally — which at its best is one of the world's great white wines.",
     facts: [
       "South Africa's first wine estate was established here in 1679 — making it the New World's oldest wine heartland",
       "The Cape Winemakers Guild annual auction is the premier wine event on the African continent",
@@ -435,7 +435,7 @@ export const wineRegions: WineRegion[] = [
     lat: -33.45,
     lng: 18.84,
     zoom: 8,
-    description: "An hour north of Cape Town, the Swartland looks like it shouldn't make wine — sun-baked, almost desert-dry, scattered with old wheat farms and ancient schist outcrops. But this is exactly the kind of place great wine sneaks up on you. Ancient, unirrigated Chenin Blanc vines — some over 50 years old — dig deep into granite and slate soils and produce whites of extraordinary depth and character. Eben Sadie and a band of like-minded iconoclasts turned this forgotten landscape into the global epicenter of the natural wine movement.",
+    description: "An hour north of Cape Town, the Swartland looks like it shouldn't make wine — sun-baked, almost desert-dry, scattered with old wheat farms and ancient schist outcrops. But this is exactly the kind of place great wine sneaks up on you. Ancient, unirrigated Chenin Blanc vines — some over 50 years old — dig deep into granite and <strong>slate soils</strong> and produce whites of extraordinary depth and character. Eben Sadie and a band of like-minded iconoclasts turned this forgotten landscape into the global epicenter of the natural wine movement.",
     facts: [
       "Home to some of the world's oldest Chenin Blanc vines — unirrigated, over 50 years old",
       "The annual Swartland Revolution event helped define the international natural wine movement ethos",
@@ -456,7 +456,7 @@ export const wineRegions: WineRegion[] = [
     lat: -33.00,
     lng: -68.50,
     zoom: 8,
-    description: "Malbec is French by birth, but it belongs to Argentina now. This grape — once a minor blending variety in Bordeaux — found the conditions it had always been looking for in the Andes foothills: altitude, sunshine, dramatic temperature swings between day and night, and those extraordinary views of snowcapped mountains. Mendoza's high-altitude vineyards produce Malbec of saturated color, velvety tannins, and a richness that French Malbec rarely approaches. This is one of the great wine regions of the New World — and the most exciting thing is, it's still evolving.",
+    description: "<strong>Malbec</strong> is French by birth, but it belongs to Argentina now. This grape — once a minor blending variety in Bordeaux — found the conditions it had always been looking for in the <strong>Andes</strong> foothills: <strong>altitude</strong>, sunshine, dramatic temperature swings between day and night, and those extraordinary views of snowcapped mountains. Mendoza's high-<strong>altitude</strong> vineyards produce <strong>Malbec</strong> of saturated color, velvety tannins, and a richness that French <strong>Malbec</strong> rarely approaches. This is one of the great wine regions of the New World — and the most exciting thing is, it's still evolving.",
     facts: [
       "Vineyards sit at 800–1,500 metres above sea level — among the highest wine country in the world",
       "Argentina is the world's largest producer of Malbec — by a very large margin",
@@ -477,7 +477,7 @@ export const wineRegions: WineRegion[] = [
     lat: -34.50,
     lng: -71.00,
     zoom: 7,
-    description: "Chile has one of wine's great origin stories: a grape thought extinct in Europe was quietly growing here all along, mislabeled as Merlot for over a century. Carménère was finally identified in 1994 — it had been wiped out in France by phylloxera in the 1860s but survived in Chilean nurseries. Now it's Chile's signature variety. Meanwhile, Maipo Valley Cabernet Sauvignon, grown in Andes foothills soils with a signature eucalyptus note, has been turning heads globally for decades. Chile is brilliant, underrated, and still full of surprises.",
+    description: "Chile has one of wine's great origin stories: a grape thought extinct in Europe was quietly growing here all along, mislabeled as Merlot for over a century. <strong>Carménère</strong> was finally identified in 1994 — it had been wiped out in France by phylloxera in the 1860s but survived in Chilean nurseries. Now it's Chile's signature variety. Meanwhile, Maipo Valley <strong>Cabernet Sauvignon</strong>, grown in <strong>Andes</strong> foothills soils with a signature eucalyptus note, has been turning heads globally for decades. Chile is brilliant, underrated, and still full of surprises.",
     facts: [
       "Carménère was thought extinct after phylloxera destroyed it in France in the 1860s",
       "It was rediscovered growing in Chile in 1994 — DNA analysis confirmed it had been mislabeled as Merlot for over 100 years",
@@ -498,7 +498,7 @@ export const wineRegions: WineRegion[] = [
     lat: 38.50,
     lng: -122.27,
     zoom: 9,
-    description: "Napa Valley's defining moment came in 1976, when California wines beat the best of Bordeaux and Burgundy in a blind tasting in Paris. The French judges were mortified. The world was stunned. And Napa hasn't looked back since. Today it's home to some of the most coveted and expensive wines on earth — powerful, opulent Cabernet Sauvignons that rival anything in the world. The average bottle price here is the highest of any wine region globally. Whether that makes you excited or skeptical, the wines are genuinely extraordinary.",
+    description: "Napa Valley's defining moment came in 1976, when California wines beat the best of Bordeaux and Burgundy in a blind tasting in Paris. The French judges were mortified. The world was stunned. And Napa hasn't looked back since. Today it's home to some of the most coveted and expensive wines on earth — powerful, opulent <strong>Cabernet Sauvignon</strong>s that rival anything in the world. The average bottle price here is the highest of any wine region globally. Whether that makes you excited or skeptical, the wines are genuinely extraordinary.",
     facts: [
       "Only about 4% of all California wine comes from Napa — scarcity is part of the story",
       "16 distinct AVAs within the valley, each with genuinely different soil and character",
@@ -518,7 +518,7 @@ export const wineRegions: WineRegion[] = [
     lat: 38.48,
     lng: -122.72,
     zoom: 9,
-    description: "Sonoma is everything Napa is, minus the attitude. Bigger, cooler, more diverse, and considerably more relaxed, Sonoma stretches from the warm Alexander Valley to the fog-soaked Sonoma Coast — and both extremes produce excellent wine. Russian River Valley Pinot Noir, grown in cool coastal conditions, is some of the finest in the world. Dry Creek Zinfandel is old-vine, brambly, and joyful. And Sonoma Coast Chardonnay, lean and mineral, can rival Burgundy. Three very different wines, one very likable county.",
+    description: "Sonoma is everything Napa is, minus the attitude. Bigger, cooler, more diverse, and considerably more relaxed, Sonoma stretches from the warm Alexander Valley to the fog-soaked Sonoma Coast — and both extremes produce excellent wine. Russian River Valley <strong>Pinot Noir</strong>, grown in cool coastal conditions, is some of the finest in the world. Dry Creek Zinfandel is old-vine, brambly, and joyful. And Sonoma Coast Chardonnay, lean and mineral, can rival Burgundy. Three very different wines, one very likable county.",
     facts: [
       "Sonoma is roughly three times the size of Napa Valley — you can get genuinely lost in it",
       "18 AVAs with dramatically different climates, from foggy coast to warm, dry inland",
@@ -538,7 +538,7 @@ export const wineRegions: WineRegion[] = [
     lat: 45.12,
     lng: -123.09,
     zoom: 8,
-    description: "Oregon's Willamette Valley is the American answer to Burgundy — and it's a genuine one. The climate here is eerily similar to the Côte d'Or: cool, marginal, with that nail-biting uncertainty every vintage whether the Pinot Noir will ripen in time. It usually does, and when it does, it's something special — silky, cherry-red, with a forest floor earthiness and bright acidity that's distinctly Oregonian. A tight-knit community of passionate winemakers has been building this reputation for four decades, and the wines keep getting better.",
+    description: "Oregon's Willamette Valley is the American answer to Burgundy — and it's a genuine one. The climate here is eerily similar to the Côte d'Or: cool, marginal, with that nail-biting uncertainty every vintage whether the <strong>Pinot Noir</strong> will ripen in time. It usually does, and when it does, it's something special — silky, cherry-red, with a forest floor earthiness and bright acidity that's distinctly Oregonian. A tight-knit community of passionate winemakers has been building this reputation for four decades, and the wines keep getting better.",
     facts: [
       "David Lett planted the first Pinot Noir vines here in 1965 — most people thought he was crazy",
       "A 1979 Oregon Pinot shocked the wine world by placing in the top ten at Paris's prestigious Olympiades du Vin",
@@ -558,7 +558,7 @@ export const wineRegions: WineRegion[] = [
     lat: 42.65,
     lng: -76.95,
     zoom: 8,
-    description: "Long, narrow, and impossibly deep, the Finger Lakes of upstate New York were carved by glaciers — and those same glaciers accidentally created ideal conditions for one of America's most thrilling Riesling regions. The deep lake water moderates what would otherwise be brutal winters, and the shale hillsides produce wines of remarkable finesse. Dr. Konstantin Frank proved in 1962 that European grapes could survive here, defying what everyone believed. Now the Finger Lakes is home to a vibrant community of small producers making Riesling that stands comparison with Germany's finest — and pioneering Cabernet Franc, Pinot Noir, and beyond.",
+    description: "Long, narrow, and impossibly deep, the Finger Lakes of upstate New York were carved by glaciers — and those same glaciers accidentally created ideal conditions for one of America's most thrilling Riesling regions. The deep lake water moderates what would otherwise be brutal winters, and the shale hillsides produce wines of remarkable finesse. Dr. Konstantin Frank proved in 1962 that European grapes could survive here, defying what everyone believed. Now the Finger Lakes is home to a vibrant community of small producers making Riesling that stands comparison with Germany's finest — and pioneering Cabernet Franc, <strong>Pinot Noir</strong>, and beyond.",
     facts: [
       "Dr. Konstantin Frank planted the first European Vitis vinifera vines here in 1962 — considered reckless at the time",
       "The Finger Lakes produces the majority of America's finest Riesling",
@@ -600,14 +600,14 @@ export const wineRegions: WineRegion[] = [
     lat: 32.02,
     lng: -116.60,
     zoom: 9,
-    description: "Just 90 minutes south of San Diego, across the Mexican border in Baja California, one of the world's most improbable and wonderful wine scenes has quietly taken root. Valle de Guadalupe has the feel of Napa circa 1975 — rustic, joyful, slightly chaotic, with winemakers taking real risks and landing somewhere genuinely exciting. Pacific fog rolls in from the coast, moderating the California-adjacent sun. The food and wine culture is electric — farm-to-table long before it was a concept, with winery-restaurants in converted shipping containers and cooking over open fire.",
+    description: "Just 90 minutes south of San Diego, across the Mexican border in Baja California, one of the world's most improbable and wonderful wine scenes has quietly taken root. Valle de Guadalupe has the feel of Napa circa 1975 — rustic, joyful, slightly chaotic, with winemakers taking real risks and landing somewhere genuinely exciting. <strong>Pacific fog</strong> rolls in from the coast, moderating the California-adjacent sun. The food and wine culture is electric — farm-to-table long before it was a concept, with winery-restaurants in converted shipping containers and cooking over open fire.",
     facts: [
       "Valle de Guadalupe produces approximately 90% of Mexico's total wine output",
-      "The valley's Nebbiolo and Tempranillo are gaining particular international recognition",
+      "The valley's Nebbiolo and <strong>Tempranillo</strong> are gaining particular international recognition",
       "Rustic winery-restaurants — some housed in shipping containers — have become a culinary destination in their own right",
       "Russian immigrants in the early 20th century were the first to plant vineyards here"
     ],
-    grapes: ["Cabernet Sauvignon", "Nebbiolo", "Tempranillo", "Grenache", "Syrah", "Chardonnay", "Sauvignon Blanc"],
+    grapes: ["Cabernet Sauvignon", "Nebbiolo", "<strong>Tempranillo</strong>", "Grenache", "Syrah", "Chardonnay", "Sauvignon Blanc"],
     climate: "Mediterranean influenced by Pacific coastal fog — warm, dry summers with cool nights",
     flavorProfile: "Reds: ripe dark fruit, sun-baked earth, dried herbs. Whites: crisp, mineral, tropical notes from the Pacific influence.",
     notableStyles: ["Cabernet Sauvignon", "Bordeaux Blends", "Nebbiolo", "Mediterranean Blends"]
@@ -641,7 +641,7 @@ export const wineRegions: WineRegion[] = [
     lat: -37.66,
     lng: 145.56,
     zoom: 9,
-    description: "An hour from Melbourne in the misty hills of the Great Dividing Range, the Yarra Valley is Australia's answer to Burgundy — and it takes that comparison seriously. The elevation, the southerly latitude, the cool temperatures: all of it conspires to produce Pinot Noir of real delicacy and Chardonnay of real precision. A new generation of small producers is pushing things further — more transparency in the winery, more expression of individual vineyard sites. The Yarra is exciting in the way only a region on the rise can be.",
+    description: "An hour from Melbourne in the misty hills of the Great Dividing Range, the Yarra Valley is Australia's answer to Burgundy — and it takes that comparison seriously. The elevation, the southerly latitude, the cool temperatures: all of it conspires to produce <strong>Pinot Noir</strong> of real delicacy and Chardonnay of real precision. A new generation of small producers is pushing things further — more transparency in the winery, more expression of individual vineyard sites. The Yarra is exciting in the way only a region on the rise can be.",
     facts: [
       "The Upper Yarra sub-region has soils similar to Burgundy's Côte de Nuits — the comparison isn't just flattery",
       "Victoria's wine history started here — vines were first planted in 1838",
@@ -662,7 +662,7 @@ export const wineRegions: WineRegion[] = [
     lat: -41.52,
     lng: 173.95,
     zoom: 9,
-    description: "Marlborough didn't just put New Zealand wine on the map — it invented a new style of Sauvignon Blanc that the whole world fell in love with. When Cloudy Bay released its first vintage in 1985, the wine world got a jolt: something this aromatic, this vivid, this unapologetically pungent had never been bottled before. Passionfruit, gooseberry, fresh-cut grass, and a racy acidity that made it irresistible with food. The imitations came fast. The original remains the benchmark.",
+    description: "Marlborough didn't just put New Zealand wine on the map — it invented a new style of <strong>Sauvignon Blanc</strong> that the whole world fell in love with. When Cloudy Bay released its first vintage in 1985, the wine world got a jolt: something this aromatic, this vivid, this unapologetically pungent had never been bottled before. Passionfruit, gooseberry, fresh-cut grass, and a racy acidity that made it irresistible with food. The imitations came fast. The original remains the benchmark.",
     facts: [
       "Marlborough produces over 75% of all New Zealand wine — the rest of the country is scrambling to catch up",
       "Cloudy Bay's 1985 debut vintage essentially put New Zealand on the global wine map overnight",
@@ -682,7 +682,7 @@ export const wineRegions: WineRegion[] = [
     lat: -45.03,
     lng: 169.13,
     zoom: 8,
-    description: "The world's southernmost significant wine region, and one of the most dramatically beautiful — schist rock gorges, turquoise lakes, and snow-capped peaks framing vineyards that have no business being this good at this latitude. But Central Otago's semi-continental climate (New Zealand's only one) delivers the extreme diurnal swings that Pinot Noir loves: blazing daytime sun building ripeness, cold nights locking in freshness and acidity. The Pinot Noir from Bannockburn, Gibbston, and Cromwell Basin is haunting. Once you've had it, you understand.",
+    description: "The world's southernmost significant wine region, and one of the most dramatically beautiful — schist rock gorges, turquoise lakes, and snow-capped peaks framing vineyards that have no business being this good at this latitude. But Central Otago's semi-continental climate (New Zealand's only one) delivers the extreme diurnal swings that <strong>Pinot Noir</strong> loves: blazing daytime sun building ripeness, cold nights locking in freshness and acidity. The <strong>Pinot Noir</strong> from Bannockburn, Gibbston, and Cromwell Basin is haunting. Once you've had it, you understand.",
     facts: [
       "The southernmost significant wine region on earth — genuinely at the edge of where viticulture works",
       "Vines were first planted here during the gold rush of the 1860s — prospectors needed wine too",
@@ -703,7 +703,7 @@ export const wineRegions: WineRegion[] = [
     lat: 38.47,
     lng: 106.27,
     zoom: 8,
-    description: "In the shadow of the Helan Mountains in northern China, something unexpected is happening. Over 100 wineries have set up shop in what looks, honestly, a lot like Mendoza — high-altitude desert, gravel soils, blazing sunshine, dramatic temperature swings between day and night. The wines from Ningxia's best producers are winning major international competitions, and the wine world is paying attention. The vines get buried in winter to survive temperatures that would kill them above ground. That kind of dedication produces a particular kind of intensity.",
+    description: "In the shadow of the Helan Mountains in northern China, something unexpected is happening. Over 100 wineries have set up shop in what looks, honestly, a lot like Mendoza — high-<strong>altitude</strong> desert, <strong>gravel soils</strong>, blazing sunshine, dramatic temperature swings between day and night. The wines from Ningxia's best producers are winning major international competitions, and the wine world is paying attention. The vines get buried in winter to survive temperatures that would kill them above ground. That kind of dedication produces a particular kind of intensity.",
     facts: [
       "Ningxia now has over 100 wineries and is the fastest-growing quality wine region in Asia",
       "The Helan Mountain range blocks cold Siberian winds, creating a sheltered, dry growing environment",
@@ -731,7 +731,7 @@ export const wineRegions: WineRegion[] = [
       "Cinsault vines over 100 years old are a unique Bekaa heritage that survived everything",
       "Over 300 days of sunshine per year, with cool nights at altitude — a natural gift for viticulture"
     ],
-    grapes: ["Cinsault", "Cabernet Sauvignon", "Merlot", "Syrah", "Tempranillo", "Obaideh", "Merwah"],
+    grapes: ["Cinsault", "Cabernet Sauvignon", "Merlot", "Syrah", "<strong>Tempranillo</strong>", "Obaideh", "Merwah"],
     climate: "Continental Mediterranean at altitude — very hot, dry summers; cold winters with snow",
     flavorProfile: "Musar-style blends: complex, oxidative, with dark fruit, tobacco, earth, dried herbs, and extraordinary savory depth. White Obaideh: nutty, oxidative, textured.",
     notableStyles: ["Cinsault-Cabernet Blends", "Musar-Style Reds", "Indigenous White Varieties"]
@@ -786,7 +786,7 @@ export const wineRegions: WineRegion[] = [
     lat: 45.44,
     lng: 11.99,
     zoom: 8,
-    description: "Italy's most prolific quality wine region doesn't just produce volume — it produces icons. Amarone della Valpolicella, made from grapes dried for months on bamboo racks until they shrivel into concentrated flavor bombs, is one of the world's most powerful and seductive red wines. Prosecco, from the DOCG hills of Valdobbiadene, is now the world's most popular sparkling wine. And Soave Classico, at its best, is a quietly brilliant dry white that never gets the credit it deserves. Three completely different wines, one remarkable region.",
+    description: "Italy's most prolific quality wine region doesn't just produce volume — it produces icons. <strong>Amarone</strong> della Valpolicella, made from grapes dried for months on bamboo racks until they shrivel into concentrated flavor bombs, is one of the world's most powerful and seductive red wines. <strong>Prosecco</strong>, from the DOCG hills of Valdobbiadene, is now the world's most popular sparkling wine. And Soave Classico, at its best, is a quietly brilliant dry white that never gets the credit it deserves. Three completely different wines, one remarkable region.",
     facts: [
       "The Veneto produces over 1 billion bottles per year — Italy's largest wine region by volume",
       "Amarone requires grapes to be dried for 90–120 days before fermentation — one of wine's most labor-intensive processes",
@@ -807,14 +807,14 @@ export const wineRegions: WineRegion[] = [
     lat: 41.63,
     lng: -3.68,
     zoom: 8,
-    description: "Spain's high plateau wine country — sitting at 800 to 900 metres, where winters are brutal, summers are blazing, and the diurnal temperature swings between day and night are among Europe's most extreme. Those extremes are the point: they build concentration and aromatic complexity in Tinto Fino (the local name for Tempranillo) that you simply can't replicate in gentler climates. Vega Sicilia anchored this region's prestige for a century. Then Pingus arrived in 1995 and proved that something even more extraordinary was possible.",
+    description: "Spain's high plateau wine country — sitting at 800 to 900 metres, where winters are brutal, summers are blazing, and the diurnal temperature swings between day and night are among Europe's most extreme. Those extremes are the point: they build concentration and aromatic complexity in <strong>Tinto Fino</strong> (the local name for <strong><strong>Tempranillo</strong></strong>) that you simply can't replicate in gentler climates. <strong>Vega Sicilia</strong> anchored this region's prestige for a century. Then Pingus arrived in 1995 and proved that something even more extraordinary was possible.",
     facts: [
       "Vineyards at 800–900 metres altitude create some of Spain's greatest day-night temperature variations",
       "Vega Sicilia's Único can spend up to 10 years in various oak vessels before release",
       "Dominio de Pingus 'Pingus' is considered Spain's most expensive and sought-after cult wine",
       "The DO spans 4 provinces along the dramatic Duero River valley"
     ],
-    grapes: ["Tinto Fino (Tempranillo)", "Cabernet Sauvignon", "Merlot", "Malbec", "Albillo Mayor"],
+    grapes: ["Tinto Fino (<strong>Tempranillo</strong>)", "Cabernet Sauvignon", "Merlot", "Malbec", "Albillo Mayor"],
     climate: "Extreme continental — long cold winters, very hot summers, large diurnal temperature variation",
     flavorProfile: "Dense black fruit, violets, graphite, toasted oak, and leather. Age reveals tertiary complexity of tobacco, cedar, and earthy mineral depth.",
     notableStyles: ["Crianza", "Reserva", "Gran Reserva", "Roble"]
@@ -848,7 +848,7 @@ export const wineRegions: WineRegion[] = [
     lat: -33.95,
     lng: 115.07,
     zoom: 8,
-    description: "At the very southwestern tip of Australia, a narrow cape jutting into two oceans produces less than 3% of the country's wine — but over 20% of its premium wine. That ratio tells you everything about Margaret River. The Indian and Southern Oceans wrap around Cape Naturaliste and create a climate that's eerily similar to Bordeaux: maritime, moderate, and perfect for Cabernet Sauvignon and Chardonnay. Commercial viticulture only started here in the late 1960s, after a scientific report identified the ideal conditions. The ascent to world-class status has been remarkably swift.",
+    description: "At the very southwestern tip of Australia, a narrow cape jutting into two oceans produces less than 3% of the country's wine — but over 20% of its premium wine. That ratio tells you everything about Margaret River. The Indian and Southern Oceans wrap around Cape Naturaliste and create a climate that's eerily similar to Bordeaux: maritime, moderate, and perfect for <strong>Cabernet Sauvignon</strong> and Chardonnay. Commercial viticulture only started here in the late 1960s, after a scientific report identified the ideal conditions. The ascent to world-class status has been remarkably swift.",
     facts: [
       "Produces less than 3% of Australian wine by volume but over 20% of premium wine by value",
       "Commercial viticulture began only in 1967 after a scientific report identified ideal growing conditions",
@@ -889,7 +889,7 @@ export const wineRegions: WineRegion[] = [
     lat: -39.49,
     lng: 176.91,
     zoom: 8,
-    description: "While Marlborough gets all the headlines, Hawke's Bay is quietly making New Zealand's most compelling red wines. The Gimblett Gravels is the key: a uniquely free-draining shingle riverbed that was once a dry riverbed and now radiates heat in a way that lets Cabernet Sauvignon, Merlot, and Syrah ripen fully in what would otherwise be too cool a climate. The results are seriously impressive — especially the Syrah, which has a northern Rhône-like character of smoked meat and black pepper that takes you completely by surprise.",
+    description: "While Marlborough gets all the headlines, Hawke's Bay is quietly making New Zealand's most compelling red wines. The Gimblett Gravels is the key: a uniquely free-draining shingle riverbed that was once a dry riverbed and now radiates heat in a way that lets <strong>Cabernet Sauvignon</strong>, Merlot, and Syrah ripen fully in what would otherwise be too cool a climate. The results are seriously impressive — especially the Syrah, which has a northern Rhône-like character of smoked meat and black pepper that takes you completely by surprise.",
     facts: [
       "Gimblett Gravels is New Zealand's most celebrated and internationally recognized wine sub-appellation",
       "Over 2,200 sunshine hours per year — the most in New Zealand, giving red grapes the best possible chance",
@@ -910,7 +910,7 @@ export const wineRegions: WineRegion[] = [
     lat: 35.63,
     lng: -120.69,
     zoom: 8,
-    description: "Paso Robles is what Napa might have been if it had stayed a little more relaxed. California's Central Coast region has an extraordinary natural asset: one of the most extreme diurnal temperature swings in any wine region on earth — days can top 40°C while nights drop close to 10°C. That means full ripeness and fresh acidity in the same bottle. The Rhône varieties love it here. So does Cabernet Sauvignon. And the whole scene has an unpretentious, roll-up-your-sleeves energy that makes it genuinely fun to explore.",
+    description: "Paso Robles is what Napa might have been if it had stayed a little more relaxed. California's Central Coast region has an extraordinary natural asset: one of the most extreme diurnal temperature swings in any wine region on earth — days can top 40°C while nights drop close to 10°C. That means full ripeness and fresh acidity in the same bottle. The Rhône varieties love it here. So does <strong>Cabernet Sauvignon</strong>. And the whole scene has an unpretentious, roll-up-your-sleeves energy that makes it genuinely fun to explore.",
     facts: [
       "Paso Robles experiences one of California's most extreme diurnal temperature swings — sometimes up to 50°F in a single day",
       "Over 40 different soil types within the region create remarkable vineyard-to-vineyard diversity",
@@ -973,7 +973,7 @@ export const wineRegions: WineRegion[] = [
     lat: -33.91,
     lng: 19.12,
     zoom: 8,
-    description: "Franschhoek means 'French Corner' in Dutch — and it earned the name honestly. Huguenot refugees fleeing persecution arrived here in 1688, bringing French winemaking traditions and naming their farms after the regions they'd left behind: La Motte, Chamonix, Haute Cabrière. The valley they settled is enclosed on three sides by dramatic granite mountains, the altitude and mountain breezes keeping it elegantly cool. Today Franschhoek is South Africa's most beautiful wine valley and arguably its finest food destination — and the old-vine Semillon from its hillside estates is one of South Africa's most distinctive white wine treasures.",
+    description: "Franschhoek means 'French Corner' in Dutch — and it earned the name honestly. Huguenot refugees fleeing persecution arrived here in 1688, bringing French winemaking traditions and naming their farms after the regions they'd left behind: La Motte, Chamonix, Haute Cabrière. The valley they settled is enclosed on three sides by dramatic granite mountains, the <strong>altitude</strong> and mountain breezes keeping it elegantly cool. Today Franschhoek is South Africa's most beautiful wine valley and arguably its finest food destination — and the old-vine Semillon from its hillside estates is one of South Africa's most distinctive white wine treasures.",
     facts: [
       "Huguenot settlers arrived in 1688, bringing French winemaking traditions to southern Africa",
       "The valley sits at 200–300 metres altitude, creating cooler conditions than the surrounding Winelands",

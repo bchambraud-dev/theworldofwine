@@ -317,15 +317,14 @@ export default function JourneyPlayer() {
               </h3>
               <div
                 style={{
-                  fontSize: "0.88rem",
+                  fontSize: "0.95rem",
                   fontWeight: 300,
                   color: "var(--text2)",
-                  lineHeight: 1.8,
+                  lineHeight: 1.75,
                   whiteSpace: "pre-wrap",
                 }}
-              >
-                {stop.narrative}
-              </div>
+                dangerouslySetInnerHTML={{ __html: stop.narrative }}
+              />
             </>
           )}
         </div>

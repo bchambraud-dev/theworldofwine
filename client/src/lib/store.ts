@@ -15,6 +15,7 @@ export interface Filters {
   isAwardWinner: boolean | null;
   selectedRegionId: string | null;
   searchQuery: string;
+  countries: string[];
 }
 
 export const defaultFilters: Filters = {
@@ -25,6 +26,7 @@ export const defaultFilters: Filters = {
   isAwardWinner: null,
   selectedRegionId: null,
   searchQuery: "",
+  countries: [],
 };
 
 export function useWineStore() {
@@ -64,6 +66,9 @@ export function useWineStore() {
       if (filters.selectedRegionId) {
         if (p.regionId !== filters.selectedRegionId) return false;
       }
+      if (filters.countries.length > 0) {
+        if (!filters.countries.includes(p.country)) return false;
+      }
       if (filters.searchQuery) {
         const q = filters.searchQuery.toLowerCase();
         if (
@@ -85,6 +90,9 @@ export function useWineStore() {
 
     return wineRegions
       .filter((r) => {
+        if (filters.countries.length > 0) {
+          if (!filters.countries.includes(r.country)) return false;
+        }
         if (filters.searchQuery) {
           const q = filters.searchQuery.toLowerCase();
           if (
@@ -166,7 +174,8 @@ export function useWineStore() {
   }, []);
 
   const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-    filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null;
+    filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null ||
+    filters.countries.length > 0;
 
   return {
     filters,

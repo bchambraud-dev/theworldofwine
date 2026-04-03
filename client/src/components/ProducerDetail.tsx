@@ -106,7 +106,7 @@ export default function ProducerDetail({
         </div>
 
         {/* Description */}
-        <div className="producer-bio">{producer.description}</div>
+        <div className="producer-bio" dangerouslySetInnerHTML={{ __html: producer.description }} />
 
         {/* Stats */}
         <div className="producer-stats-row">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { journeys } from "@/data/journeys";
 import { useTrack } from "@/hooks/use-track";
+import JourneyIcon from "@/components/JourneyIcon";
 
 type CategoryFilter = "all" | "region" | "grape" | "style" | "theme";
 type DifficultyFilter = "all" | "beginner" | "intermediate" | "advanced";
@@ -160,7 +161,7 @@ export default function JourneysBrowse() {
               }}
             >
               <div>
-                <span style={{ fontSize: "1.5rem" }}>{j.icon}</span>
+                <JourneyIcon icon={j.icon} size={28} />
                 <h3
                   style={{
                     fontFamily: "'Fraunces', serif",

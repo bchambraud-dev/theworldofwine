@@ -6,6 +6,7 @@ import WineLoader from "@/components/WineLoader";
 interface FilterBarProps {
   filters: Filters;
   onUpdateFilter: <K extends keyof Filters>(key: K, value: Filters[K]) => void;
+  onSetFilters: (f: Filters) => void;
   onReset: () => void;
 }
 
@@ -89,7 +90,7 @@ const allCountries: string[] = Array.from(
   new Set(wineRegions.map((r) => r.country))
 ).sort();
 
-export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBarProps) {
+export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onReset }: FilterBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -155,10 +156,8 @@ export default function FilterBar({ filters, onUpdateFilter, onReset }: FilterBa
 
   const applyFilters = () => {
     setDropdownOpen(false);
-    // Apply all pending filters at once
-    (Object.keys(pending) as (keyof Filters)[]).forEach((key) => {
-      onUpdateFilter(key, pending[key] as Filters[typeof key]);
-    });
+    // Apply all pending filters at once in a single state update
+    onSetFilters(pending);
     // Show loader for 800ms
     setShowLoader(true);
     setTimeout(() => setShowLoader(false), 800);

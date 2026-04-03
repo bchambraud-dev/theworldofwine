@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
-import { wineRegions, type WineRegion } from "@/data/regions";
-import { producers, type Producer } from "@/data/producers";
-import { newsItems, type NewsItem } from "@/data/news";
+import { useState, useMemo, useCallback, createContext, useContext } from "react";
+import { wineRegions } from "@/data/regions";
+import { producers } from "@/data/producers";
+import { newsItems as newsArticles } from "@/data/news";
 
 export type WineColor = "red" | "white" | "rosé" | "sparkling" | "dessert" | "fortified";
 export type PriceRange = "budget" | "mid" | "premium" | "luxury";
@@ -11,26 +11,60 @@ export interface Filters {
   wineTypes: WineColor[];
   priceRanges: PriceRange[];
   tasteProfiles: string[];
+  countries: string[];
   isNatural: boolean | null;
   isAwardWinner: boolean | null;
   selectedRegionId: string | null;
   searchQuery: string;
-  countries: string[];
 }
 
 export const defaultFilters: Filters = {
   wineTypes: [],
   priceRanges: [],
   tasteProfiles: [],
+  countries: [],
   isNatural: null,
   isAwardWinner: null,
   selectedRegionId: null,
   searchQuery: "",
-  countries: [],
 };
 
+// Singleton state — shared across all components
+let _filters: Filters = { ...defaultFilters };
+let _listeners: Set<() => void> = new Set();
+
+function notifyListeners() {
+  _listeners.forEach((fn) => fn());
+}
+
 export function useWineStore() {
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [, forceUpdate] = useState(0);
+
+  // Subscribe to global state changes
+  useMemo(() => {
+    const listener = () => forceUpdate((n) => n + 1);
+    _listeners.add(listener);
+    return () => { _listeners.delete(listener); };
+  }, []);
+
+  const filters = _filters;
+
+  const setFilters = useCallback((f: Filters) => {
+    _filters = f;
+    notifyListeners();
+  }, []);
+
+  const updateFilter = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
+    _filters = { ..._filters, [key]: value };
+    notifyListeners();
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    _filters = { ...defaultFilters };
+    notifyListeners();
+  }, []);
+
+  // Local UI state (not shared)
   const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<"none" | "region" | "producer">("none");
@@ -38,14 +72,7 @@ export function useWineStore() {
   const [showProducers, setShowProducers] = useState(true);
   const [showBoundaries, setShowBoundaries] = useState(true);
 
-  const updateFilter = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const resetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
+  // Filter producers
   const filteredProducers = useMemo(() => {
     return producers.filter((p) => {
       if (filters.wineTypes.length > 0) {
@@ -57,17 +84,15 @@ export function useWineStore() {
       if (filters.tasteProfiles.length > 0) {
         if (!filters.tasteProfiles.some((t) => p.tasteProfile.includes(t))) return false;
       }
+      if (filters.countries.length > 0) {
+        const region = wineRegions.find((r) => r.id === p.regionId);
+        if (region && !filters.countries.includes(region.country)) return false;
+      }
       if (filters.isNatural !== null) {
         if (p.isNatural !== filters.isNatural) return false;
       }
       if (filters.isAwardWinner !== null) {
         if (p.isAwardWinner !== filters.isAwardWinner) return false;
-      }
-      if (filters.selectedRegionId) {
-        if (p.regionId !== filters.selectedRegionId) return false;
-      }
-      if (filters.countries.length > 0) {
-        if (!filters.countries.includes(p.country)) return false;
       }
       if (filters.searchQuery) {
         const q = filters.searchQuery.toLowerCase();
@@ -82,10 +107,9 @@ export function useWineStore() {
     });
   }, [filters]);
 
-  // Regions: always return all, but scored by relevance to active filters
-  // Higher score = more matching producers. Score of -1 = search excluded.
+  // Filter regions — always return all, scored by relevance
   const filteredRegions = useMemo(() => {
-    const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
+    const hasActiveProducerFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
       filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null;
 
     return wineRegions
@@ -105,7 +129,7 @@ export function useWineStore() {
         return true;
       })
       .map((r) => {
-        if (!hasActiveFilter) return { ...r, _matchCount: 999, _dimmed: false };
+        if (!hasActiveProducerFilter) return { ...r, _matchCount: 999, _dimmed: false };
         const regionProducers = producers.filter((p) => p.regionId === r.id);
         const matchingProducers = regionProducers.filter((p) => {
           if (filters.wineTypes.length > 0 && !p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
@@ -122,50 +146,45 @@ export function useWineStore() {
 
   const filteredNews = useMemo(() => {
     if (selectedProducerId) {
-      const producerNews = newsItems.filter((n) =>
-        n.producerIds.includes(selectedProducerId)
-      );
-      if (producerNews.length > 0) return producerNews;
+      const producer = producers.find((p) => p.id === selectedProducerId);
+      if (producer) {
+        return newsArticles.filter((n) =>
+          n.tags.some((t) => t.toLowerCase().includes(producer.name.toLowerCase().split(" ")[0]))
+        );
+      }
     }
-    const activeRegion = selectedRegionId || filters.selectedRegionId;
-    if (activeRegion) {
-      const regionNews = newsItems.filter((n) =>
-        n.regionIds.includes(activeRegion)
-      );
-      if (regionNews.length > 0) return regionNews;
+    if (filters.selectedRegionId || selectedRegionId) {
+      const rId = filters.selectedRegionId || selectedRegionId;
+      const region = wineRegions.find((r) => r.id === rId);
+      if (region) {
+        return newsArticles.filter((n) =>
+          n.tags.some((t) => t.toLowerCase().includes(region.name.toLowerCase().split(" ")[0]))
+        );
+      }
     }
-    if (filters.wineTypes.length > 0) {
-      const typeNews = newsItems.filter((n) =>
-        n.tags.some((t) => filters.wineTypes.includes(t as WineColor))
-      );
-      if (typeNews.length > 0) return typeNews;
-    }
-    return newsItems.slice(0, 12);
+    return newsArticles;
   }, [filters, selectedProducerId, selectedRegionId]);
 
-  const allNews = useMemo(() => newsItems, []);
-
+  // Derived
   const selectedProducer = useMemo(
-    () => producers.find((p) => p.id === selectedProducerId) || null,
+    () => (selectedProducerId ? producers.find((p) => p.id === selectedProducerId) || null : null),
     [selectedProducerId]
   );
-
   const selectedRegion = useMemo(
-    () => wineRegions.find((r) => r.id === selectedRegionId) || null,
+    () => (selectedRegionId ? wineRegions.find((r) => r.id === selectedRegionId) || null : null),
     [selectedRegionId]
   );
 
-  const selectProducer = useCallback((id: string | null) => {
+  const selectProducer = useCallback((id: string) => {
     setSelectedProducerId(id);
-    setDetailView(id ? "producer" : "none");
-    if (id) setSelectedRegionId(null);
+    setDetailView("producer");
   }, []);
 
-  const selectRegion = useCallback((id: string | null) => {
+  const selectRegion = useCallback((id: string) => {
     setSelectedRegionId(id);
-    setDetailView(id ? "region" : "none");
-    if (id) setSelectedProducerId(null);
-  }, []);
+    setDetailView("region");
+    updateFilter("selectedRegionId", id);
+  }, [updateFilter]);
 
   const closeDetail = useCallback(() => {
     setDetailView("none");
@@ -174,17 +193,18 @@ export function useWineStore() {
   }, []);
 
   const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-    filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null ||
-    filters.countries.length > 0;
+    filters.tasteProfiles.length > 0 || filters.countries.length > 0 ||
+    filters.isNatural !== null || filters.isAwardWinner !== null;
 
   return {
     filters,
     updateFilter,
+    setFilters,
     resetFilters,
     filteredProducers,
     filteredRegions,
     filteredNews,
-    allNews,
+    allNews: newsArticles,
     hasActiveFilter,
     selectedProducer,
     selectedRegion,

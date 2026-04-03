@@ -137,6 +137,7 @@ function GlobalFilterBar() {
     <FilterBar
       filters={store.filters}
       onUpdateFilter={store.updateFilter}
+      onSetFilters={store.setFilters}
       onReset={store.resetFilters}
     />
   );

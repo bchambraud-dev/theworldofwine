@@ -5,6 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useCallback } from "react";
+import FilterBar from "@/components/FilterBar";
+import { useWineStore } from "@/lib/store";
 
 import Landing from "@/pages/Landing";
 import Explore from "@/pages/Explore";
@@ -119,6 +121,26 @@ function AppRouter() {
   );
 }
 
+function GlobalFilterBar() {
+  const [location] = useLocation();
+  const store = useWineStore();
+
+  // Hide on landing, journey player, guide detail, grape detail, quiz
+  const hideOn = location === "/" || location.startsWith("/journey/") ||
+    (location.startsWith("/academy/") && location !== "/academy") ||
+    location.startsWith("/quiz/");
+
+  if (hideOn) return null;
+
+  return (
+    <FilterBar
+      filters={store.filters}
+      onUpdateFilter={store.updateFilter}
+      onReset={store.resetFilters}
+    />
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -127,6 +149,7 @@ function App() {
         <Router hook={useHashLocation}>
           <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
             <NavBar />
+            <GlobalFilterBar />
             <AppRouter />
           </div>
         </Router>

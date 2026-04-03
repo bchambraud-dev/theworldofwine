@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
 import WineMap from "@/components/WineMap";
-import FilterBar from "@/components/FilterBar";
 import RegionDetail from "@/components/RegionDetail";
 import ProducerDetail from "@/components/ProducerDetail";
 import { useWineStore } from "@/lib/store";
@@ -71,13 +70,6 @@ export default function Explore() {
 
   return (
     <>
-      {/* Filter bar (shared between map and list) */}
-      <FilterBar
-        filters={store.filters}
-        onUpdateFilter={store.updateFilter}
-        onReset={store.resetFilters}
-      />
-
       {/* ══════ MAP VIEW ══════ */}
       {!isListView && (
         <div
@@ -211,7 +203,7 @@ export default function Explore() {
                           {regions.map((region) => (
                             <div
                               key={region.id}
-                              className="lv-region-card"
+                              className={`lv-region-card${(region as any)._dimmed ? ' lv-rc-dimmed' : ''}`}
                               onClick={() => {
                                 store.selectRegion(region.id);
                                 setLocation("/explore");
@@ -246,6 +238,9 @@ export default function Explore() {
                                 <p className="lv-rc-desc">{region.description}</p>
                                 <div className="lv-rc-footer">
                                   <div className="lv-rc-stats">
+                                    {store.hasActiveFilter && (region as any)._matchCount !== 999 ? (
+                                      <span className="lv-rc-match"><strong>{(region as any)._matchCount}</strong> match{(region as any)._matchCount !== 1 ? 'es' : ''}</span>
+                                    ) : null}
                                     <span><strong>{producerCountByRegion[region.id] || 0}</strong> producers</span>
                                     <span><strong>{region.grapes.length}</strong> grapes</span>
                                     <span><strong>{region.notableStyles.length}</strong> styles</span>

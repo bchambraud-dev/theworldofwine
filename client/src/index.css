@@ -919,6 +919,26 @@
   border-color: var(--border-c);
   color: var(--text3);
 }
+/* Dimmed state for non-matching regions */
+.lv-rc-dimmed {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  transition: all 0.25s;
+}
+.lv-rc-dimmed:hover {
+  opacity: 0.7;
+  filter: grayscale(0.1);
+}
+/* Match count badge */
+.lv-rc-match {
+  background: rgba(140,28,46,0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(140,28,46,0.15);
+}
+.lv-rc-match strong {
+  color: var(--wine) !important;
+}
 
 /* Legacy compat — keep stat reference */
 .lv-rc-stat {

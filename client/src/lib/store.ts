@@ -72,27 +72,38 @@ export function useWineStore() {
     });
   }, [filters]);
 
+  // Regions: always return all, but scored by relevance to active filters
+  // Higher score = more matching producers. Score of -1 = search excluded.
   const filteredRegions = useMemo(() => {
-    return wineRegions.filter((r) => {
-      if (filters.searchQuery) {
-        const q = filters.searchQuery.toLowerCase();
-        if (
-          !r.name.toLowerCase().includes(q) &&
-          !r.country.toLowerCase().includes(q) &&
-          !r.grapes.some((g) => g.toLowerCase().includes(q))
-        )
-          return false;
-      }
-      // Apply wine type filter to regions too — check if region has producers matching
-      if (filters.wineTypes.length > 0) {
+    const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
+      filters.isNatural !== null || filters.isAwardWinner !== null;
+
+    return wineRegions
+      .filter((r) => {
+        if (filters.searchQuery) {
+          const q = filters.searchQuery.toLowerCase();
+          if (
+            !r.name.toLowerCase().includes(q) &&
+            !r.country.toLowerCase().includes(q) &&
+            !r.grapes.some((g) => g.toLowerCase().includes(q))
+          )
+            return false;
+        }
+        return true;
+      })
+      .map((r) => {
+        if (!hasActiveFilter) return { ...r, _matchCount: 999, _dimmed: false };
         const regionProducers = producers.filter((p) => p.regionId === r.id);
-        const hasMatchingProducer = regionProducers.some((p) =>
-          p.wineType.some((t) => filters.wineTypes.includes(t))
-        );
-        if (!hasMatchingProducer && regionProducers.length > 0) return false;
-      }
-      return true;
-    });
+        const matchingProducers = regionProducers.filter((p) => {
+          if (filters.wineTypes.length > 0 && !p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
+          if (filters.priceRanges.length > 0 && !filters.priceRanges.includes(p.priceRange)) return false;
+          if (filters.isNatural !== null && p.isNatural !== filters.isNatural) return false;
+          if (filters.isAwardWinner !== null && p.isAwardWinner !== filters.isAwardWinner) return false;
+          return true;
+        });
+        return { ...r, _matchCount: matchingProducers.length, _dimmed: matchingProducers.length === 0 };
+      })
+      .sort((a, b) => (b as any)._matchCount - (a as any)._matchCount);
   }, [filters]);
 
   const filteredNews = useMemo(() => {
@@ -148,6 +159,9 @@ export function useWineStore() {
     setSelectedRegionId(null);
   }, []);
 
+  const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
+    filters.isNatural !== null || filters.isAwardWinner !== null;
+
   return {
     filters,
     updateFilter,
@@ -156,6 +170,7 @@ export function useWineStore() {
     filteredRegions,
     filteredNews,
     allNews,
+    hasActiveFilter,
     selectedProducer,
     selectedRegion,
     detailView,

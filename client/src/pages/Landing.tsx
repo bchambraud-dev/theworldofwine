@@ -24,451 +24,812 @@ export default function Landing() {
 
   return (
     <div className="page-scroll" data-testid="landing-page">
-      {/* ── HERO ── */}
-      <section
-        style={{
-          padding: "80px 24px 60px",
-          textAlign: "center",
-          background: "linear-gradient(180deg, var(--wh) 0%, var(--bg) 100%)",
-        }}
-      >
-        <svg
-          viewBox="0 0 80 100"
-          style={{ width: 48, height: 60, color: "var(--wine)", margin: "0 auto 16px" }}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          aria-label="The Drop"
-        >
-          <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
-          <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
-          <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
-          <path d="M40 46 C40 46, 30 56, 30 64" strokeWidth="1" opacity="0.25" />
-          <path d="M40 46 C40 46, 50 56, 50 64" strokeWidth="1" opacity="0.25" />
-        </svg>
-        <h1
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: "2.4rem",
-            fontWeight: 400,
-            lineHeight: 1.1,
-            marginBottom: 8,
-          }}
-        >
-          <span style={{ color: 'var(--text)' }}>The World of </span><span style={{ color: 'var(--wine)' }}>Wine</span>
-        </h1>
-        <p
-          style={{
-            fontFamily: "'Geist Mono', monospace",
-            fontSize: "0.7rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.14em",
-            color: "var(--text3)",
-            marginBottom: 20,
-          }}
-        >
-          Your Journey Through Wine
-        </p>
-        <p
-          style={{
-            maxWidth: 520,
-            margin: "0 auto 28px",
-            fontSize: "0.95rem",
-            fontWeight: 300,
-            lineHeight: 1.7,
-            color: "var(--text2)",
-          }}
-        >
-          Fifty wine regions, seventy-two producers, and centuries of stories — explored through
-          guided journeys, interactive maps, and an academy built for curious drinkers.
-        </p>
-        <button
-          onClick={() => {
-            track("cta_start_exploring");
-            setLocation("/explore");
-          }}
-          data-testid="cta-start-exploring"
-          style={{
-            fontFamily: "'Geist Mono', monospace",
-            fontSize: "0.68rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            padding: "12px 32px",
-            borderRadius: 100,
-            border: "none",
-            background: "var(--wine)",
-            color: "white",
-            cursor: "pointer",
-            transition: "all 0.18s",
-          }}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.background = "var(--wine-l)";
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.background = "var(--wine)";
-          }}
-        >
-          Start Exploring
-        </button>
-      </section>
+      <style>{`
+        /* ── Landing-page scoped styles ── */
 
-      {/* ── FEATURED JOURNEYS ── */}
-      <section style={{ padding: "48px 24px", maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2
-            style={{
-              fontFamily: "'Fraunces', serif",
-              fontSize: "1.5rem",
-              fontWeight: 400,
-              color: "var(--text)",
-              marginBottom: 4,
-            }}
-          >
-            Featured Journeys
-          </h2>
-          <p style={{ fontSize: "0.82rem", fontWeight: 300, color: "var(--text3)" }}>
-            Guided explorations through the world of wine
-          </p>
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {featuredJourneys.map((j) => (
-            <div
-              key={j.id}
-              data-testid={`journey-card-${j.id}`}
-              onClick={() => {
-                track("journey_card_click", { id: j.id });
-                setLocation(`/journey/${j.id}`);
-              }}
-              style={{
-                background: j.coverGradient,
-                borderRadius: "var(--r)",
-                padding: "22px 20px",
-                cursor: "pointer",
-                transition: "transform 0.18s, box-shadow 0.18s",
-                minHeight: 170,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "var(--sh-md)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
-              }}
+        /* Smooth scroll */
+        .lp-root {
+          scroll-behavior: smooth;
+        }
+
+        /* ── HERO ── */
+        .lp-hero {
+          position: relative;
+          min-height: calc(100vh - var(--topbar));
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          overflow: hidden;
+          background-image: url('./hero-bg.webp');
+          background-size: cover;
+          background-position: center top;
+        }
+        .lp-hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(20, 8, 12, 0.88) 0%,
+            rgba(40, 12, 20, 0.55) 40%,
+            rgba(0, 0, 0, 0.18) 100%
+          );
+          z-index: 1;
+        }
+        .lp-hero-content {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0;
+          padding: 0 24px;
+          max-width: 680px;
+        }
+        .lp-hero-logo {
+          margin-bottom: 22px;
+          opacity: 0.92;
+        }
+        .lp-hero-title {
+          font-family: 'Fraunces', serif;
+          font-size: clamp(2.5rem, 6vw, 4rem);
+          font-weight: 300;
+          line-height: 1.05;
+          letter-spacing: -0.01em;
+          color: rgba(255, 255, 255, 0.96);
+          margin-bottom: 14px;
+        }
+        .lp-hero-title-accent {
+          color: #e8c9b0;
+        }
+        .lp-hero-tagline {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.62rem;
+          text-transform: uppercase;
+          letter-spacing: 0.22em;
+          color: rgba(255, 255, 255, 0.52);
+          margin-bottom: 52px;
+        }
+        /* Scroll indicator */
+        .lp-scroll-cue {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          cursor: default;
+          user-select: none;
+        }
+        .lp-scroll-cue-line {
+          width: 1px;
+          height: 36px;
+          background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+          animation: lp-scroll-pulse 2s ease-in-out infinite;
+        }
+        .lp-scroll-cue-label {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.5rem;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.35);
+        }
+        @keyframes lp-scroll-pulse {
+          0%, 100% { opacity: 0.4; transform: scaleY(1); }
+          50% { opacity: 1; transform: scaleY(1.12); }
+        }
+
+        /* ── EDITORIAL INTRO ── */
+        .lp-intro {
+          max-width: 680px;
+          margin: 0 auto;
+          padding: 88px 32px 72px;
+          text-align: center;
+        }
+        .lp-intro-text {
+          font-family: 'Jost', sans-serif;
+          font-size: clamp(1rem, 1.8vw, 1.08rem);
+          font-weight: 300;
+          line-height: 1.85;
+          color: var(--text2);
+          margin-bottom: 52px;
+        }
+        .lp-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0;
+          margin-bottom: 52px;
+        }
+        .lp-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 0 16px;
+        }
+        .lp-stat:not(:last-child) {
+          border-right: 1px solid var(--border-c);
+        }
+        .lp-stat-num {
+          font-family: 'Fraunces', serif;
+          font-size: 2.8rem;
+          font-weight: 300;
+          line-height: 1;
+          color: var(--wine);
+          letter-spacing: -0.02em;
+        }
+        .lp-stat-label {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.52rem;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: var(--text3);
+        }
+        .lp-divider {
+          width: 100%;
+          height: 1px;
+          background: var(--border-c);
+        }
+
+        /* ── JOURNEYS ── */
+        .lp-journeys {
+          padding: 80px 24px;
+          background: linear-gradient(180deg, rgba(247,244,239,0) 0%, rgba(237,234,227,0.55) 100%);
+        }
+        .lp-section-inner {
+          max-width: 1160px;
+          margin: 0 auto;
+        }
+        .lp-section-head {
+          margin-bottom: 36px;
+        }
+        .lp-section-title {
+          font-family: 'Fraunces', serif;
+          font-size: clamp(1.55rem, 3vw, 2rem);
+          font-weight: 400;
+          color: var(--text);
+          margin-bottom: 6px;
+          letter-spacing: -0.01em;
+        }
+        .lp-section-sub {
+          font-family: 'Jost', sans-serif;
+          font-size: 0.88rem;
+          font-weight: 300;
+          color: var(--text3);
+          line-height: 1.5;
+        }
+        .lp-journey-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 18px;
+          margin-bottom: 28px;
+        }
+        .lp-journey-card {
+          border-radius: var(--r);
+          padding: 26px 22px;
+          cursor: pointer;
+          transition: transform 0.22s ease, box-shadow 0.22s ease;
+          min-height: 190px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          position: relative;
+          overflow: hidden;
+        }
+        .lp-journey-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .lp-journey-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--sh-lg);
+        }
+        .lp-journey-icon {
+          font-size: 1.5rem;
+          margin-bottom: 10px;
+        }
+        .lp-journey-title {
+          font-family: 'Fraunces', serif;
+          font-size: 1.08rem;
+          font-weight: 500;
+          color: white;
+          line-height: 1.25;
+          margin-bottom: 5px;
+        }
+        .lp-journey-subtitle {
+          font-family: 'Jost', sans-serif;
+          font-size: 0.78rem;
+          color: rgba(255,255,255,0.78);
+          font-weight: 300;
+          line-height: 1.45;
+        }
+        .lp-journey-meta {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          margin-top: 16px;
+        }
+        .lp-journey-badge {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 3px 9px;
+          border-radius: 100px;
+          background: rgba(255,255,255,0.18);
+          color: rgba(255,255,255,0.95);
+          border: 1px solid rgba(255,255,255,0.15);
+        }
+        .lp-journey-stops {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          color: rgba(255,255,255,0.62);
+          letter-spacing: 0.04em;
+        }
+        .lp-view-all {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--wine);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.15s;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .lp-view-all:hover {
+          opacity: 0.72;
+        }
+
+        /* ── IMAGE INTERLUDE ── */
+        .lp-interlude {
+          width: 100%;
+          height: 220px;
+          background-image: url('./editorial-wine.webp');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        .lp-interlude-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(140, 28, 46, 0.62);
+        }
+        .lp-interlude-quote {
+          position: relative;
+          z-index: 2;
+          font-family: 'Fraunces', serif;
+          font-size: clamp(0.95rem, 2.2vw, 1.22rem);
+          font-style: italic;
+          font-weight: 300;
+          color: rgba(255,255,255,0.93);
+          text-align: center;
+          max-width: 600px;
+          padding: 0 32px;
+          line-height: 1.6;
+          letter-spacing: 0.01em;
+        }
+
+        /* ── REGIONS ── */
+        .lp-regions {
+          padding: 80px 0;
+        }
+        .lp-regions-head {
+          padding: 0 24px;
+          max-width: 1160px;
+          margin: 0 auto 36px;
+        }
+        .lp-regions-scroll {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          padding: 4px 24px 16px;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .lp-regions-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .lp-region-card {
+          flex-shrink: 0;
+          width: 260px;
+          border-radius: var(--r);
+          overflow: hidden;
+          background: var(--wh);
+          border: 1px solid var(--border-c);
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow: var(--sh-sm);
+        }
+        .lp-region-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--sh-md);
+        }
+        .lp-region-img-wrap {
+          position: relative;
+          height: 160px;
+          overflow: hidden;
+        }
+        .lp-region-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.3s ease;
+        }
+        .lp-region-card:hover .lp-region-img {
+          transform: scale(1.04);
+        }
+        .lp-region-img-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(20,8,12,0.72) 0%, transparent 55%);
+        }
+        .lp-region-img-name {
+          position: absolute;
+          bottom: 12px;
+          left: 14px;
+          font-family: 'Fraunces', serif;
+          font-size: 1rem;
+          font-weight: 500;
+          color: white;
+          line-height: 1.2;
+          letter-spacing: -0.01em;
+        }
+        .lp-region-body {
+          padding: 11px 14px 13px;
+        }
+        .lp-region-country {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.52rem;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--text3);
+        }
+
+        /* ── CELLAR ── */
+        .lp-cellar {
+          padding: 80px 24px;
+          max-width: 1160px;
+          margin: 0 auto;
+        }
+        .lp-guide-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+        .lp-guide-card {
+          background: var(--wh);
+          border: 1px solid var(--border-c);
+          border-radius: var(--r);
+          padding: 22px 22px 18px;
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .lp-guide-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 3px;
+          height: 100%;
+          background: var(--wine);
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+        .lp-guide-card:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--sh-md);
+        }
+        .lp-guide-card:hover::before {
+          opacity: 1;
+        }
+        .lp-guide-icon {
+          font-size: 1.4rem;
+          margin-bottom: 12px;
+        }
+        .lp-guide-title {
+          font-family: 'Fraunces', serif;
+          font-size: 0.98rem;
+          font-weight: 500;
+          color: var(--text);
+          margin-bottom: 6px;
+          line-height: 1.25;
+        }
+        .lp-guide-sub {
+          font-family: 'Jost', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 300;
+          color: var(--text2);
+          line-height: 1.55;
+          margin-bottom: 12px;
+        }
+        .lp-guide-meta {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+        .lp-guide-tag {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.52rem;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 3px 9px;
+          border-radius: 100px;
+          border: 1px solid var(--border2-c);
+          color: var(--text3);
+        }
+        .lp-guide-time {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.52rem;
+          color: var(--text3);
+        }
+
+        /* ── NEWS ── */
+        .lp-news {
+          border-top: 1px solid var(--border-c);
+          padding: 80px 24px 64px;
+          max-width: 1160px;
+          margin: 0 auto;
+        }
+        .lp-news-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 32px;
+        }
+        .lp-news-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+          gap: 16px;
+        }
+
+        /* ── FOOTER ── */
+        .lp-footer {
+          border-top: 3px solid var(--wine);
+          background: var(--wh);
+          padding: 52px 32px 40px;
+        }
+        .lp-footer-inner {
+          max-width: 1160px;
+          margin: 0 auto;
+        }
+        .lp-footer-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 32px;
+          margin-bottom: 40px;
+          flex-wrap: wrap;
+        }
+        .lp-footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+        .lp-footer-wordmark {
+          font-family: 'Fraunces', serif;
+          font-size: 1.1rem;
+          font-weight: 400;
+          line-height: 1.15;
+          color: var(--text);
+        }
+        .lp-footer-tagline {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.54rem;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: var(--text3);
+        }
+        .lp-footer-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          align-items: flex-end;
+        }
+        .lp-footer-nav-row {
+          display: flex;
+          gap: 20px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .lp-footer-link {
+          font-family: 'Geist Mono', monospace;
+          font-size: 0.58rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--text3);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: color 0.15s;
+        }
+        .lp-footer-link:hover {
+          color: var(--wine);
+        }
+        .lp-footer-bottom {
+          border-top: 1px solid var(--border-c);
+          padding-top: 20px;
+          text-align: center;
+        }
+        .lp-footer-copy {
+          font-family: 'Jost', sans-serif;
+          font-size: 0.72rem;
+          font-weight: 300;
+          color: var(--text3);
+          letter-spacing: 0.02em;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+          .lp-stats {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .lp-stat-num {
+            font-size: 2rem;
+          }
+          .lp-footer-top {
+            flex-direction: column;
+          }
+          .lp-footer-nav {
+            align-items: flex-start;
+          }
+          .lp-footer-nav-row {
+            justify-content: flex-start;
+          }
+          .lp-interlude {
+            background-attachment: scroll;
+          }
+        }
+      `}</style>
+
+      {/* ══════════════════════════════════════
+          1. CINEMATIC HERO
+      ══════════════════════════════════════ */}
+      <section className="lp-hero">
+        <div className="lp-hero-overlay" />
+        <div className="lp-hero-content">
+          {/* The Drop logo */}
+          <div className="lp-hero-logo">
+            <svg
+              viewBox="0 0 80 100"
+              style={{ width: 40, height: 50, color: "rgba(255,255,255,0.9)" }}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-label="The Drop"
             >
-              <div>
-                <span style={{ fontSize: "1.4rem" }}>{j.icon}</span>
-                <h3
-                  style={{
-                    fontFamily: "'Fraunces', serif",
-                    fontSize: "1.05rem",
-                    fontWeight: 500,
-                    color: "white",
-                    marginTop: 8,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {j.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "rgba(255,255,255,0.8)",
-                    fontWeight: 300,
-                    marginTop: 4,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {j.subtitle}
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 14, alignItems: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "'Geist Mono', monospace",
-                    fontSize: "0.54rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    padding: "3px 8px",
-                    borderRadius: 100,
-                    background: "rgba(255,255,255,0.2)",
-                    color: "white",
-                  }}
-                >
-                  {j.difficulty}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Geist Mono', monospace",
-                    fontSize: "0.54rem",
-                    color: "rgba(255,255,255,0.7)",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {j.stopCount} stops · {j.estimatedMinutes} min
-                </span>
-              </div>
-            </div>
-          ))}
+              <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
+              <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
+              <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
+            </svg>
+          </div>
+
+          <h1 className="lp-hero-title">
+            The World of <span className="lp-hero-title-accent">Wine</span>
+          </h1>
+
+          <p className="lp-hero-tagline">Your Journey Through Wine</p>
+
+          {/* Scroll cue */}
+          <div className="lp-scroll-cue">
+            <div className="lp-scroll-cue-line" />
+            <span className="lp-scroll-cue-label">Scroll</span>
+          </div>
         </div>
       </section>
 
-      {/* ── EXPLORE BY REGION ── */}
-      <section style={{ padding: "24px 0 48px" }}>
-        <div style={{ padding: "0 24px", maxWidth: 1200, margin: "0 auto", marginBottom: 20 }}>
-          <h2
-            style={{
-              fontFamily: "'Fraunces', serif",
-              fontSize: "1.5rem",
-              fontWeight: 400,
-              color: "var(--text)",
-              marginBottom: 4,
+      {/* ══════════════════════════════════════
+          2. EDITORIAL INTRO
+      ══════════════════════════════════════ */}
+      <section className="lp-intro">
+        <p className="lp-intro-text">
+          Wine is one of the oldest stories on earth — eight thousand years of soil, sun, and human
+          obsession, distilled into something you can hold in a glass. We built this to help you
+          explore that story. Fifty regions. Seventy-two producers. Ten guided journeys. No
+          pretension, no gatekeeping — just the good stuff.
+        </p>
+
+        <div className="lp-stats">
+          <div className="lp-stat">
+            <span className="lp-stat-num">50</span>
+            <span className="lp-stat-label">Regions</span>
+          </div>
+          <div className="lp-stat">
+            <span className="lp-stat-num">72</span>
+            <span className="lp-stat-label">Producers</span>
+          </div>
+          <div className="lp-stat">
+            <span className="lp-stat-num">10</span>
+            <span className="lp-stat-label">Journeys</span>
+          </div>
+        </div>
+
+        <div className="lp-divider" />
+      </section>
+
+      {/* ══════════════════════════════════════
+          3. FEATURED JOURNEYS
+      ══════════════════════════════════════ */}
+      <section className="lp-journeys">
+        <div className="lp-section-inner">
+          <div className="lp-section-head">
+            <h2 className="lp-section-title">Begin Your Journey</h2>
+            <p className="lp-section-sub">Curated paths through the world of wine</p>
+          </div>
+
+          <div className="lp-journey-grid">
+            {featuredJourneys.map((j) => (
+              <div
+                key={j.id}
+                className="lp-journey-card"
+                data-testid={`journey-card-${j.id}`}
+                style={{ background: j.coverGradient }}
+                onClick={() => {
+                  track("journey_card_click", { id: j.id });
+                  setLocation(`/journey/${j.id}`);
+                }}
+              >
+                <div>
+                  <div className="lp-journey-icon">{j.icon}</div>
+                  <div className="lp-journey-title">{j.title}</div>
+                  <div className="lp-journey-subtitle">{j.subtitle}</div>
+                </div>
+                <div className="lp-journey-meta">
+                  <span className="lp-journey-badge">{j.difficulty}</span>
+                  <span className="lp-journey-stops">
+                    {j.stopCount} stops · {j.estimatedMinutes} min
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="lp-view-all"
+            onClick={() => {
+              track("cta_view_all_journeys");
+              setLocation("/journeys");
             }}
           >
-            Explore by Region
-          </h2>
-          <p style={{ fontSize: "0.82rem", fontWeight: 300, color: "var(--text3)" }}>
-            Discover wine regions across the globe
+            View all journeys →
+          </button>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════
+          4. IMAGE INTERLUDE
+      ══════════════════════════════════════ */}
+      <div className="lp-interlude">
+        <div className="lp-interlude-overlay" />
+        <blockquote className="lp-interlude-quote">
+          "The first duty of wine is to be red. The second is to be a Burgundy."
+        </blockquote>
+      </div>
+
+      {/* ══════════════════════════════════════
+          5. EXPLORE BY REGION
+      ══════════════════════════════════════ */}
+      <section className="lp-regions">
+        <div className="lp-regions-head">
+          <h2 className="lp-section-title">Explore the Map</h2>
+          <p className="lp-section-sub">
+            From Bordeaux to Barossa, Champagne to Cappadocia
           </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            gap: 14,
-            overflowX: "auto",
-            paddingLeft: 24,
-            paddingRight: 24,
-            paddingBottom: 8,
-            scrollbarWidth: "none",
-          }}
-        >
+
+        <div className="lp-regions-scroll">
           {featuredRegions.map((r) => (
             <div
               key={r.id}
+              className="lp-region-card"
               data-testid={`region-card-${r.id}`}
               onClick={() => {
                 track("region_card_click", { id: r.id });
                 setLocation("/explore");
               }}
-              style={{
-                flexShrink: 0,
-                width: 220,
-                borderRadius: "var(--r)",
-                overflow: "hidden",
-                background: "var(--wh)",
-                border: "1px solid var(--border-c)",
-                cursor: "pointer",
-                transition: "all 0.18s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "var(--sh-md)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
-              }}
             >
-              {r.image && (
-                <img
-                  src={r.image}
-                  alt={r.name}
-                  style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }}
-                />
-              )}
-              <div style={{ padding: "12px 14px" }}>
-                <div
-                  style={{
-                    fontFamily: "'Fraunces', serif",
-                    fontSize: "0.92rem",
-                    fontWeight: 500,
-                    color: "var(--text)",
-                  }}
-                >
-                  {r.name}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Geist Mono', monospace",
-                    fontSize: "0.56rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    color: "var(--text3)",
-                    marginTop: 2,
-                  }}
-                >
-                  {r.country}
-                </div>
+              <div className="lp-region-img-wrap">
+                {r.image ? (
+                  <img src={r.image} alt={r.name} className="lp-region-img" />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      background: "linear-gradient(135deg, var(--wine-pale), var(--gold-pale))",
+                    }}
+                  />
+                )}
+                <div className="lp-region-img-overlay" />
+                <div className="lp-region-img-name">{r.name}</div>
+              </div>
+              <div className="lp-region-body">
+                <div className="lp-region-country">{r.country}</div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── ACADEMY PICKS ── */}
-      <section style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2
-            style={{
-              fontFamily: "'Fraunces', serif",
-              fontSize: "1.5rem",
-              fontWeight: 400,
-              color: "var(--text)",
-              marginBottom: 4,
+      {/* ══════════════════════════════════════
+          6. THE CELLAR (was Academy Picks)
+      ══════════════════════════════════════ */}
+      <div style={{ background: "var(--bg2)", borderTop: "1px solid var(--border-c)", borderBottom: "1px solid var(--border-c)" }}>
+        <section className="lp-cellar">
+          <div className="lp-section-head">
+            <h2 className="lp-section-title">The Cellar</h2>
+            <p className="lp-section-sub">Where wine knowledge ages to perfection</p>
+          </div>
+
+          <div className="lp-guide-grid">
+            {featuredGuides.map((g) => (
+              <div
+                key={g.id}
+                className="lp-guide-card"
+                data-testid={`guide-card-${g.id}`}
+                onClick={() => {
+                  track("guide_card_click", { id: g.id });
+                  setLocation(`/academy/${g.id}`);
+                }}
+              >
+                <div className="lp-guide-icon">{g.icon}</div>
+                <div className="lp-guide-title">{g.title}</div>
+                <p className="lp-guide-sub">{g.subtitle}</p>
+                <div className="lp-guide-meta">
+                  <span className="lp-guide-tag">{g.category}</span>
+                  <span className="lp-guide-time">{g.readTimeMinutes} min read</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="lp-view-all"
+            onClick={() => {
+              track("cta_enter_cellar");
+              setLocation("/academy");
             }}
           >
-            Learn the Fundamentals
-          </h2>
-          <p style={{ fontSize: "0.82rem", fontWeight: 300, color: "var(--text3)" }}>
-            Academy guides for every level
-          </p>
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 14,
-          }}
-        >
-          {featuredGuides.map((g) => (
-            <div
-              key={g.id}
-              data-testid={`guide-card-${g.id}`}
-              onClick={() => {
-                track("guide_card_click", { id: g.id });
-                setLocation(`/academy/${g.id}`);
-              }}
-              style={{
-                background: "var(--wh)",
-                border: "1px solid var(--border-c)",
-                borderRadius: "var(--r)",
-                padding: "18px 20px",
-                cursor: "pointer",
-                transition: "all 0.18s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = "var(--sh-md)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-              }}
-            >
-              <span style={{ fontSize: "1.3rem" }}>{g.icon}</span>
-              <h3
-                style={{
-                  fontFamily: "'Fraunces', serif",
-                  fontSize: "0.95rem",
-                  fontWeight: 500,
-                  color: "var(--text)",
-                  marginTop: 8,
-                  marginBottom: 4,
-                  lineHeight: 1.2,
-                }}
-              >
-                {g.title}
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 300,
-                  color: "var(--text2)",
-                  lineHeight: 1.5,
-                  marginBottom: 10,
-                }}
-              >
-                {g.subtitle}
-              </p>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "'Geist Mono', monospace",
-                    fontSize: "0.54rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    padding: "3px 8px",
-                    borderRadius: 100,
-                    border: "1px solid var(--border2-c)",
-                    color: "var(--text3)",
-                  }}
-                >
-                  {g.category}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Geist Mono', monospace",
-                    fontSize: "0.54rem",
-                    color: "var(--text3)",
-                  }}
-                >
-                  {g.readTimeMinutes} min read
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            Enter The Cellar →
+          </button>
+        </section>
+      </div>
 
-      {/* ── LATEST NEWS ── */}
-      <section style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
-        <div
-          style={{
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-          }}
-        >
+      {/* ══════════════════════════════════════
+          7. LATEST NEWS
+      ══════════════════════════════════════ */}
+      <section className="lp-news">
+        <div className="lp-news-head">
           <div>
-            <h2
-              style={{
-                fontFamily: "'Fraunces', serif",
-                fontSize: "1.5rem",
-                fontWeight: 400,
-                color: "var(--text)",
-                marginBottom: 4,
-              }}
-            >
-              Latest News
-            </h2>
-            <p style={{ fontSize: "0.82rem", fontWeight: 300, color: "var(--text3)" }}>
-              Stories from the wine world
-            </p>
+            <h2 className="lp-section-title">Latest News</h2>
+            <p className="lp-section-sub">Stories from the wine world</p>
           </div>
           <button
             onClick={() => setLocation("/news")}
-            style={{
-              fontFamily: "'Geist Mono', monospace",
-              fontSize: "0.6rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              color: "var(--wine)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="lp-view-all"
             data-testid="view-all-news"
           >
             View all →
           </button>
         </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 14,
-          }}
-        >
+
+        <div className="lp-news-grid">
           {latestNews.map((n) => (
             <div
               key={n.id}
@@ -505,57 +866,74 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--border-c)",
-          padding: "36px 24px",
-          textAlign: "center",
-          background: "var(--wh)",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: "0.92rem",
-            color: "var(--text2)",
-            marginBottom: 14,
-          }}
-        >
-          The World of Wine — Your Journey Through Wine
-        </p>
-        <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-          {[
-            { label: "Map", href: "/explore" },
-            { label: "Journeys", href: "/journeys" },
-            { label: "The Cellar", href: "/academy" },
-            { label: "List", href: "/explore/list" },
-            { label: "News", href: "/news" },
-          ].map((link) => (
-            <button
-              key={link.href}
-              onClick={() => setLocation(link.href)}
-              style={{
-                fontFamily: "'Geist Mono', monospace",
-                fontSize: "0.6rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--text3)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                transition: "color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.color = "var(--wine)";
-              }}
-              onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.color = "var(--text3)";
-              }}
-            >
-              {link.label}
-            </button>
-          ))}
+      {/* ══════════════════════════════════════
+          8. FOOTER
+      ══════════════════════════════════════ */}
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-top">
+            {/* Brand */}
+            <div>
+              <div className="lp-footer-brand">
+                <svg
+                  viewBox="0 0 80 100"
+                  style={{ width: 22, height: 28, color: "var(--wine)", flexShrink: 0 }}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-label="The Drop"
+                >
+                  <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
+                  <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
+                  <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
+                </svg>
+                <div className="lp-footer-wordmark">
+                  <span style={{ color: "var(--text)" }}>The World of </span>
+                  <span style={{ color: "var(--wine)" }}>Wine</span>
+                </div>
+              </div>
+              <div className="lp-footer-tagline">Your Journey Through Wine</div>
+            </div>
+
+            {/* Nav links — 2 rows */}
+            <nav className="lp-footer-nav">
+              <div className="lp-footer-nav-row">
+                {[
+                  { label: "Map", href: "/explore" },
+                  { label: "Journeys", href: "/journeys" },
+                  { label: "The Cellar", href: "/academy" },
+                ].map((link) => (
+                  <button
+                    key={link.href}
+                    className="lp-footer-link"
+                    onClick={() => setLocation(link.href)}
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+              <div className="lp-footer-nav-row">
+                {[
+                  { label: "List View", href: "/explore/list" },
+                  { label: "News", href: "/news" },
+                ].map((link) => (
+                  <button
+                    key={link.href}
+                    className="lp-footer-link"
+                    onClick={() => setLocation(link.href)}
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </div>
+
+          <div className="lp-footer-bottom">
+            <p className="lp-footer-copy">
+              Crafted for curious drinkers everywhere
+            </p>
+          </div>
         </div>
       </footer>
     </div>

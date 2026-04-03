@@ -96,45 +96,7 @@ export default function Explore() {
             showBoundaries={store.showBoundaries}
           />
 
-          {/* Progress badge */}
-          <div className="progress-badge" data-testid="progress-badge">
-            <div className="pb-title">Your Journey</div>
-            <div className="pb-stats">
-              <div className="pb-stat">
-                <span className="pb-num">{store.allRegions.length}</span>
-                <span className="pb-lbl">Regions</span>
-              </div>
-              <div className="pb-stat">
-                <span className="pb-num">{store.filteredProducers.length}</span>
-                <span className="pb-lbl">Producers</span>
-              </div>
-              <div className="pb-stat">
-                <span className="pb-num">{store.allNews.length}</span>
-                <span className="pb-lbl">Stories</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Layers panel */}
-          <div className="layers-panel" data-testid="layers-panel">
-            <div className="layer-title">Map Layers</div>
-            <div className="layer-row" onClick={() => store.setShowProducers(!store.showProducers)}>
-              <button
-                className={`toggle-switch ${store.showProducers ? "on" : ""}`}
-                data-testid="toggle-producers"
-              />
-              <span className="layer-lbl">Producers</span>
-              <span className="layer-dot" style={{ background: "var(--wine)" }} />
-            </div>
-            <div className="layer-row" onClick={() => store.setShowBoundaries(!store.showBoundaries)}>
-              <button
-                className={`toggle-switch ${store.showBoundaries ? "on" : ""}`}
-                data-testid="toggle-boundaries"
-              />
-              <span className="layer-lbl">Region Boundaries</span>
-              <span className="layer-dot" style={{ background: "rgba(140,28,46,0.4)" }} />
-            </div>
-          </div>
+          {/* Zoom controls handled by MapLibre */}
         </div>
       )}
 

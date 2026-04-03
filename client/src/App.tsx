@@ -24,7 +24,7 @@ type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
   { key: "journeys", label: "JOURNEYS", href: "/journeys" },
-  { key: "academy", label: "ACADEMY", href: "/academy" },
+  { key: "academy", label: "THE CELLAR", href: "/academy" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
 ];
@@ -55,21 +55,22 @@ function NavBar() {
   return (
     <header className="topbar" data-testid="topbar">
       {/* Logo */}
-      <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+      <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <svg
-          viewBox="0 0 32 32"
-          style={{ width: 24, height: 24, color: "var(--wine)" }}
+          viewBox="0 0 80 100"
+          style={{ width: 22, height: 28, color: "var(--wine)" }}
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="2.5"
           aria-label="The World of Wine"
         >
-          <path d="M16 3C16 3 8 10 8 17a8 8 0 0 0 16 0c0-7-8-14-8-14Z" />
-          <path d="M12 17a4 4 0 0 0 8 0" strokeWidth="1" opacity="0.5" />
-          <line x1="16" y1="25" x2="16" y2="30" />
-          <line x1="12" y1="30" x2="20" y2="30" />
+          <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
+          <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
+          <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
+          <path d="M40 46 C40 46, 30 56, 30 64" strokeWidth="1" opacity="0.25" />
+          <path d="M40 46 C40 46, 50 56, 50 64" strokeWidth="1" opacity="0.25" />
         </svg>
-        <span className="logo-text">The World of Wine</span>
+        <span className="logo-text"><span style={{ color: 'var(--text)' }}>The World of </span><span style={{ color: 'var(--wine)' }}>Wine</span></span>
       </Link>
 
       <div className="topbar-divider desktop-only" />

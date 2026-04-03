@@ -33,29 +33,29 @@ export default function Landing() {
         }}
       >
         <svg
-          viewBox="0 0 32 32"
-          style={{ width: 56, height: 56, color: "var(--wine)", margin: "0 auto 16px" }}
+          viewBox="0 0 80 100"
+          style={{ width: 48, height: 60, color: "var(--wine)", margin: "0 auto 16px" }}
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="2.5"
           aria-label="The Drop"
         >
-          <path d="M16 3C16 3 8 10 8 17a8 8 0 0 0 16 0c0-7-8-14-8-14Z" />
-          <path d="M12 17a4 4 0 0 0 8 0" strokeWidth="1" opacity="0.5" />
-          <line x1="16" y1="25" x2="16" y2="30" />
-          <line x1="12" y1="30" x2="20" y2="30" />
+          <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
+          <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
+          <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
+          <path d="M40 46 C40 46, 30 56, 30 64" strokeWidth="1" opacity="0.25" />
+          <path d="M40 46 C40 46, 50 56, 50 64" strokeWidth="1" opacity="0.25" />
         </svg>
         <h1
           style={{
             fontFamily: "'Fraunces', serif",
             fontSize: "2.4rem",
             fontWeight: 400,
-            color: "var(--text)",
             lineHeight: 1.1,
             marginBottom: 8,
           }}
         >
-          The World of Wine
+          <span style={{ color: 'var(--text)' }}>The World of </span><span style={{ color: 'var(--wine)' }}>Wine</span>
         </h1>
         <p
           style={{
@@ -528,7 +528,7 @@ export default function Landing() {
           {[
             { label: "Map", href: "/explore" },
             { label: "Journeys", href: "/journeys" },
-            { label: "Academy", href: "/academy" },
+            { label: "The Cellar", href: "/academy" },
             { label: "List", href: "/explore/list" },
             { label: "News", href: "/news" },
           ].map((link) => (

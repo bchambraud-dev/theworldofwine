@@ -34,7 +34,7 @@ export default function AcademyHub() {
             marginBottom: 6,
           }}
         >
-          Academy
+          The Cellar
         </h1>
         <p
           style={{
@@ -45,7 +45,7 @@ export default function AcademyHub() {
             color: "var(--text3)",
           }}
         >
-          Master the art and science of wine
+          Where wine knowledge ages to perfection
         </p>
       </div>
 

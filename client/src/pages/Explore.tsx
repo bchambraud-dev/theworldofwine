@@ -207,7 +207,7 @@ export default function Explore() {
                         {country} ({regions.length})
                       </div>
                       {expandedCountries.has(country) && (
-                        <div className="lv-regions-list" style={{ paddingTop: 0 }}>
+                        <div className="lv-regions-grid">
                           {regions.map((region) => (
                             <div
                               key={region.id}
@@ -218,33 +218,46 @@ export default function Explore() {
                               }}
                               data-testid={`list-region-${region.id}`}
                             >
-                              <div className="lv-rc-accent" />
-                              <div className="lv-rc-body">
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <div className="lv-rc-title" style={{ flex: 1 }}>{region.name}</div>
-                                  <button
-                                    className="fav-btn"
-                                    onClick={handleFavorite}
-                                    title="Save to your journey — coming soon!"
-                                    data-testid={`fav-region-${region.id}`}
-                                  >
-                                    ♡
-                                  </button>
+                              {/* Hero image */}
+                              <div className="lv-rc-img">
+                                {region.image && (
+                                  <img
+                                    src={region.image}
+                                    alt={region.name}
+                                    loading="lazy"
+                                  />
+                                )}
+                                <div className="lv-rc-img-overlay" />
+                                <button
+                                  className="lv-rc-fav"
+                                  onClick={handleFavorite}
+                                  title="Save to your journey — coming soon!"
+                                  data-testid={`fav-region-${region.id}`}
+                                >
+                                  ♡
+                                </button>
+                                <div className="lv-rc-img-label">
+                                  <span className="lv-rc-country">{region.country}</span>
                                 </div>
-                                <div className="lv-rc-sub">{region.country}</div>
-                                <div className="lv-rc-desc">{region.description}</div>
-                                <div className="lv-rc-meta">
-                                  <span className="lv-rc-stat">
-                                    <b>{producerCountByRegion[region.id] || 0}</b> producers
-                                  </span>
-                                  <span className="lv-rc-stat">
-                                    <b>{region.grapes.length}</b> grapes
-                                  </span>
-                                </div>
-                                <div className="lv-rc-grapes">
-                                  {region.grapes.slice(0, 4).map((g) => (
-                                    <span key={g} className="lv-rc-grape">{g}</span>
-                                  ))}
+                              </div>
+                              {/* Content */}
+                              <div className="lv-rc-content">
+                                <h3 className="lv-rc-title">{region.name}</h3>
+                                <p className="lv-rc-desc">{region.description}</p>
+                                <div className="lv-rc-footer">
+                                  <div className="lv-rc-stats">
+                                    <span><strong>{producerCountByRegion[region.id] || 0}</strong> producers</span>
+                                    <span><strong>{region.grapes.length}</strong> grapes</span>
+                                    <span><strong>{region.notableStyles.length}</strong> styles</span>
+                                  </div>
+                                  <div className="lv-rc-grapes">
+                                    {region.grapes.slice(0, 3).map((g) => (
+                                      <span key={g} className="lv-rc-grape">{g}</span>
+                                    ))}
+                                    {region.grapes.length > 3 && (
+                                      <span className="lv-rc-grape lv-rc-grape-more">+{region.grapes.length - 3}</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>

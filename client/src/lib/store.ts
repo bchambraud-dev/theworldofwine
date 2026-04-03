@@ -10,6 +10,7 @@ export type ListSubTab = "regions" | "producers";
 export interface Filters {
   wineTypes: WineColor[];
   priceRanges: PriceRange[];
+  tasteProfiles: string[];
   isNatural: boolean | null;
   isAwardWinner: boolean | null;
   selectedRegionId: string | null;
@@ -19,6 +20,7 @@ export interface Filters {
 export const defaultFilters: Filters = {
   wineTypes: [],
   priceRanges: [],
+  tasteProfiles: [],
   isNatural: null,
   isAwardWinner: null,
   selectedRegionId: null,
@@ -50,6 +52,9 @@ export function useWineStore() {
       if (filters.priceRanges.length > 0) {
         if (!filters.priceRanges.includes(p.priceRange)) return false;
       }
+      if (filters.tasteProfiles.length > 0) {
+        if (!filters.tasteProfiles.some((t) => p.tasteProfile.includes(t))) return false;
+      }
       if (filters.isNatural !== null) {
         if (p.isNatural !== filters.isNatural) return false;
       }
@@ -76,7 +81,7 @@ export function useWineStore() {
   // Higher score = more matching producers. Score of -1 = search excluded.
   const filteredRegions = useMemo(() => {
     const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-      filters.isNatural !== null || filters.isAwardWinner !== null;
+      filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null;
 
     return wineRegions
       .filter((r) => {
@@ -97,6 +102,7 @@ export function useWineStore() {
         const matchingProducers = regionProducers.filter((p) => {
           if (filters.wineTypes.length > 0 && !p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
           if (filters.priceRanges.length > 0 && !filters.priceRanges.includes(p.priceRange)) return false;
+          if (filters.tasteProfiles.length > 0 && !filters.tasteProfiles.some((t) => p.tasteProfile.includes(t))) return false;
           if (filters.isNatural !== null && p.isNatural !== filters.isNatural) return false;
           if (filters.isAwardWinner !== null && p.isAwardWinner !== filters.isAwardWinner) return false;
           return true;
@@ -160,7 +166,7 @@ export function useWineStore() {
   }, []);
 
   const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-    filters.isNatural !== null || filters.isAwardWinner !== null;
+    filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null;
 
   return {
     filters,

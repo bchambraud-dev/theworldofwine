@@ -195,8 +195,8 @@
   pointer-events: none;
 }
 
-/* ── FILTER BAR ── */
-.filter-bar {
+/* ── FILTER BAR (dropdown + active chips) ── */
+.fb {
   position: fixed;
   top: var(--topbar);
   left: 0; right: 0;
@@ -208,28 +208,265 @@
   display: flex;
   align-items: center;
   padding: 0 16px;
-  gap: 6px;
+  gap: 10px;
   z-index: 999;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.filter-bar::-webkit-scrollbar { display: none; }
-.filter-bar .fb-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border2-c);
-  flex-shrink: 0;
 }
 
-/* ── CHIPS ── */
-.chips {
+/* Filter trigger button */
+.fb-dropdown-wrap { position: relative; flex-shrink: 0; }
+.fb-trigger {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border2-c);
+  background: var(--wh);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.fb-trigger:hover, .fb-trigger.open {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+.fb-trigger.has-active {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+.fb-badge {
+  background: var(--wine);
+  color: white;
+  font-size: 0.5rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Dropdown panel */
+.fb-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 320px;
+  max-width: 400px;
+  background: var(--wh);
+  border: 1px solid var(--border-c);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  z-index: 1000;
+  overflow: hidden;
+}
+.fb-dd-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.fb-dd-scroll::-webkit-scrollbar { width: 4px; }
+.fb-dd-scroll::-webkit-scrollbar-thumb { background: var(--border2-c); border-radius: 2px; }
+.fb-dd-group {
+  padding: 4px 0;
+}
+.fb-dd-group + .fb-dd-group {
+  border-top: 1px solid var(--border-c);
+}
+.fb-dd-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  padding: 8px 16px 4px;
+  font-weight: 500;
+}
+.fb-dd-options {
+  display: flex;
+  flex-direction: column;
+}
+.fb-dd-options-wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 4px 12px 4px;
+  gap: 4px;
+}
+.fb-dd-opt {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+.fb-dd-opt:hover {
+  background: rgba(140,28,46,0.04);
+}
+.fb-dd-opt.selected {
+  background: rgba(140,28,46,0.06);
+  color: var(--wine);
+  font-weight: 500;
+}
+.fb-dd-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border2-c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  color: white;
+  transition: all 0.12s;
+}
+.fb-dd-opt.selected .fb-dd-check {
+  background: var(--wine);
+  border-color: var(--wine);
+}
+/* Pill-style options for taste profiles */
+.fb-dd-opt-pill {
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border-c);
+  gap: 0;
+}
+.fb-dd-opt-pill.selected {
+  background: var(--wine);
+  border-color: var(--wine);
+  color: white;
+}
+.fb-dd-opt-pill:hover {
+  border-color: var(--wine);
+}
+
+.fb-dd-footer {
+  border-top: 1px solid var(--border-c);
+  padding: 8px 16px;
+}
+.fb-dd-clear {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wine);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.fb-dd-clear:hover { text-decoration: underline; }
+
+/* Active filter chips (horizontal scroll) */
+.fb-chips {
+  display: flex;
+  gap: 6px;
   align-items: center;
   overflow-x: auto;
   scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
 }
-.chips::-webkit-scrollbar { display: none; }
+.fb-chips::-webkit-scrollbar { display: none; }
+.fb-chip {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px 3px 10px;
+  border-radius: 100px;
+  background: rgba(140,28,46,0.08);
+  color: var(--wine);
+  border: 1px solid rgba(140,28,46,0.15);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.fb-chip-taste {
+  background: rgba(90,82,72,0.08);
+  color: var(--text);
+  border-color: rgba(90,82,72,0.15);
+}
+.fb-chip-price {
+  background: rgba(184,134,11,0.08);
+  color: var(--gold);
+  border-color: rgba(184,134,11,0.2);
+}
+.fb-chip-style {
+  background: rgba(74,122,82,0.08);
+  color: var(--sage);
+  border-color: rgba(74,122,82,0.2);
+}
+.fb-chip-x {
+  font-size: 0.48rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(140,28,46,0.1);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  padding: 0;
+  transition: all 0.12s;
+}
+.fb-chip-x:hover {
+  background: var(--wine);
+  color: white;
+}
+.fb-clear-all {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--wine);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 3px 6px;
+}
+.fb-clear-all:hover { text-decoration: underline; }
+
+/* Mobile: filter dropdown becomes bottom sheet */
+@media (max-width: 768px) {
+  .fb-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: unset;
+    max-width: unset;
+    border-radius: 16px 16px 0 0;
+    max-height: 70vh;
+  }
+  .fb-dd-scroll {
+    max-height: 55vh;
+  }
+}
+
+/* Legacy chip styles (used elsewhere) */
 .chip {
   font-family: 'Geist Mono', monospace;
   font-size: 0.6rem;

@@ -9,20 +9,42 @@ export type ListSubTab = "regions" | "producers";
 
 export interface Filters {
   wineTypes: WineColor[];
-  priceRanges: PriceRange[];
-  tasteProfiles: string[];
   countries: string[];
+  world: ("old" | "new")[];
+  grapeVarieties: string[];
+  flavourProfile: string[]; // simplified categories
+  priceRanges: PriceRange[];
+  prestige: string[];
+  characteristics: string[];
   isNatural: boolean | null;
   isAwardWinner: boolean | null;
   selectedRegionId: string | null;
   searchQuery: string;
 }
 
+// Mapping from flavour profile category to taste profile keywords
+const flavourProfileMap: Record<string, string[]> = {
+  "Dark Fruit": ["Plum", "Blackberry", "Blackcurrant", "Dark Cherry", "Dark Plum", "Cassis", "Dark Berry", "Dark Fruit"],
+  "Red Fruit": ["Cherry", "Raspberry", "Strawberry", "Red Cherry", "Cranberry", "Wild Strawberry", "Sour Cherry", "Wild Cherry"],
+  "Floral": ["Violet", "Rose", "Rose Petal", "White Flowers", "Floral", "Roses", "Delicate Floral", "Apple Blossom"],
+  "Mineral": ["Mineral", "Minerality", "Slate", "Graphite", "Flint", "Chalk", "Wet Stone", "Volcanic Ash", "Mineral Intensity"],
+  "Earthy / Terroir": ["Earth", "Forest Floor", "Mushroom", "Truffle", "Dark Earth"],
+  "Oak / Toast": ["Vanilla", "Cedar", "Toast", "Toasted Oak", "Chocolate", "Mocha", "Tobacco", "Dark Chocolate", "Espresso", "Toasted Bread"],
+  "Spice": ["Spice", "Black Pepper", "White Pepper", "Thyme", "Garrigue", "Pepper"],
+  "Citrus / Fresh": ["Citrus", "Grapefruit", "Lemon", "Gooseberry", "Green Apple", "Lime", "Lime Zest", "Lemon Curd"],
+  "Honey / Rich": ["Honey", "Beeswax", "Butter", "Cream", "Caramel", "Marzipan", "Hazelnut"],
+  "Savoury / Umami": ["Savory", "Olive", "Leather", "Smoke", "Iron", "Bacon Fat", "Tar"],
+};
+
 export const defaultFilters: Filters = {
   wineTypes: [],
-  priceRanges: [],
-  tasteProfiles: [],
   countries: [],
+  world: [],
+  grapeVarieties: [],
+  flavourProfile: [],
+  priceRanges: [],
+  prestige: [],
+  characteristics: [],
   isNatural: null,
   isAwardWinner: null,
   selectedRegionId: null,
@@ -81,12 +103,29 @@ export function useWineStore() {
       if (filters.priceRanges.length > 0) {
         if (!filters.priceRanges.includes(p.priceRange)) return false;
       }
-      if (filters.tasteProfiles.length > 0) {
-        if (!filters.tasteProfiles.some((t) => p.tasteProfile.includes(t))) return false;
-      }
       if (filters.countries.length > 0) {
         const region = wineRegions.find((r) => r.id === p.regionId);
         if (region && !filters.countries.includes(region.country)) return false;
+      }
+      if (filters.world.length > 0) {
+        if (!filters.world.includes(p.world)) return false;
+      }
+      if (filters.grapeVarieties.length > 0) {
+        if (!filters.grapeVarieties.some((g) => p.grapeVarieties.includes(g))) return false;
+      }
+      if (filters.flavourProfile.length > 0) {
+        // Map each selected category to its keywords and check if any match
+        const matchesAnyCategory = filters.flavourProfile.some((category) => {
+          const keywords = flavourProfileMap[category] || [];
+          return keywords.some((kw) => p.tasteProfile.includes(kw));
+        });
+        if (!matchesAnyCategory) return false;
+      }
+      if (filters.prestige.length > 0) {
+        if (!filters.prestige.includes(p.prestige)) return false;
+      }
+      if (filters.characteristics.length > 0) {
+        if (!filters.characteristics.some((c) => p.characteristics.includes(c))) return false;
       }
       if (filters.isNatural !== null) {
         if (p.isNatural !== filters.isNatural) return false;
@@ -99,7 +138,8 @@ export function useWineStore() {
         if (
           !p.name.toLowerCase().includes(q) &&
           !p.country.toLowerCase().includes(q) &&
-          !p.tasteProfile.some((t) => t.toLowerCase().includes(q))
+          !p.tasteProfile.some((t) => t.toLowerCase().includes(q)) &&
+          !p.grapeVarieties.some((g) => g.toLowerCase().includes(q))
         )
           return false;
       }
@@ -109,8 +149,16 @@ export function useWineStore() {
 
   // Filter regions — always return all, scored by relevance
   const filteredRegions = useMemo(() => {
-    const hasActiveProducerFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-      filters.tasteProfiles.length > 0 || filters.isNatural !== null || filters.isAwardWinner !== null;
+    const hasActiveProducerFilter =
+      filters.wineTypes.length > 0 ||
+      filters.priceRanges.length > 0 ||
+      filters.world.length > 0 ||
+      filters.grapeVarieties.length > 0 ||
+      filters.flavourProfile.length > 0 ||
+      filters.prestige.length > 0 ||
+      filters.characteristics.length > 0 ||
+      filters.isNatural !== null ||
+      filters.isAwardWinner !== null;
 
     return wineRegions
       .filter((r) => {
@@ -134,7 +182,17 @@ export function useWineStore() {
         const matchingProducers = regionProducers.filter((p) => {
           if (filters.wineTypes.length > 0 && !p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
           if (filters.priceRanges.length > 0 && !filters.priceRanges.includes(p.priceRange)) return false;
-          if (filters.tasteProfiles.length > 0 && !filters.tasteProfiles.some((t) => p.tasteProfile.includes(t))) return false;
+          if (filters.world.length > 0 && !filters.world.includes(p.world)) return false;
+          if (filters.grapeVarieties.length > 0 && !filters.grapeVarieties.some((g) => p.grapeVarieties.includes(g))) return false;
+          if (filters.flavourProfile.length > 0) {
+            const matchesAnyCategory = filters.flavourProfile.some((category) => {
+              const keywords = flavourProfileMap[category] || [];
+              return keywords.some((kw) => p.tasteProfile.includes(kw));
+            });
+            if (!matchesAnyCategory) return false;
+          }
+          if (filters.prestige.length > 0 && !filters.prestige.includes(p.prestige)) return false;
+          if (filters.characteristics.length > 0 && !filters.characteristics.some((c) => p.characteristics.includes(c))) return false;
           if (filters.isNatural !== null && p.isNatural !== filters.isNatural) return false;
           if (filters.isAwardWinner !== null && p.isAwardWinner !== filters.isAwardWinner) return false;
           return true;
@@ -192,9 +250,17 @@ export function useWineStore() {
     setSelectedRegionId(null);
   }, []);
 
-  const hasActiveFilter = filters.wineTypes.length > 0 || filters.priceRanges.length > 0 ||
-    filters.tasteProfiles.length > 0 || filters.countries.length > 0 ||
-    filters.isNatural !== null || filters.isAwardWinner !== null;
+  const hasActiveFilter =
+    filters.wineTypes.length > 0 ||
+    filters.priceRanges.length > 0 ||
+    filters.countries.length > 0 ||
+    filters.world.length > 0 ||
+    filters.grapeVarieties.length > 0 ||
+    filters.flavourProfile.length > 0 ||
+    filters.prestige.length > 0 ||
+    filters.characteristics.length > 0 ||
+    filters.isNatural !== null ||
+    filters.isAwardWinner !== null;
 
   return {
     filters,

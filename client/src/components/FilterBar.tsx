@@ -27,55 +27,56 @@ const priceOptions: { value: PriceRange; label: string }[] = [
   { value: "luxury", label: "$$$$ $200+" },
 ];
 
-const tasteCategories: { category: string; options: string[] }[] = [
-  {
-    category: "Fruit",
-    options: [
-      "Cherry", "Plum", "Blackberry", "Blackcurrant", "Raspberry",
-      "Strawberry", "Dark Cherry", "Dark Plum", "Peach", "Apricot",
-      "Apple", "Pear", "Citrus", "Grapefruit", "Lemon",
-      "Passion Fruit", "Gooseberry", "Stone Fruit",
-    ],
-  },
-  {
-    category: "Floral",
-    options: [
-      "Violet", "Rose", "Rose Petal", "White Flowers",
-      "Floral", "Chamomile", "Flowers", "Delicate Floral",
-    ],
-  },
-  {
-    category: "Earth & Mineral",
-    options: [
-      "Earth", "Mineral", "Minerality", "Slate", "Graphite",
-      "Flint", "Granite", "Iron", "Chalk Minerality", "Volcanic Ash",
-      "Wet Stone", "Forest Floor", "Mushroom", "Truffle",
-    ],
-  },
-  {
-    category: "Spice & Herb",
-    options: [
-      "Spice", "Black Pepper", "White Pepper", "Pepper",
-      "Thyme", "Garrigue", "Herbal", "Dried Herbs",
-      "Eucalyptus", "Mint", "Saffron", "Ginger", "Licorice",
-    ],
-  },
-  {
-    category: "Oak & Richness",
-    options: [
-      "Vanilla", "Cedar", "Toast", "Toasted Oak", "Brioche",
-      "Chocolate", "Dark Chocolate", "Mocha", "Espresso",
-      "Tobacco", "Leather", "Smoke", "Caramel",
-    ],
-  },
-  {
-    category: "Nutty & Savory",
-    options: [
-      "Almond", "Hazelnut", "Walnut", "Cashew",
-      "Butter", "Cream", "Honey", "Beeswax",
-      "Savory", "Olive", "Bacon Fat", "Marzipan",
-    ],
-  },
+const worldOptions: { value: "old" | "new"; label: string }[] = [
+  { value: "old", label: "Old World" },
+  { value: "new", label: "New World" },
+];
+
+const topGrapes: string[] = [
+  "Pinot Noir",
+  "Cabernet Sauvignon",
+  "Merlot",
+  "Chardonnay",
+  "Syrah",
+  "Riesling",
+  "Sangiovese",
+  "Nebbiolo",
+  "Tempranillo",
+  "Grenache",
+  "Sauvignon Blanc",
+  "Pinot Grigio",
+];
+
+const flavourProfileOptions: string[] = [
+  "Dark Fruit",
+  "Red Fruit",
+  "Floral",
+  "Mineral",
+  "Earthy / Terroir",
+  "Oak / Toast",
+  "Spice",
+  "Citrus / Fresh",
+  "Honey / Rich",
+  "Savoury / Umami",
+];
+
+const prestigeOptions: { value: string; label: string }[] = [
+  { value: "legendary", label: "Legendary" },
+  { value: "iconic", label: "Iconic" },
+  { value: "rising-star", label: "Rising Star" },
+  { value: "established", label: "Established" },
+];
+
+const characteristicOptions: { value: string; label: string }[] = [
+  { value: "biodynamic", label: "Biodynamic" },
+  { value: "family-estate", label: "Family Estate" },
+  { value: "old-vines", label: "Old Vines" },
+  { value: "grand-cru", label: "Grand Cru" },
+  { value: "cult-wine", label: "Cult Wine" },
+  { value: "age-worthy", label: "Age-Worthy" },
+  { value: "single-vineyard", label: "Single Vineyard" },
+  { value: "organic", label: "Organic" },
+  { value: "natural", label: "Natural" },
 ];
 
 const chipLabels: Record<string, string> = {
@@ -118,6 +119,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
+  /* ── Pending toggle helpers ── */
   const togglePendingWineType = (type: WineColor) => {
     const next = pending.wineTypes.includes(type)
       ? pending.wineTypes.filter((t) => t !== type)
@@ -132,11 +134,46 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     setPending((p) => ({ ...p, priceRanges: next }));
   };
 
-  const togglePendingTaste = (taste: string) => {
-    const next = pending.tasteProfiles.includes(taste)
-      ? pending.tasteProfiles.filter((t) => t !== taste)
-      : [...pending.tasteProfiles, taste];
-    setPending((p) => ({ ...p, tasteProfiles: next }));
+  const togglePendingCountry = (country: string) => {
+    const next = pending.countries.includes(country)
+      ? pending.countries.filter((c) => c !== country)
+      : [...pending.countries, country];
+    setPending((p) => ({ ...p, countries: next }));
+  };
+
+  const togglePendingWorld = (value: "old" | "new") => {
+    const next = pending.world.includes(value)
+      ? pending.world.filter((w) => w !== value)
+      : [...pending.world, value];
+    setPending((p) => ({ ...p, world: next }));
+  };
+
+  const togglePendingGrape = (grape: string) => {
+    const next = pending.grapeVarieties.includes(grape)
+      ? pending.grapeVarieties.filter((g) => g !== grape)
+      : [...pending.grapeVarieties, grape];
+    setPending((p) => ({ ...p, grapeVarieties: next }));
+  };
+
+  const togglePendingFlavour = (flavour: string) => {
+    const next = pending.flavourProfile.includes(flavour)
+      ? pending.flavourProfile.filter((f) => f !== flavour)
+      : [...pending.flavourProfile, flavour];
+    setPending((p) => ({ ...p, flavourProfile: next }));
+  };
+
+  const togglePendingPrestige = (value: string) => {
+    const next = pending.prestige.includes(value)
+      ? pending.prestige.filter((v) => v !== value)
+      : [...pending.prestige, value];
+    setPending((p) => ({ ...p, prestige: next }));
+  };
+
+  const togglePendingCharacteristic = (value: string) => {
+    const next = pending.characteristics.includes(value)
+      ? pending.characteristics.filter((v) => v !== value)
+      : [...pending.characteristics, value];
+    setPending((p) => ({ ...p, characteristics: next }));
   };
 
   const togglePendingNatural = () => {
@@ -147,23 +184,14 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     setPending((p) => ({ ...p, isAwardWinner: p.isAwardWinner === true ? null : true }));
   };
 
-  const togglePendingCountry = (country: string) => {
-    const next = pending.countries.includes(country)
-      ? pending.countries.filter((c) => c !== country)
-      : [...pending.countries, country];
-    setPending((p) => ({ ...p, countries: next }));
-  };
-
   const applyFilters = () => {
     setDropdownOpen(false);
-    // Apply all pending filters at once in a single state update
     onSetFilters(pending);
-    // Show loader for 800ms
     setShowLoader(true);
     setTimeout(() => setShowLoader(false), 800);
   };
 
-  // Chip-based removes act directly on live filters (bypass pending)
+  /* ── Live toggle helpers (chip removal acts directly on live filters) ── */
   const toggleWineType = (type: WineColor) => {
     const next = filters.wineTypes.includes(type)
       ? filters.wineTypes.filter((t) => t !== type)
@@ -178,11 +206,46 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     onUpdateFilter("priceRanges", next);
   };
 
-  const toggleTaste = (taste: string) => {
-    const next = filters.tasteProfiles.includes(taste)
-      ? filters.tasteProfiles.filter((t) => t !== taste)
-      : [...filters.tasteProfiles, taste];
-    onUpdateFilter("tasteProfiles", next);
+  const toggleCountry = (country: string) => {
+    const next = filters.countries.includes(country)
+      ? filters.countries.filter((c) => c !== country)
+      : [...filters.countries, country];
+    onUpdateFilter("countries", next);
+  };
+
+  const toggleWorld = (value: "old" | "new") => {
+    const next = filters.world.includes(value)
+      ? filters.world.filter((w) => w !== value)
+      : [...filters.world, value];
+    onUpdateFilter("world", next);
+  };
+
+  const toggleGrape = (grape: string) => {
+    const next = filters.grapeVarieties.includes(grape)
+      ? filters.grapeVarieties.filter((g) => g !== grape)
+      : [...filters.grapeVarieties, grape];
+    onUpdateFilter("grapeVarieties", next);
+  };
+
+  const toggleFlavour = (flavour: string) => {
+    const next = filters.flavourProfile.includes(flavour)
+      ? filters.flavourProfile.filter((f) => f !== flavour)
+      : [...filters.flavourProfile, flavour];
+    onUpdateFilter("flavourProfile", next);
+  };
+
+  const togglePrestige = (value: string) => {
+    const next = filters.prestige.includes(value)
+      ? filters.prestige.filter((v) => v !== value)
+      : [...filters.prestige, value];
+    onUpdateFilter("prestige", next);
+  };
+
+  const toggleCharacteristic = (value: string) => {
+    const next = filters.characteristics.includes(value)
+      ? filters.characteristics.filter((v) => v !== value)
+      : [...filters.characteristics, value];
+    onUpdateFilter("characteristics", next);
   };
 
   const toggleNatural = () => {
@@ -193,14 +256,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     onUpdateFilter("isAwardWinner", filters.isAwardWinner === true ? null : true);
   };
 
-  const toggleCountry = (country: string) => {
-    const next = filters.countries.includes(country)
-      ? filters.countries.filter((c) => c !== country)
-      : [...filters.countries, country];
-    onUpdateFilter("countries", next);
-  };
-
-  // Collect all active filter chips
+  /* ── Active chips collection ── */
   const activeChips: { key: string; label: string; category: string; onRemove: () => void }[] = [];
 
   filters.wineTypes.forEach((t) => {
@@ -208,7 +264,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     activeChips.push({
       key: `type-${t}`,
       label: opt?.label || t,
-      category: "Type",
+      category: "type",
       onRemove: () => toggleWineType(t),
     });
   });
@@ -217,17 +273,64 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     activeChips.push({
       key: `price-${p}`,
       label: chipLabels[p] || p,
-      category: "Price",
+      category: "price",
       onRemove: () => togglePrice(p),
     });
   });
 
-  filters.tasteProfiles.forEach((t) => {
+  filters.countries.forEach((c) => {
     activeChips.push({
-      key: `taste-${t}`,
-      label: t,
-      category: "Taste",
-      onRemove: () => toggleTaste(t),
+      key: `country-${c}`,
+      label: c,
+      category: "region",
+      onRemove: () => toggleCountry(c),
+    });
+  });
+
+  filters.world.forEach((w) => {
+    activeChips.push({
+      key: `world-${w}`,
+      label: w === "old" ? "Old World" : "New World",
+      category: "region",
+      onRemove: () => toggleWorld(w),
+    });
+  });
+
+  filters.grapeVarieties.forEach((g) => {
+    activeChips.push({
+      key: `grape-${g}`,
+      label: g,
+      category: "grape",
+      onRemove: () => toggleGrape(g),
+    });
+  });
+
+  filters.flavourProfile.forEach((f) => {
+    activeChips.push({
+      key: `flavour-${f}`,
+      label: f,
+      category: "flavour",
+      onRemove: () => toggleFlavour(f),
+    });
+  });
+
+  filters.prestige.forEach((p) => {
+    const opt = prestigeOptions.find((o) => o.value === p);
+    activeChips.push({
+      key: `prestige-${p}`,
+      label: opt?.label || p,
+      category: "prestige",
+      onRemove: () => togglePrestige(p),
+    });
+  });
+
+  filters.characteristics.forEach((c) => {
+    const opt = characteristicOptions.find((o) => o.value === c);
+    activeChips.push({
+      key: `char-${c}`,
+      label: opt?.label || c,
+      category: "characteristic",
+      onRemove: () => toggleCharacteristic(c),
     });
   });
 
@@ -235,7 +338,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     activeChips.push({
       key: "natural",
       label: "Natural",
-      category: "Style",
+      category: "characteristic",
       onRemove: toggleNatural,
     });
   }
@@ -244,23 +347,12 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     activeChips.push({
       key: "award",
       label: "Award Winner",
-      category: "Style",
+      category: "type",
       onRemove: toggleAward,
     });
   }
 
-  filters.countries.forEach((c) => {
-    activeChips.push({
-      key: `country-${c}`,
-      label: c,
-      category: "Region",
-      onRemove: () => toggleCountry(c),
-    });
-  });
-
   const hasActive = activeChips.length > 0;
-
-  // Count pending changes to know if Apply should be enabled
   const hasPendingChanges = JSON.stringify(pending) !== JSON.stringify(filters);
 
   return (
@@ -305,23 +397,8 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
           {dropdownOpen && (
             <div className="fb-dropdown" data-testid="filter-dropdown">
               <div className="fb-dd-scroll">
-                {/* Region / Country */}
-                <div className="fb-dd-group">
-                  <div className="fb-dd-label">Region</div>
-                  <div className="fb-dd-options fb-dd-options-wrap">
-                    {allCountries.map((country) => (
-                      <button
-                        key={country}
-                        className={`fb-dd-opt fb-dd-opt-pill ${pending.countries.includes(country) ? "selected" : ""}`}
-                        onClick={() => togglePendingCountry(country)}
-                      >
-                        {country}
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Wine Type */}
+                {/* 1. WINE TYPE */}
                 <div className="fb-dd-group">
                   <div className="fb-dd-label">Wine Type</div>
                   <div className="fb-dd-options">
@@ -338,7 +415,71 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
                   </div>
                 </div>
 
-                {/* Price Range */}
+                {/* 2. COUNTRY / REGION */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Country / Region</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {allCountries.map((country) => (
+                      <button
+                        key={country}
+                        className={`fb-dd-opt fb-dd-opt-pill ${pending.countries.includes(country) ? "selected" : ""}`}
+                        onClick={() => togglePendingCountry(country)}
+                      >
+                        {country}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. WORLD */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">World</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {worldOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`fb-dd-opt fb-dd-opt-pill ${pending.world.includes(o.value) ? "selected" : ""}`}
+                        onClick={() => togglePendingWorld(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. GRAPE VARIETY */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Grape Variety</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {topGrapes.map((grape) => (
+                      <button
+                        key={grape}
+                        className={`fb-dd-opt fb-dd-opt-pill fb-dd-opt-sage ${pending.grapeVarieties.includes(grape) ? "selected" : ""}`}
+                        onClick={() => togglePendingGrape(grape)}
+                      >
+                        {grape}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. FLAVOUR PROFILE */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Flavour Profile</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {flavourProfileOptions.map((flavour) => (
+                      <button
+                        key={flavour}
+                        className={`fb-dd-opt fb-dd-opt-pill fb-dd-opt-gold ${pending.flavourProfile.includes(flavour) ? "selected" : ""}`}
+                        onClick={() => togglePendingFlavour(flavour)}
+                      >
+                        {flavour}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 6. PRICE RANGE */}
                 <div className="fb-dd-group">
                   <div className="fb-dd-label">Price Range</div>
                   <div className="fb-dd-options">
@@ -355,17 +496,42 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
                   </div>
                 </div>
 
-                {/* Style */}
+                {/* 7. PRESTIGE */}
                 <div className="fb-dd-group">
-                  <div className="fb-dd-label">Style</div>
+                  <div className="fb-dd-label">Prestige</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {prestigeOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`fb-dd-opt fb-dd-opt-pill fb-dd-opt-plum ${pending.prestige.includes(o.value) ? "selected" : ""}`}
+                        onClick={() => togglePendingPrestige(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 8. CHARACTERISTICS */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Characteristics</div>
+                  <div className="fb-dd-options fb-dd-options-wrap">
+                    {characteristicOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`fb-dd-opt fb-dd-opt-pill ${pending.characteristics.includes(o.value) ? "selected" : ""}`}
+                        onClick={() => togglePendingCharacteristic(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Award Winners toggle */}
+                <div className="fb-dd-group">
+                  <div className="fb-dd-label">Awards</div>
                   <div className="fb-dd-options">
-                    <button
-                      className={`fb-dd-opt ${pending.isNatural === true ? "selected" : ""}`}
-                      onClick={togglePendingNatural}
-                    >
-                      <span className="fb-dd-check">{pending.isNatural === true ? "✓" : ""}</span>
-                      Natural Wine
-                    </button>
                     <button
                       className={`fb-dd-opt ${pending.isAwardWinner === true ? "selected" : ""}`}
                       onClick={togglePendingAward}
@@ -376,23 +542,6 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
                   </div>
                 </div>
 
-                {/* Taste Profile categories */}
-                {tasteCategories.map((cat) => (
-                  <div key={cat.category} className="fb-dd-group">
-                    <div className="fb-dd-label">{cat.category}</div>
-                    <div className="fb-dd-options fb-dd-options-wrap">
-                      {cat.options.map((o) => (
-                        <button
-                          key={o}
-                          className={`fb-dd-opt fb-dd-opt-pill ${pending.tasteProfiles.includes(o) ? "selected" : ""}`}
-                          onClick={() => togglePendingTaste(o)}
-                        >
-                          {o}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
               </div>
 
               {/* Footer */}
@@ -420,7 +569,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
           {activeChips.map((chip) => (
             <span
               key={chip.key}
-              className={`fb-chip fb-chip-${chip.category.toLowerCase()}`}
+              className={`fb-chip fb-chip-${chip.category}`}
               data-testid={`active-filter-${chip.key}`}
             >
               {chip.label}

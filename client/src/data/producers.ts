@@ -14,6 +14,10 @@ export interface Producer {
   isAwardWinner: boolean;
   tasteProfile: string[];
   keyFacts: string[];
+  prestige: "legendary" | "iconic" | "rising-star" | "established";
+  characteristics: string[];
+  grapeVarieties: string[];
+  world: "old" | "new";
 }
 
 export const producers: Producer[] = [
@@ -33,7 +37,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackcurrant", "Cedar", "Pencil Lead", "Violet", "Silk"],
-    keyFacts: ["First Growth, 1855 Classification", "Owned by the Rothschild family since 1868", "Average vine age: 40+ years"]
+    keyFacts: ["First Growth, 1855 Classification", "Owned by the Rothschild family since 1868", "Average vine age: 40+ years"],
+    prestige: "legendary",
+    characteristics: ["grand-cru", "age-worthy", "estate-grown", "old-vines"],
+    grapeVarieties: ["Cabernet Sauvignon", "Merlot", "Cabernet Franc"],
+    world: "old"
   },
   {
     id: "chateau-margaux",
@@ -50,7 +58,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Violet", "Blackcurrant", "Licorice", "Silk", "Floral"],
-    keyFacts: ["First Growth, 1855 Classification", "87 hectares of red vines, 12 of white", "Pavillon Blanc is Bordeaux's most celebrated dry white"]
+    keyFacts: ["First Growth, 1855 Classification", "87 hectares of red vines, 12 of white", "Pavillon Blanc is Bordeaux's most celebrated dry white"],
+    prestige: "legendary",
+    characteristics: ["grand-cru", "age-worthy", "estate-grown", "old-vines"],
+    grapeVarieties: ["Cabernet Sauvignon", "Merlot", "Cabernet Franc", "Chardonnay"],
+    world: "old"
   },
   {
     id: "petrus",
@@ -67,7 +79,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Plum", "Truffle", "Chocolate", "Velvet", "Mocha"],
-    keyFacts: ["Nearly 100% Merlot", "Only 11.5 hectares of vines", "No official classification — universally acknowledged as supreme"]
+    keyFacts: ["Nearly 100% Merlot", "Only 11.5 hectares of vines", "No official classification — universally acknowledged as supreme"],
+    prestige: "legendary",
+    characteristics: ["cult-wine", "single-vineyard", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Merlot"],
+    world: "old"
   },
   // ── BURGUNDY ─────────────────────────────────────────────────────────────────
   {
@@ -85,7 +101,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Rose Petal", "Cherry", "Spice", "Earth", "Silk"],
-    keyFacts: ["Most expensive wine in the world by average price", "Biodynamic farming since 1985", "Only ~6,000 bottles of Romanée-Conti per year"]
+    keyFacts: ["Most expensive wine in the world by average price", "Biodynamic farming since 1985", "Only ~6,000 bottles of Romanée-Conti per year"],
+    prestige: "legendary",
+    characteristics: ["biodynamic", "grand-cru", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay"],
+    world: "old"
   },
   {
     id: "leroy",
@@ -102,7 +122,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Wild Strawberry", "Forest Floor", "Spice", "Iron", "Ethereal"],
-    keyFacts: ["Strict biodynamic farming", "Yields often 50% below AOC maximum", "Portfolio of Grand Cru and Premier Cru holdings"]
+    keyFacts: ["Strict biodynamic farming", "Yields often 50% below AOC maximum", "Portfolio of Grand Cru and Premier Cru holdings"],
+    prestige: "legendary",
+    characteristics: ["biodynamic", "grand-cru", "old-vines", "age-worthy"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay"],
+    world: "old"
   },
   // ── CHAMPAGNE ────────────────────────────────────────────────────────────────
   {
@@ -120,7 +144,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Brioche", "Citrus", "Almond", "Minerality", "Toast"],
-    keyFacts: ["Only produced in declared vintage years", "P2 and P3 releases represent further aging (16+ and 25+ years)", "Named after Dom Pierre Pérignon (1638-1715)"]
+    keyFacts: ["Only produced in declared vintage years", "P2 and P3 releases represent further aging (16+ and 25+ years)", "Named after Dom Pierre Pérignon (1638-1715)"],
+    prestige: "iconic",
+    characteristics: ["grand-cru", "age-worthy"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir"],
+    world: "old"
   },
   {
     id: "krug",
@@ -137,7 +165,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Hazelnut", "Honey", "Citrus", "Toasted Bread", "Marzipan"],
-    keyFacts: ["Every wine vinified in small oak barrels", "Grande Cuvée blends 120+ wines from 10+ vintages", "Krug ID on every bottle traces its story online"]
+    keyFacts: ["Every wine vinified in small oak barrels", "Grande Cuvée blends 120+ wines from 10+ vintages", "Krug ID on every bottle traces its story online"],
+    prestige: "iconic",
+    characteristics: ["grand-cru", "age-worthy"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir", "Pinot Meunier"],
+    world: "old"
   },
   {
     id: "bollinger",
@@ -154,7 +186,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Apple", "Brioche", "Walnut", "Spice", "Cream"],
-    keyFacts: ["James Bond's Champagne of choice", "Reserve wines aged in magnums under cork", "Still family-controlled after nearly 200 years"]
+    keyFacts: ["James Bond's Champagne of choice", "Reserve wines aged in magnums under cork", "Still family-controlled after nearly 200 years"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "age-worthy"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay", "Pinot Meunier"],
+    world: "old"
   },
   // ── RHÔNE VALLEY ─────────────────────────────────────────────────────────────
   {
@@ -172,7 +208,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Bacon Fat", "Violet", "Black Olive", "Dark Berry", "Smoke"],
-    keyFacts: ["The 'La-La's' are among the most perfect-scored wines in history", "42 months in new oak for single-vineyard Côte-Rôties", "Three generations of family winemaking"]
+    keyFacts: ["The 'La-La's' are among the most perfect-scored wines in history", "42 months in new oak for single-vineyard Côte-Rôties", "Three generations of family winemaking"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "age-worthy", "family-estate"],
+    grapeVarieties: ["Syrah", "Viognier", "Grenache"],
+    world: "old"
   },
   {
     id: "chapoutier",
@@ -189,7 +229,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackberry", "Leather", "Pepper", "Herb", "Mineral"],
-    keyFacts: ["All labels include Braille", "Fully biodynamic across all vineyards", "Holdings spanning the entire Rhône, plus Australia and Portugal"]
+    keyFacts: ["All labels include Braille", "Fully biodynamic across all vineyards", "Holdings spanning the entire Rhône, plus Australia and Portugal"],
+    prestige: "iconic",
+    characteristics: ["biodynamic", "single-vineyard", "estate-grown"],
+    grapeVarieties: ["Syrah", "Grenache", "Marsanne", "Roussanne"],
+    world: "old"
   },
   // ── TUSCANY ──────────────────────────────────────────────────────────────────
   {
@@ -207,7 +251,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cassis", "Cedar", "Tobacco", "Iron", "Herb"],
-    keyFacts: ["The original Super Tuscan", "First wine to receive its own single-estate DOC (Bolgheri Sassicaia)", "Regularly ranked among the world's top wines"]
+    keyFacts: ["The original Super Tuscan", "First wine to receive its own single-estate DOC (Bolgheri Sassicaia)", "Regularly ranked among the world's top wines"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Cabernet Sauvignon", "Cabernet Franc"],
+    world: "old"
   },
   {
     id: "antinori",
@@ -224,7 +272,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cherry", "Plum", "Vanilla", "Leather", "Spice"],
-    keyFacts: ["26 generations — since 1385", "Tignanello (1971) was the first Sangiovese-Cabernet blend", "Stunning subterranean winery opened in 2012"]
+    keyFacts: ["26 generations — since 1385", "Tignanello (1971) was the first Sangiovese-Cabernet blend", "Stunning subterranean winery opened in 2012"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "age-worthy", "old-vines"],
+    grapeVarieties: ["Sangiovese", "Cabernet Sauvignon", "Cabernet Franc"],
+    world: "old"
   },
   {
     id: "biondi-santi",
@@ -241,7 +293,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Sour Cherry", "Leather", "Tea", "Tobacco", "Earth"],
-    keyFacts: ["Invented Brunello di Montalcino", "The 1888 and 1891 Riservas are among Italy's most legendary bottles", "Only produced in the best vintages"]
+    keyFacts: ["Invented Brunello di Montalcino", "The 1888 and 1891 Riservas are among Italy's most legendary bottles", "Only produced in the best vintages"],
+    prestige: "legendary",
+    characteristics: ["single-vineyard", "old-vines", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Sangiovese"],
+    world: "old"
   },
   // ── SICILY ───────────────────────────────────────────────────────────────────
   {
@@ -259,7 +315,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Wild Cherry", "Blood Orange", "Volcanic Ash", "Rose Petal", "Mineral"],
-    keyFacts: ["Pioneers of the Etna wine renaissance from 1988", "Farms pre-phylloxera vines at 600–900m on the volcano", "Serra della Contessa (red) and Pietra Marina (white) are their benchmark single-vineyards"]
+    keyFacts: ["Pioneers of the Etna wine renaissance from 1988", "Farms pre-phylloxera vines at 600–900m on the volcano", "Serra della Contessa (red) and Pietra Marina (white) are their benchmark single-vineyards"],
+    prestige: "established",
+    characteristics: ["single-vineyard", "old-vines", "estate-grown"],
+    grapeVarieties: ["Nerello Mascalese", "Carricante"],
+    world: "old"
   },
   // ── PIEDMONT ─────────────────────────────────────────────────────────────────
   {
@@ -277,7 +337,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Tar", "Roses", "Cherry", "Dried Herbs", "Truffle"],
-    keyFacts: ["Monfortino ages 7+ years in large Slavonian oak", "Only produced in exceptional vintages", "Among the most sought-after Italian wines"]
+    keyFacts: ["Monfortino ages 7+ years in large Slavonian oak", "Only produced in exceptional vintages", "Among the most sought-after Italian wines"],
+    prestige: "legendary",
+    characteristics: ["single-vineyard", "age-worthy", "family-estate"],
+    grapeVarieties: ["Nebbiolo"],
+    world: "old"
   },
   {
     id: "gaja",
@@ -294,7 +358,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Rose", "Cherry", "Licorice", "Mineral", "Smoke"],
-    keyFacts: ["Five generations of winemaking", "Introduced French oak barrels to Piedmont", "Owns vineyards in Barolo, Barbaresco, and Tuscany"]
+    keyFacts: ["Five generations of winemaking", "Introduced French oak barrels to Piedmont", "Owns vineyards in Barolo, Barbaresco, and Tuscany"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "family-estate", "age-worthy"],
+    grapeVarieties: ["Nebbiolo", "Chardonnay", "Cabernet Sauvignon"],
+    world: "old"
   },
   // ── RIOJA ────────────────────────────────────────────────────────────────────
   {
@@ -312,7 +380,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dried Cherry", "Vanilla", "Leather", "Tobacco", "Walnut"],
-    keyFacts: ["Wines aged 20+ years before release", "Underground cellars contain wines from every vintage since 1877", "Their rosé Gran Reserva is among the world's most extraordinary rosés"]
+    keyFacts: ["Wines aged 20+ years before release", "Underground cellars contain wines from every vintage since 1877", "Their rosé Gran Reserva is among the world's most extraordinary rosés"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "old-vines", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Tempranillo", "Garnacha", "Viura"],
+    world: "old"
   },
   {
     id: "vega-sicilia",
@@ -329,7 +401,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Fruit", "Cedar", "Leather", "Spice", "Tobacco"],
-    keyFacts: ["Único ages 10+ years before release", "Spain's most iconic wine estate", "Also produces Valbuena (5-year release) and Alión"]
+    keyFacts: ["Único ages 10+ years before release", "Spain's most iconic wine estate", "Also produces Valbuena (5-year release) and Alión"],
+    prestige: "legendary",
+    characteristics: ["age-worthy", "estate-grown", "old-vines"],
+    grapeVarieties: ["Tempranillo", "Cabernet Sauvignon", "Merlot"],
+    world: "old"
   },
   // ── NAPA VALLEY ──────────────────────────────────────────────────────────────
   {
@@ -347,7 +423,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cassis", "Dark Chocolate", "Espresso", "Plum", "Silk"],
-    keyFacts: ["Mondavi-Rothschild collaboration", "Single wine produced each vintage", "Iconic circular winery designed by Scott Johnson"]
+    keyFacts: ["Mondavi-Rothschild collaboration", "Single wine produced each vintage", "Iconic circular winery designed by Scott Johnson"],
+    prestige: "legendary",
+    characteristics: ["single-vineyard", "age-worthy"],
+    grapeVarieties: ["Cabernet Sauvignon", "Merlot", "Cabernet Franc"],
+    world: "new"
   },
   {
     id: "screaming-eagle",
@@ -364,7 +444,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackberry", "Cassis", "Graphite", "Violet", "Pure"],
-    keyFacts: ["Only 500-850 cases per year", "99 points from Parker on debut vintage", "6-liter bottle sold for $500,000 at charity auction"]
+    keyFacts: ["Only 500-850 cases per year", "99 points from Parker on debut vintage", "6-liter bottle sold for $500,000 at charity auction"],
+    prestige: "legendary",
+    characteristics: ["cult-wine", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Cabernet Sauvignon"],
+    world: "new"
   },
   {
     id: "ridge",
@@ -381,7 +465,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackcurrant", "Iron", "Herb", "Cedar", "Mineral"],
-    keyFacts: ["Monte Bello placed #1 in the 2006 Judgment of Paris re-tasting", "Full ingredient list on every label since 1970s", "Vineyards at 400m elevation in the Santa Cruz Mountains"]
+    keyFacts: ["Monte Bello placed #1 in the 2006 Judgment of Paris re-tasting", "Full ingredient list on every label since 1970s", "Vineyards at 400m elevation in the Santa Cruz Mountains"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "old-vines", "organic"],
+    grapeVarieties: ["Cabernet Sauvignon", "Zinfandel"],
+    world: "new"
   },
   // ── SONOMA ───────────────────────────────────────────────────────────────────
   {
@@ -399,7 +487,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lemon Curd", "Hazelnut", "Mineral", "White Flowers", "Butter"],
-    keyFacts: ["Burgundian approach to California Chardonnay", "Multiple single-vineyard designations", "One of the most allocated wines in America"]
+    keyFacts: ["Burgundian approach to California Chardonnay", "Multiple single-vineyard designations", "One of the most allocated wines in America"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "estate-grown"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir"],
+    world: "new"
   },
   // ── BAROSSA VALLEY ───────────────────────────────────────────────────────────
   {
@@ -417,7 +509,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Chocolate", "Blackberry", "Licorice", "Vanilla", "Earth"],
-    keyFacts: ["Grange is Australia's most collected wine", "Max Schubert was initially ordered to stop making it", "The 1951 Grange is considered the greatest Australian wine ever made"]
+    keyFacts: ["Grange is Australia's most collected wine", "Max Schubert was initially ordered to stop making it", "The 1951 Grange is considered the greatest Australian wine ever made"],
+    prestige: "legendary",
+    characteristics: ["age-worthy", "estate-grown"],
+    grapeVarieties: ["Shiraz", "Cabernet Sauvignon", "Grenache"],
+    world: "new"
   },
   {
     id: "henschke",
@@ -434,7 +530,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Plum", "Spice", "Licorice", "Mint", "Dark Earth"],
-    keyFacts: ["Hill of Grace vines are 160+ years old", "Six generations of family winemaking", "Certified biodynamic"]
+    keyFacts: ["Hill of Grace vines are 160+ years old", "Six generations of family winemaking", "Certified biodynamic"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "biodynamic", "old-vines", "single-vineyard"],
+    grapeVarieties: ["Shiraz", "Riesling"],
+    world: "new"
   },
   // ── YARRA VALLEY ─────────────────────────────────────────────────────────────
   {
@@ -452,7 +552,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Red Cherry", "Raspberry", "Forest Floor", "Spice", "Fine Silk"],
-    keyFacts: ["Focus on single-vineyard Pinot Noir and Chardonnay", "Multiple Yarra Valley vineyard sources with distinct characters", "Acclaimed for capturing cool-climate Yarra terroir expression"]
+    keyFacts: ["Focus on single-vineyard Pinot Noir and Chardonnay", "Multiple Yarra Valley vineyard sources with distinct characters", "Acclaimed for capturing cool-climate Yarra terroir expression"],
+    prestige: "rising-star",
+    characteristics: ["single-vineyard", "estate-grown"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay"],
+    world: "new"
   },
   // ── MARLBOROUGH ──────────────────────────────────────────────────────────────
   {
@@ -470,7 +574,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Passionfruit", "Grapefruit", "Gooseberry", "Herb", "Mineral"],
-    keyFacts: ["Put New Zealand wine on the global map", "Named after the bay at the north end of the South Island", "Now part of the LVMH luxury group"]
+    keyFacts: ["Put New Zealand wine on the global map", "Named after the bay at the north end of the South Island", "Now part of the LVMH luxury group"],
+    prestige: "iconic",
+    characteristics: ["estate-grown"],
+    grapeVarieties: ["Sauvignon Blanc", "Pinot Noir", "Chardonnay"],
+    world: "new"
   },
   // ── MOSEL ────────────────────────────────────────────────────────────────────
   {
@@ -488,7 +596,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Green Apple", "Slate", "Peach", "Lime", "Honey"],
-    keyFacts: ["Wehlener Sonnenuhr is one of the world's great vineyards", "Wines routinely age for 30+ years", "The 'Goldkapsel' (gold capsule) designates the very finest selections"]
+    keyFacts: ["Wehlener Sonnenuhr is one of the world's great vineyards", "Wines routinely age for 30+ years", "The 'Goldkapsel' (gold capsule) designates the very finest selections"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Riesling"],
+    world: "old"
   },
   {
     id: "egon-muller",
@@ -505,7 +617,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lime Zest", "Apricot", "Petrol", "Wet Stone", "Honey"],
-    keyFacts: ["Most expensive white wine in the world", "Scharzhofberg vineyard dates to Roman times", "TBA produced only in exceptional years — sometimes just 100-200 bottles"]
+    keyFacts: ["Most expensive white wine in the world", "Scharzhofberg vineyard dates to Roman times", "TBA produced only in exceptional years — sometimes just 100-200 bottles"],
+    prestige: "legendary",
+    characteristics: ["single-vineyard", "age-worthy", "old-vines"],
+    grapeVarieties: ["Riesling"],
+    world: "old"
   },
   // ── DOURO ────────────────────────────────────────────────────────────────────
   {
@@ -523,7 +639,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackberry", "Chocolate", "Spice", "Plum", "Cedar"],
-    keyFacts: ["Family-owned for over 300 years", "Quinta de Vargellas is one of the Douro's finest estates", "Their 20-Year Tawny is considered the benchmark"]
+    keyFacts: ["Family-owned for over 300 years", "Quinta de Vargellas is one of the Douro's finest estates", "Their 20-Year Tawny is considered the benchmark"],
+    prestige: "iconic",
+    characteristics: ["age-worthy", "estate-grown"],
+    grapeVarieties: ["Touriga Nacional", "Touriga Franca", "Tinta Roriz"],
+    world: "old"
   },
   // ── WACHAU ───────────────────────────────────────────────────────────────────
   {
@@ -541,7 +661,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lime", "White Pepper", "Stone Fruit", "Mineral", "Herb"],
-    keyFacts: ["Manages 440+ hectares across the Wachau's finest terraced sites", "Singerriedel and Achleiten are among Austria's most celebrated single vineyards", "Produces all three Wachau styles: Steinfeder, Federspiel, and Smaragd"]
+    keyFacts: ["Manages 440+ hectares across the Wachau's finest terraced sites", "Singerriedel and Achleiten are among Austria's most celebrated single vineyards", "Produces all three Wachau styles: Steinfeder, Federspiel, and Smaragd"],
+    prestige: "established",
+    characteristics: ["estate-grown", "old-vines"],
+    grapeVarieties: ["Grüner Veltliner", "Riesling"],
+    world: "old"
   },
   {
     id: "fx-pichler",
@@ -558,7 +682,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["White Pepper", "Grapefruit", "Stone Fruit", "Cream", "Mineral Intensity"],
-    keyFacts: ["Unendlich (Infinity) is Pichler's greatest expression", "M-designation wines represent the most selective picking", "Among the most celebrated white wine producers in the world"]
+    keyFacts: ["Unendlich (Infinity) is Pichler's greatest expression", "M-designation wines represent the most selective picking", "Among the most celebrated white wine producers in the world"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "old-vines", "estate-grown"],
+    grapeVarieties: ["Grüner Veltliner", "Riesling"],
+    world: "old"
   },
   // ── TOKAJ ────────────────────────────────────────────────────────────────────
   {
@@ -576,7 +704,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Apricot Jam", "Saffron", "Orange Marmalade", "Ginger", "Razor Acidity"],
-    keyFacts: ["Founded with Hugh Johnson's involvement to restore Tokaj's reputation", "Farms first-classified crus: Nyulászó, Mézes Mály, and Betsek", "The 6 Puttonyos is one of the world's great dessert wines"]
+    keyFacts: ["Founded with Hugh Johnson's involvement to restore Tokaj's reputation", "Farms first-classified crus: Nyulászó, Mézes Mály, and Betsek", "The 6 Puttonyos is one of the world's great dessert wines"],
+    prestige: "iconic",
+    characteristics: ["grand-cru", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Furmint", "Hárslevelű"],
+    world: "old"
   },
   // ── KAKHETI (GEORGIA) ────────────────────────────────────────────────────────
   {
@@ -594,7 +726,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: true,
     tasteProfile: ["Dried Apricot", "Chamomile", "Walnut", "Tannic Texture", "Oxidative Richness"],
-    keyFacts: ["Named after the Georgian legend that pheasants cry tears of wine", "Fermentation and aging entirely in buried qvevri clay vessels", "John Wurdeman also founded the Tbilisi Wine Academy"]
+    keyFacts: ["Named after the Georgian legend that pheasants cry tears of wine", "Fermentation and aging entirely in buried qvevri clay vessels", "John Wurdeman also founded the Tbilisi Wine Academy"],
+    prestige: "rising-star",
+    characteristics: ["natural", "old-vines", "family-estate"],
+    grapeVarieties: ["Rkatsiteli", "Mtsvane", "Saperavi"],
+    world: "old"
   },
   // ── SANTORINI (GREECE) ───────────────────────────────────────────────────────
   {
@@ -612,7 +748,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lemon Zest", "Sea Salt", "Volcanic Stone", "White Peach", "Flint"],
-    keyFacts: ["Paris Sigalas was a mathematics professor before dedicating himself to wine", "Kavalieros single-vineyard Assyrtiko is one of Greece's finest whites", "Also produces Vinsanto from sun-dried Assyrtiko grapes — a Santorini tradition"]
+    keyFacts: ["Paris Sigalas was a mathematics professor before dedicating himself to wine", "Kavalieros single-vineyard Assyrtiko is one of Greece's finest whites", "Also produces Vinsanto from sun-dried Assyrtiko grapes — a Santorini tradition"],
+    prestige: "established",
+    characteristics: ["single-vineyard", "organic", "estate-grown"],
+    grapeVarieties: ["Assyrtiko"],
+    world: "old"
   },
   // ── ENGLISH SPARKLING ────────────────────────────────────────────────────────
   {
@@ -630,7 +770,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Green Apple", "Brioche", "Citrus Zest", "Chalk Minerality", "Almond"],
-    keyFacts: ["Founded 1988 — the pioneer of English fine sparkling wine", "Winemaker Cherie Spriggs named world's best sparkling wine producer", "Consistently beats Champagne in major blind tastings"]
+    keyFacts: ["Founded 1988 — the pioneer of English fine sparkling wine", "Winemaker Cherie Spriggs named world's best sparkling wine producer", "Consistently beats Champagne in major blind tastings"],
+    prestige: "established",
+    characteristics: ["estate-grown", "single-vineyard"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir", "Pinot Meunier"],
+    world: "old"
   },
   // ── STELLENBOSCH ─────────────────────────────────────────────────────────────
   {
@@ -648,7 +792,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Berry", "Smoke", "Chocolate", "Earth", "Plum"],
-    keyFacts: ["Named International Winery of the Year multiple times", "The benchmark for South African Pinotage", "Paul Sauer is a Bordeaux-style blend of Cab, Merlot, and Cab Franc"]
+    keyFacts: ["Named International Winery of the Year multiple times", "The benchmark for South African Pinotage", "Paul Sauer is a Bordeaux-style blend of Cab, Merlot, and Cab Franc"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "old-vines", "estate-grown"],
+    grapeVarieties: ["Pinotage", "Cabernet Sauvignon"],
+    world: "new"
   },
   // ── SWARTLAND ────────────────────────────────────────────────────────────────
   {
@@ -666,7 +814,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: true,
     tasteProfile: ["Dark Olive", "Dark Berry", "Iron", "Dried Herbs", "Salty Minerality"],
-    keyFacts: ["Columella and Palladius are ranked among the world's top 100 wines", "Farms from very old (50–100 year) unirrigated Chenin, Syrah, and Cinsault vines", "Eben Sadie co-founded the Swartland Revolution to champion minimal-intervention farming"]
+    keyFacts: ["Columella and Palladius are ranked among the world's top 100 wines", "Farms from very old (50–100 year) unirrigated Chenin, Syrah, and Cinsault vines", "Eben Sadie co-founded the Swartland Revolution to champion minimal-intervention farming"],
+    prestige: "iconic",
+    characteristics: ["natural", "old-vines", "single-vineyard"],
+    grapeVarieties: ["Grenache", "Syrah", "Chenin Blanc"],
+    world: "new"
   },
   // ── MENDOZA ──────────────────────────────────────────────────────────────────
   {
@@ -684,7 +836,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Plum", "Violet", "Dark Chocolate", "Spice", "Earth"],
-    keyFacts: ["Pioneered high-altitude Malbec in the Uco Valley", "Vineyards up to 1,500 meters elevation", "Mayan pyramid-inspired winery in Agrelo"]
+    keyFacts: ["Pioneered high-altitude Malbec in the Uco Valley", "Vineyards up to 1,500 meters elevation", "Mayan pyramid-inspired winery in Agrelo"],
+    prestige: "legendary",
+    characteristics: ["single-vineyard", "family-estate", "age-worthy"],
+    grapeVarieties: ["Malbec", "Cabernet Sauvignon", "Chardonnay"],
+    world: "new"
   },
   // ── MAIPO & COLCHAGUA (CHILE) ────────────────────────────────────────────────
   {
@@ -702,7 +858,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cassis", "Eucalyptus", "Cedar", "Dark Chocolate", "Andean Mineral"],
-    keyFacts: ["Don Melchor from Maipo Alto is Chile's most iconic single-vineyard Cabernet", "Concha y Toro is South America's largest wine producer", "Consistently ranked in the world's top 100 wines"]
+    keyFacts: ["Don Melchor from Maipo Alto is Chile's most iconic single-vineyard Cabernet", "Concha y Toro is South America's largest wine producer", "Consistently ranked in the world's top 100 wines"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "age-worthy", "estate-grown"],
+    grapeVarieties: ["Cabernet Sauvignon"],
+    world: "new"
   },
   {
     id: "montes",
@@ -719,7 +879,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Plum", "Cassis", "Mocha", "Dark Chocolate", "Velvety Tannins"],
-    keyFacts: ["Montes Alpha M is Chile's flagship Bordeaux-style blend", "Purple Angel is one of the world's finest pure Carménère wines", "Apalta vineyard in Colchagua is recognized as one of South America's great terroirs"]
+    keyFacts: ["Montes Alpha M is Chile's flagship Bordeaux-style blend", "Purple Angel is one of the world's finest pure Carménère wines", "Apalta vineyard in Colchagua is recognized as one of South America's great terroirs"],
+    prestige: "established",
+    characteristics: ["estate-grown", "single-vineyard"],
+    grapeVarieties: ["Cabernet Sauvignon", "Syrah", "Carmenère"],
+    world: "new"
   },
   // ── WILLAMETTE VALLEY ────────────────────────────────────────────────────────
   {
@@ -737,7 +901,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cherry", "Earth", "Spice", "Silk", "Mushroom"],
-    keyFacts: ["Burgundy meets Oregon — Drouhin family investment", "Gravity-flow, four-level winery", "Véronique Boss-Drouhin is one of Oregon's most respected winemakers"]
+    keyFacts: ["Burgundy meets Oregon — Drouhin family investment", "Gravity-flow, four-level winery", "Véronique Boss-Drouhin is one of Oregon's most respected winemakers"],
+    prestige: "iconic",
+    characteristics: ["single-vineyard", "organic", "estate-grown"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay"],
+    world: "new"
   },
   // ── FINGER LAKES ─────────────────────────────────────────────────────────────
   {
@@ -755,7 +923,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lime", "Green Apple", "Slate", "Ginger", "Electric Acidity"],
-    keyFacts: ["Planted the first Vitis vinifera in the Finger Lakes region in 1962", "Proved European grapes could thrive in upstate New York's harsh winters", "Third-generation family winery still leading Finger Lakes quality"]
+    keyFacts: ["Planted the first Vitis vinifera in the Finger Lakes region in 1962", "Proved European grapes could thrive in upstate New York's harsh winters", "Third-generation family winery still leading Finger Lakes quality"],
+    prestige: "established",
+    characteristics: ["family-estate", "estate-grown"],
+    grapeVarieties: ["Riesling", "Pinot Noir", "Chardonnay"],
+    world: "new"
   },
   // ── OKANAGAN VALLEY ──────────────────────────────────────────────────────────
   {
@@ -773,7 +945,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Plum", "Black Cherry", "Cedar", "Vanilla", "Silky Tannins"],
-    keyFacts: ["Oculus is Canada's most internationally recognized wine", "Stunning Tuscan-inspired hilltop winery above Okanagan Lake", "Also produces Icewine from naturally frozen Riesling and Vidal grapes"]
+    keyFacts: ["Oculus is Canada's most internationally recognized wine", "Stunning Tuscan-inspired hilltop winery above Okanagan Lake", "Also produces Icewine from naturally frozen Riesling and Vidal grapes"],
+    prestige: "established",
+    characteristics: ["estate-grown", "single-vineyard"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir", "Cabernet Sauvignon"],
+    world: "new"
   },
   // ── VALLE DE GUADALUPE ───────────────────────────────────────────────────────
   {
@@ -791,7 +967,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Cherry", "Dried Rose", "Earth", "Tobacco", "Leather"],
-    keyFacts: ["Oldest premium winery in Mexico — founded by Italian immigrants", "One of the first to demonstrate that Nebbiolo thrives in Baja's Mediterranean climate", "Helped establish Mexico as a serious wine-producing nation internationally"]
+    keyFacts: ["Oldest premium winery in Mexico — founded by Italian immigrants", "One of the first to demonstrate that Nebbiolo thrives in Baja's Mediterranean climate", "Helped establish Mexico as a serious wine-producing nation internationally"],
+    prestige: "established",
+    characteristics: ["family-estate", "old-vines"],
+    grapeVarieties: ["Nebbiolo", "Tempranillo", "Cabernet Sauvignon"],
+    world: "new"
   },
   // ── NINGXIA (CHINA) ──────────────────────────────────────────────────────────
   {
@@ -809,7 +989,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackcurrant", "Dark Plum", "Floral", "Himalayan Mineral", "Silk"],
-    keyFacts: ["LVMH's flagship Chinese fine wine project, launched 2013", "Vineyards at 2,200–2,600m in the Himalayas — among the world's highest", "Debut 2013 vintage received near-perfect scores from major critics"]
+    keyFacts: ["LVMH's flagship Chinese fine wine project, launched 2013", "Vineyards at 2,200–2,600m in the Himalayas — among the world's highest", "Debut 2013 vintage received near-perfect scores from major critics"],
+    prestige: "rising-star",
+    characteristics: ["single-vineyard", "estate-grown"],
+    grapeVarieties: ["Cabernet Sauvignon", "Cabernet Franc"],
+    world: "new"
   },
   // ── BEKAA VALLEY (LEBANON) ───────────────────────────────────────────────────
   {
@@ -827,7 +1011,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dried Fruit", "Tobacco", "Earth", "Cedar", "Oxidative Complexity"],
-    keyFacts: ["Continued producing through Lebanon's 1975–1990 civil war — missing only 2 vintages", "Serge Hochar was awarded Decanter Man of the Year in 1984", "Musar wines routinely age 30–50+ years — among the longest-lived reds in the world"]
+    keyFacts: ["Continued producing through Lebanon's 1975–1990 civil war — missing only 2 vintages", "Serge Hochar was awarded Decanter Man of the Year in 1984", "Musar wines routinely age 30–50+ years — among the longest-lived reds in the world"],
+    prestige: "iconic",
+    characteristics: ["age-worthy", "old-vines", "estate-grown"],
+    grapeVarieties: ["Cabernet Sauvignon", "Cinsault", "Carignan"],
+    world: "old"
   },
   // ── LOIRE VALLEY ─────────────────────────────────────────────────────────────
   {
@@ -845,7 +1033,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Quince", "Honey", "Beeswax", "Citrus", "Mineral"],
-    keyFacts: ["Biodynamic pioneer in the Loire", "Three legendary Vouvray parcels", "Wines can age for 50+ years"]
+    keyFacts: ["Biodynamic pioneer in the Loire", "Three legendary Vouvray parcels", "Wines can age for 50+ years"],
+    prestige: "iconic",
+    characteristics: ["biodynamic", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Chenin Blanc"],
+    world: "old"
   },
   // ── ALSACE ───────────────────────────────────────────────────────────────────
   {
@@ -863,7 +1055,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lime", "Petrol", "Mineral", "Flint", "Precision"],
-    keyFacts: ["13 generations of family winemaking", "Clos Sainte Hune is just 1.67 hectares", "Pioneered the bone-dry Alsatian style"]
+    keyFacts: ["13 generations of family winemaking", "Clos Sainte Hune is just 1.67 hectares", "Pioneered the bone-dry Alsatian style"],
+    prestige: "iconic",
+    characteristics: ["family-estate", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Riesling", "Pinot Gris", "Gewurztraminer"],
+    world: "old"
   },
   // ── PRIORAT ──────────────────────────────────────────────────────────────────
   {
@@ -881,7 +1077,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Wild Berry", "Mineral", "Licorice", "Smoke", "Floral"],
-    keyFacts: ["Key figure in Priorat's 1990s renaissance", "L'Ermita vines are 80+ years old on pure slate", "Also produces legendary wines in Bierzo (Descendientes de J. Palacios)"]
+    keyFacts: ["Key figure in Priorat's 1990s renaissance", "L'Ermita vines are 80+ years old on pure slate", "Also produces legendary wines in Bierzo (Descendientes de J. Palacios)"],
+    prestige: "iconic",
+    characteristics: ["old-vines", "single-vineyard", "natural"],
+    grapeVarieties: ["Grenache", "Carignan"],
+    world: "old"
   },
   // ── CENTRAL OTAGO ────────────────────────────────────────────────────────────
   {
@@ -899,7 +1099,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Cherry", "Thyme", "Earth", "Mineral", "Spice"],
-    keyFacts: ["Certified biodynamic", "Single-block wines show extreme site expression", "Winemaker Blair Walter crafts some of the Southern Hemisphere's finest Pinots"]
+    keyFacts: ["Certified biodynamic", "Single-block wines show extreme site expression", "Winemaker Blair Walter crafts some of the Southern Hemisphere's finest Pinots"],
+    prestige: "established",
+    characteristics: ["biodynamic", "single-vineyard", "estate-grown"],
+    grapeVarieties: ["Pinot Noir", "Chardonnay", "Riesling"],
+    world: "new"
   },
   // ── NATURAL WINE PRODUCERS ────────────────────────────────────────────────────
   {
@@ -917,7 +1121,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: false,
     tasteProfile: ["Volcanic Ash", "Wild Cherry", "Blood Orange", "Smoke", "Herb"],
-    keyFacts: ["Zero additions — no sulfites, no yeasts, no fining", "Pre-phylloxera vines on Etna's north face", "Wines fermented in buried Georgian qvevri and plastic tanks"]
+    keyFacts: ["Zero additions — no sulfites, no yeasts, no fining", "Pre-phylloxera vines on Etna's north face", "Wines fermented in buried Georgian qvevri and plastic tanks"],
+    prestige: "rising-star",
+    characteristics: ["natural", "old-vines", "biodynamic"],
+    grapeVarieties: ["Nerello Mascalese"],
+    world: "old"
   },
   {
     id: "marcel-lapierre",
@@ -934,7 +1142,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: true,
     tasteProfile: ["Raspberry", "Granite", "Flowers", "Pure Fruit", "Silk"],
-    keyFacts: ["Godfather of the natural wine movement", "Zero sulfur added to top cuvées", "Mathieu Lapierre continues his father's legacy"]
+    keyFacts: ["Godfather of the natural wine movement", "Zero sulfur added to top cuvées", "Mathieu Lapierre continues his father's legacy"],
+    prestige: "iconic",
+    characteristics: ["natural", "organic", "family-estate"],
+    grapeVarieties: ["Gamay"],
+    world: "old"
   },
   {
     id: "nicolas-joly",
@@ -951,7 +1163,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: true,
     tasteProfile: ["Quince", "Beeswax", "Saffron", "Mineral", "Savory"],
-    keyFacts: ["7-hectare monopole planted by monks in 1130", "Author of 'Wine from Sky to Earth' — the bible of biodynamic winemaking", "One of France's most unique and cerebral whites"]
+    keyFacts: ["7-hectare monopole planted by monks in 1130", "Author of 'Wine from Sky to Earth' — the bible of biodynamic winemaking", "One of France's most unique and cerebral whites"],
+    prestige: "iconic",
+    characteristics: ["biodynamic", "single-vineyard", "age-worthy"],
+    grapeVarieties: ["Chenin Blanc"],
+    world: "old"
   },
   // ── PROVENCE ─────────────────────────────────────────────────────────────────
   {
@@ -969,7 +1185,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Strawberry", "Peach", "White Pepper", "Herbal", "Saline"],
-    keyFacts: ["Pioneer of dry Provençal rosé since 1896", "Three estates across the finest Provence terroirs", "Owned by Champagne Louis Roederer since 2004"]
+    keyFacts: ["Pioneer of dry Provençal rosé since 1896", "Three estates across the finest Provence terroirs", "Owned by Champagne Louis Roederer since 2004"],
+    prestige: "established",
+    characteristics: ["family-estate", "estate-grown"],
+    grapeVarieties: ["Grenache", "Syrah", "Mourvèdre"],
+    world: "old"
   },
   {
     id: "chateau-desclans",
@@ -986,7 +1206,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Rose Petal", "Grapefruit", "Cream", "White Cherry", "Mineral"],
-    keyFacts: ["Whispering Angel is the world's best-selling premium rosé", "Garrus is fermented in new Burgundian barrique", "Led a global 'pink revolution' in consumer tastes"]
+    keyFacts: ["Whispering Angel is the world's best-selling premium rosé", "Garrus is fermented in new Burgundian barrique", "Led a global 'pink revolution' in consumer tastes"],
+    prestige: "established",
+    characteristics: ["estate-grown", "single-vineyard"],
+    grapeVarieties: ["Grenache", "Cinsault", "Mourvèdre"],
+    world: "old"
   },
   // ── LANGUEDOC-ROUSSILLON ───────────────────────────────────────────────────
   {
@@ -1004,7 +1228,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Plum", "Garrigue", "Chocolate", "Violet", "Spice"],
-    keyFacts: ["15 estates across Languedoc-Roussillon", "Wine Spectator Winemaker of the Year 2018", "Former professional rugby player turned wine entrepreneur"]
+    keyFacts: ["15 estates across Languedoc-Roussillon", "Wine Spectator Winemaker of the Year 2018", "Former professional rugby player turned wine entrepreneur"],
+    prestige: "established",
+    characteristics: ["biodynamic", "organic", "estate-grown"],
+    grapeVarieties: ["Grenache", "Syrah", "Chardonnay"],
+    world: "old"
   },
   // ── VENETO ───────────────────────────────────────────────────────────────────
   {
@@ -1022,7 +1250,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Cherry", "Dried Fig", "Dark Chocolate", "Tobacco", "Spice"],
-    keyFacts: ["One of Valpolicella Classico's most historic estates", "La Poja is a 100% Corvina single-vineyard icon", "Pioneer of quality Amarone in an era of mass-produced Valpolicella"]
+    keyFacts: ["One of Valpolicella Classico's most historic estates", "La Poja is a 100% Corvina single-vineyard icon", "Pioneer of quality Amarone in an era of mass-produced Valpolicella"],
+    prestige: "established",
+    characteristics: ["family-estate", "estate-grown", "old-vines"],
+    grapeVarieties: ["Corvina", "Rondinella", "Molinara"],
+    world: "old"
   },
   {
     id: "bisol",
@@ -1039,7 +1271,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Pear", "Apple Blossom", "White Peach", "Almond", "Cream"],
-    keyFacts: ["Vineyard records date back to 1542", "Cartizze is Prosecco's most coveted single-vineyard", "Led the quality revolution earning Valdobbiadene DOCG status"]
+    keyFacts: ["Vineyard records date back to 1542", "Cartizze is Prosecco's most coveted single-vineyard", "Led the quality revolution earning Valdobbiadene DOCG status"],
+    prestige: "established",
+    characteristics: ["family-estate", "single-vineyard", "estate-grown"],
+    grapeVarieties: ["Glera"],
+    world: "old"
   },
   // ── RIBERA DEL DUERO ────────────────────────────────────────────────────────
   {
@@ -1057,7 +1293,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackcurrant", "Cedar", "Tobacco", "Violets", "Truffle"],
-    keyFacts: ["Spain's most prestigious wine estate, founded 1864", "Único may age 10+ years in oak before release", "Served at royal banquets and state dinners worldwide"]
+    keyFacts: ["Spain's most prestigious wine estate, founded 1864", "Único may age 10+ years in oak before release", "Served at royal banquets and state dinners worldwide"],
+    prestige: "legendary",
+    characteristics: ["age-worthy", "estate-grown", "old-vines"],
+    grapeVarieties: ["Tempranillo", "Cabernet Sauvignon", "Merlot"],
+    world: "old"
   },
   {
     id: "dominio-de-pingus",
@@ -1074,7 +1314,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Black Plum", "Graphite", "Violets", "Tobacco", "Iron"],
-    keyFacts: ["Pingus debuted with 100-point scores from Robert Parker", "Only 4 barrels produced in the inaugural 1995 vintage", "Spain's benchmark cult wine, fetching Burgundy Grand Cru prices"]
+    keyFacts: ["Pingus debuted with 100-point scores from Robert Parker", "Only 4 barrels produced in the inaugural 1995 vintage", "Spain's benchmark cult wine, fetching Burgundy Grand Cru prices"],
+    prestige: "iconic",
+    characteristics: ["cult-wine", "single-vineyard", "old-vines"],
+    grapeVarieties: ["Tempranillo"],
+    world: "old"
   },
   // ── JEREZ ────────────────────────────────────────────────────────────────────
   {
@@ -1092,7 +1336,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Almond", "Saline", "Chamomile", "Yeast", "Lemon Zest"],
-    keyFacts: ["Tío Pepe is the world's best-selling Fino Sherry", "Founded 1835; one of Spain's oldest wine families", "Cathedral-like historic bodegas in central Jerez"]
+    keyFacts: ["Tío Pepe is the world's best-selling Fino Sherry", "Founded 1835; one of Spain's oldest wine families", "Cathedral-like historic bodegas in central Jerez"],
+    prestige: "iconic",
+    characteristics: ["age-worthy", "family-estate", "old-vines"],
+    grapeVarieties: ["Palomino Fino", "Pedro Ximénez"],
+    world: "old"
   },
   // ── MARGARET RIVER ─────────────────────────────────────────────────────────
   {
@@ -1110,7 +1358,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["White Peach", "Grapefruit", "Cashew", "Toasted Oak", "Mineral"],
-    keyFacts: ["Art Series Chardonnay is Australia's benchmark white wine", "Robert Mondavi personally encouraged the estate's founding", "Famous for outdoor concerts in the vineyard since 1985"]
+    keyFacts: ["Art Series Chardonnay is Australia's benchmark white wine", "Robert Mondavi personally encouraged the estate's founding", "Famous for outdoor concerts in the vineyard since 1985"],
+    prestige: "established",
+    characteristics: ["single-vineyard", "estate-grown", "age-worthy"],
+    grapeVarieties: ["Chardonnay", "Cabernet Sauvignon"],
+    world: "new"
   },
   {
     id: "cullen-wines",
@@ -1127,7 +1379,11 @@ export const producers: Producer[] = [
     isNatural: true,
     isAwardWinner: true,
     tasteProfile: ["Cassis", "Graphite", "Olive", "Cedar", "Fine Tannins"],
-    keyFacts: ["Australia's first certified carbon-neutral winery (2007)", "Diana Madeline is Margaret River's most collected red wine", "Pioneer biodynamic estate founded in 1971"]
+    keyFacts: ["Australia's first certified carbon-neutral winery (2007)", "Diana Madeline is Margaret River's most collected red wine", "Pioneer biodynamic estate founded in 1971"],
+    prestige: "iconic",
+    characteristics: ["biodynamic", "single-vineyard", "family-estate"],
+    grapeVarieties: ["Cabernet Sauvignon", "Merlot", "Sauvignon Blanc"],
+    world: "new"
   },
   // ── HUNTER VALLEY ─────────────────────────────────────────────────────────
   {
@@ -1145,7 +1401,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lemon", "Beeswax", "Toast", "Lanolin", "Honey"],
-    keyFacts: ["Five-generation family winery, founded 1858", "Vat 1 Semillon is Australia's most iconic age-worthy white", "Won the 1979 Paris Wine Olympics Chardonnay tasting"]
+    keyFacts: ["Five-generation family winery, founded 1858", "Vat 1 Semillon is Australia's most iconic age-worthy white", "Won the 1979 Paris Wine Olympics Chardonnay tasting"],
+    prestige: "established",
+    characteristics: ["family-estate", "old-vines", "single-vineyard"],
+    grapeVarieties: ["Shiraz", "Semillon", "Chardonnay"],
+    world: "new"
   },
   // ── HAWKE'S BAY ───────────────────────────────────────────────────────────
   {
@@ -1163,7 +1423,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Cherry", "Black Pepper", "Smoked Meat", "Violet", "Earthy Spice"],
-    keyFacts: ["Le Sol Syrah named one of Wine Spectator's Top 100 wines", "Gimblett Gravels flagship estate since 1998", "Stunning winery at the base of Te Mata Peak"]
+    keyFacts: ["Le Sol Syrah named one of Wine Spectator's Top 100 wines", "Gimblett Gravels flagship estate since 1998", "Stunning winery at the base of Te Mata Peak"],
+    prestige: "established",
+    characteristics: ["single-vineyard", "estate-grown"],
+    grapeVarieties: ["Syrah", "Chardonnay", "Sauvignon Blanc"],
+    world: "new"
   },
   // ── PASO ROBLES ────────────────────────────────────────────────────────────
   {
@@ -1181,7 +1445,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Blackcurrant", "Mocha", "Dark Cherry", "Graphite", "Vanilla"],
-    keyFacts: ["Soul of a Lion is among California's most coveted cult Cabernets", "Patrimony vineyard at 2,200 feet elevation in Adelaida District", "100-point scores from multiple critics"]
+    keyFacts: ["Soul of a Lion is among California's most coveted cult Cabernets", "Patrimony vineyard at 2,200 feet elevation in Adelaida District", "100-point scores from multiple critics"],
+    prestige: "rising-star",
+    characteristics: ["family-estate", "single-vineyard", "estate-grown"],
+    grapeVarieties: ["Cabernet Sauvignon", "Grenache"],
+    world: "new"
   },
   // ── RHEINGAU ─────────────────────────────────────────────────────────────────
   {
@@ -1199,7 +1467,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lime", "Apricot", "Petrol", "Honey", "Steely Mineral"],
-    keyFacts: ["Credited with inventing the Spätlese style in 1775", "Riesling produced here since the 8th century", "Historically reserved for Holy Roman Emperors and Habsburgs"]
+    keyFacts: ["Credited with inventing the Spätlese style in 1775", "Riesling produced here since the 8th century", "Historically reserved for Holy Roman Emperors and Habsburgs"],
+    prestige: "iconic",
+    characteristics: ["grand-cru", "age-worthy", "old-vines"],
+    grapeVarieties: ["Riesling"],
+    world: "old"
   },
   // ── VINHO VERDE ─────────────────────────────────────────────────────────────
   {
@@ -1217,7 +1489,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Passion Fruit", "Lime", "White Peach", "Saline", "Mineral"],
-    keyFacts: ["Pioneer of premium single-vineyard Alvarinho", "Parcela Única is Portugal's most acclaimed dry white wine", "Transformed global perception of Vinho Verde from simple to serious"]
+    keyFacts: ["Pioneer of premium single-vineyard Alvarinho", "Parcela Única is Portugal's most acclaimed dry white wine", "Transformed global perception of Vinho Verde from simple to serious"],
+    prestige: "rising-star",
+    characteristics: ["single-vineyard", "family-estate"],
+    grapeVarieties: ["Alvarinho", "Loureiro"],
+    world: "old"
   },
   // ── FRANSCHHOEK ────────────────────────────────────────────────────────────
   {
@@ -1235,7 +1511,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Dark Cherry", "Pepper", "Chocolate", "Earthy Spice", "Violet"],
-    keyFacts: ["The Chocolate Block is South Africa's best-selling premium red globally", "Estate dates to 1776 — one of South Africa's oldest farms", "Marc Kent is among South Africa's most celebrated winemakers"]
+    keyFacts: ["The Chocolate Block is South Africa's best-selling premium red globally", "Estate dates to 1776 — one of South Africa's oldest farms", "Marc Kent is among South Africa's most celebrated winemakers"],
+    prestige: "established",
+    characteristics: ["single-vineyard", "estate-grown"],
+    grapeVarieties: ["Syrah", "Semillon", "Cabernet Sauvignon"],
+    world: "new"
   },
   // ── SERRA GAÚCHA ────────────────────────────────────────────────────────────
   {
@@ -1253,7 +1533,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Lemon", "Green Apple", "Brioche", "Toast", "Cream"],
-    keyFacts: ["Family founded by Italian immigrants in 1875", "Specializes in traditional-method sparkling wine", "Vale dos Vinhedos DOC — Brazil's most prestigious appellation"]
+    keyFacts: ["Family founded by Italian immigrants in 1875", "Specializes in traditional-method sparkling wine", "Vale dos Vinhedos DOC — Brazil's most prestigious appellation"],
+    prestige: "rising-star",
+    characteristics: ["family-estate", "estate-grown"],
+    grapeVarieties: ["Chardonnay", "Pinot Noir", "Tannat"],
+    world: "new"
   },
   // ── YAMANASHI ─────────────────────────────────────────────────────────────────
   {
@@ -1271,7 +1555,11 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Yuzu", "White Peach", "Mineral", "Saline", "Delicate Floral"],
-    keyFacts: ["Japan's most internationally acclaimed wine producer", "Koshu Kayagatake wins medals at major international competitions", "Winemaker Minae Mitobe trained in Bordeaux"]
+    keyFacts: ["Japan's most internationally acclaimed wine producer", "Koshu Kayagatake wins medals at major international competitions", "Winemaker Minae Mitobe trained in Bordeaux"],
+    prestige: "rising-star",
+    characteristics: ["family-estate", "single-vineyard"],
+    grapeVarieties: ["Koshu", "Cabernet Franc"],
+    world: "new"
   },
   // ── CAPPADOCIA ────────────────────────────────────────────────────────────────
   {
@@ -1289,6 +1577,10 @@ export const producers: Producer[] = [
     isNatural: false,
     isAwardWinner: true,
     tasteProfile: ["Cherry", "Mulberry", "Black Pepper", "Earthy Spice", "Mineral"],
-    keyFacts: ["Wines aged in natural volcanic cave cellars carved into tuff", "One of Turkey's most awarded international wine producers", "Showcases indigenous Turkish varieties Öküzgözü and Boğazkere"]
+    keyFacts: ["Wines aged in natural volcanic cave cellars carved into tuff", "One of Turkey's most awarded international wine producers", "Showcases indigenous Turkish varieties Öküzgözü and Boğazkere"],
+    prestige: "rising-star",
+    characteristics: ["family-estate", "old-vines"],
+    grapeVarieties: ["Öküzgözü", "Kalecik Karası", "Boğazkere"],
+    world: "new"
   }
 ];

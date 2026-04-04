@@ -1,5 +1,5 @@
 import { Switch, Route, Router, Link, useLocation } from "wouter";
-import { useHashLocation } from "wouter/use-hash-location";
+// Using standard path routing (no hash)
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -25,7 +25,7 @@ type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
   { key: "journeys", label: "JOURNEYS", href: "/journeys" },
-  { key: "academy", label: "GUIDES", href: "/academy" },
+  { key: "academy", label: "GUIDES", href: "/guides" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
 ];
@@ -35,7 +35,7 @@ function getActiveTab(path: string): NavTab | null {
   if (path.startsWith("/explore")) return "map";
   if (path.startsWith("/journey")) return "journeys";
   if (path.startsWith("/journeys")) return "journeys";
-  if (path.startsWith("/academy") || path.startsWith("/quiz")) return "academy";
+  if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
   if (path.startsWith("/news")) return "news";
   return null;
 }
@@ -113,9 +113,9 @@ function AppRouter() {
       <Route path="/explore/list" component={Explore} />
       <Route path="/journeys" component={JourneysBrowse} />
       <Route path="/journey/:id" component={JourneyPlayer} />
-      <Route path="/academy" component={AcademyHub} />
-      <Route path="/academy/grapes/:id" component={GrapeDetail} />
-      <Route path="/academy/:guideId" component={GuideDetail} />
+      <Route path="/guides" component={AcademyHub} />
+      <Route path="/guides/grapes/:id" component={GrapeDetail} />
+      <Route path="/guides/:guideId" component={GuideDetail} />
       <Route path="/quiz/:quizId" component={QuizPage} />
       <Route path="/news" component={News} />
       <Route path="/discover" component={DiscoverQuiz} />
@@ -130,7 +130,7 @@ function GlobalFilterBar() {
 
   // Hide on landing, journey player, guide detail, grape detail, quiz
   const hideOn = location === "/" || location.startsWith("/journey/") ||
-    (location.startsWith("/academy/") && location !== "/academy") ||
+    (location.startsWith("/guides/") && location !== "/guides") ||
     location.startsWith("/quiz/");
 
   if (hideOn) return null;
@@ -150,7 +150,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router hook={useHashLocation}>
+        <Router>
           <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
             <NavBar />
             <GlobalFilterBar />

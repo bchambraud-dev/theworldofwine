@@ -20,7 +20,7 @@ export default function QuizPage() {
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
         <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <div className="lv-empty-title">Quiz not found</div>
-        <button className="chip" onClick={() => setLocation("/academy")} style={{ marginTop: 16 }}>
+        <button className="chip" onClick={() => setLocation("/guides")} style={{ marginTop: 16 }}>
           Back to Academy
         </button>
       </div>
@@ -67,7 +67,7 @@ export default function QuizPage() {
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "32px 24px 60px" }}>
         {/* Back */}
         <button
-          onClick={() => setLocation("/academy")}
+          onClick={() => setLocation("/guides")}
           style={{
             fontFamily: "'Geist Mono', monospace",
             fontSize: "0.58rem",
@@ -174,7 +174,7 @@ export default function QuizPage() {
               </button>
               <button
                 className="chip"
-                onClick={() => setLocation("/academy")}
+                onClick={() => setLocation("/guides")}
                 data-testid="quiz-explore-more"
               >
                 Explore More

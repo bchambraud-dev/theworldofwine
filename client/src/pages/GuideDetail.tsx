@@ -12,7 +12,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function GuideDetail() {
-  const [, params] = useRoute("/academy/:guideId");
+  const [, params] = useRoute("/guides/:guideId");
   const [, setLocation] = useLocation();
   const track = useTrack();
 
@@ -23,7 +23,7 @@ export default function GuideDetail() {
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
         <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
         <div className="lv-empty-title">Guide not found</div>
-        <button className="chip" onClick={() => setLocation("/academy")} style={{ marginTop: 16 }}>
+        <button className="chip" onClick={() => setLocation("/guides")} style={{ marginTop: 16 }}>
           Back to Academy
         </button>
       </div>
@@ -41,7 +41,7 @@ export default function GuideDetail() {
       <article style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 60px" }}>
         {/* Back */}
         <button
-          onClick={() => setLocation("/academy")}
+          onClick={() => setLocation("/guides")}
           style={{
             fontFamily: "'Geist Mono', monospace",
             fontSize: "0.58rem",
@@ -198,7 +198,7 @@ export default function GuideDetail() {
                     <button
                       key={g.id}
                       className="chip"
-                      onClick={() => setLocation(`/academy/grapes/${g.id}`)}
+                      onClick={() => setLocation(`/guides/grapes/${g.id}`)}
                     >
                       {g.name}
                     </button>

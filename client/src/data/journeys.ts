@@ -33,7 +33,7 @@ export const journeys: Journey[] = [
     difficulty: "beginner",
     estimatedMinutes: 15,
     stopCount: 6,
-    coverGradient: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%)",
+    coverGradient: "linear-gradient(135deg, #6b2039 0%, #8c2840 50%, #a4415a 100%)",
     icon: "grapes",
     stops: [
       {
@@ -104,7 +104,7 @@ export const journeys: Journey[] = [
     difficulty: "beginner",
     estimatedMinutes: 12,
     stopCount: 6,
-    coverGradient: "linear-gradient(135deg, #b45309 0%, #d97706 50%, #fbbf24 100%)",
+    coverGradient: "linear-gradient(135deg, #7a4a2a 0%, #96633e 50%, #b8845c 100%)",
     icon: "globe",
     stops: [
       {
@@ -173,7 +173,7 @@ export const journeys: Journey[] = [
     difficulty: "beginner",
     estimatedMinutes: 15,
     stopCount: 5,
-    coverGradient: "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #93c5fd 100%)",
+    coverGradient: "linear-gradient(135deg, #3d4a5c 0%, #566880 50%, #7a8da3 100%)",
     icon: "france",
     stops: [
       {
@@ -235,7 +235,7 @@ export const journeys: Journey[] = [
     difficulty: "intermediate",
     estimatedMinutes: 12,
     stopCount: 4,
-    coverGradient: "linear-gradient(135deg, #15803d 0%, #22c55e 50%, #86efac 100%)",
+    coverGradient: "linear-gradient(135deg, #3a5a3a 0%, #4a7a52 50%, #6b9a6b 100%)",
     icon: "italy",
     stops: [
       {
@@ -288,7 +288,7 @@ export const journeys: Journey[] = [
     difficulty: "intermediate",
     estimatedMinutes: 10,
     stopCount: 5,
-    coverGradient: "linear-gradient(135deg, #065f46 0%, #10b981 50%, #6ee7b7 100%)",
+    coverGradient: "linear-gradient(135deg, #2d4a3a 0%, #3d6b50 50%, #5a8a6a 100%)",
     icon: "leaf",
     stops: [
       {
@@ -348,7 +348,7 @@ export const journeys: Journey[] = [
     difficulty: "beginner",
     estimatedMinutes: 12,
     stopCount: 5,
-    coverGradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fde047 100%)",
+    coverGradient: "linear-gradient(135deg, #7a6530 0%, #9a8040 50%, #b89a55 100%)",
     icon: "sparkle",
     stops: [
       {
@@ -410,7 +410,7 @@ export const journeys: Journey[] = [
     difficulty: "intermediate",
     estimatedMinutes: 15,
     stopCount: 6,
-    coverGradient: "linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #ef4444 100%)",
+    coverGradient: "linear-gradient(135deg, #4a1a2e 0%, #6b2540 50%, #8c3a58 100%)",
     icon: "glass",
     stops: [
       {
@@ -481,7 +481,7 @@ export const journeys: Journey[] = [
     difficulty: "advanced",
     estimatedMinutes: 15,
     stopCount: 6,
-    coverGradient: "linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #38bdf8 100%)",
+    coverGradient: "linear-gradient(135deg, #2a4a50 0%, #3a6a6e 50%, #5a8a8c 100%)",
     icon: "gem",
     stops: [
       {
@@ -552,7 +552,7 @@ export const journeys: Journey[] = [
     difficulty: "intermediate",
     estimatedMinutes: 12,
     stopCount: 5,
-    coverGradient: "linear-gradient(135deg, #713f12 0%, #a16207 50%, #fef08a 100%)",
+    coverGradient: "linear-gradient(135deg, #6a5a3a 0%, #8a7a50 50%, #a89a6a 100%)",
     icon: "drop",
     stops: [
       {
@@ -614,7 +614,7 @@ export const journeys: Journey[] = [
     difficulty: "beginner",
     estimatedMinutes: 10,
     stopCount: 6,
-    coverGradient: "linear-gradient(135deg, #166534 0%, #16a34a 50%, #4ade80 100%)",
+    coverGradient: "linear-gradient(135deg, #5a4a3a 0%, #7a6a52 50%, #9a8a6a 100%)",
     icon: "earth",
     stops: [
       {

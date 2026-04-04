@@ -527,7 +527,7 @@ function ResultsPage({ answers }: { answers: Answers }) {
             {recommendedGuides.map((g) => (
               <button
                 key={g.id}
-                onClick={() => setLocation(`/academy/${g.id}`)}
+                onClick={() => setLocation(`/guides/${g.id}`)}
                 style={{
                   display: "flex",
                   alignItems: "center",

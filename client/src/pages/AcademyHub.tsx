@@ -76,7 +76,7 @@ export default function AcademyHub() {
               data-testid={`guide-card-${g.id}`}
               onClick={() => {
                 track("guide_click", { id: g.id });
-                setLocation(`/academy/${g.id}`);
+                setLocation(`/guides/${g.id}`);
               }}
               style={{
                 background: "var(--wh)",
@@ -181,7 +181,7 @@ export default function AcademyHub() {
               data-testid={`grape-card-${grape.id}`}
               onClick={() => {
                 track("grape_click", { id: grape.id });
-                setLocation(`/academy/grapes/${grape.id}`);
+                setLocation(`/guides/grapes/${grape.id}`);
               }}
               style={{
                 background: "var(--wh)",

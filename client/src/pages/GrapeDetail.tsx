@@ -4,7 +4,7 @@ import { wineRegions } from "@/data/regions";
 import { useTrack } from "@/hooks/use-track";
 
 export default function GrapeDetail() {
-  const [, params] = useRoute("/academy/grapes/:id");
+  const [, params] = useRoute("/guides/grapes/:id");
   const [, setLocation] = useLocation();
   const track = useTrack();
 
@@ -15,7 +15,7 @@ export default function GrapeDetail() {
       <div className="page-scroll" style={{ padding: 60, textAlign: "center" }}>
         <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0z"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="15" r="2"/></svg></div>
         <div className="lv-empty-title">Grape not found</div>
-        <button className="chip" onClick={() => setLocation("/academy")} style={{ marginTop: 16 }}>
+        <button className="chip" onClick={() => setLocation("/guides")} style={{ marginTop: 16 }}>
           Back to Academy
         </button>
       </div>
@@ -53,7 +53,7 @@ export default function GrapeDetail() {
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 60px" }}>
         {/* Back */}
         <button
-          onClick={() => setLocation("/academy")}
+          onClick={() => setLocation("/guides")}
           style={{
             fontFamily: "'Geist Mono', monospace",
             fontSize: "0.58rem",

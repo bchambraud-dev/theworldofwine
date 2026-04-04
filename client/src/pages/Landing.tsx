@@ -1,4 +1,5 @@
 import { useLocation } from "wouter";
+import GuideIcon from "@/components/GuideIcon";
 import { journeys } from "@/data/journeys";
 import { wineRegions } from "@/data/regions";
 import { guides } from "@/data/guides";
@@ -820,10 +821,10 @@ export default function Landing() {
                 data-testid={`guide-card-${g.id}`}
                 onClick={() => {
                   track("guide_card_click", { id: g.id });
-                  setLocation(`/academy/${g.id}`);
+                  setLocation(`/guides/${g.id}`);
                 }}
               >
-                <div className="lp-guide-icon">{g.icon}</div>
+                <div className="lp-guide-icon"><GuideIcon icon={g.icon} size={22} /></div>
                 <div className="lp-guide-title">{g.title}</div>
                 <p className="lp-guide-sub">{g.subtitle}</p>
                 <div className="lp-guide-meta">
@@ -838,7 +839,7 @@ export default function Landing() {
             className="lp-view-all"
             onClick={() => {
               track("cta_enter_cellar");
-              setLocation("/academy");
+              setLocation("/guides");
             }}
           >
             Explore All Guides →
@@ -936,7 +937,7 @@ export default function Landing() {
                 {[
                   { label: "Map", href: "/explore" },
                   { label: "Journeys", href: "/journeys" },
-                  { label: "Guides", href: "/academy" },
+                  { label: "Guides", href: "/guides" },
                 ].map((link) => (
                   <button
                     key={link.href}

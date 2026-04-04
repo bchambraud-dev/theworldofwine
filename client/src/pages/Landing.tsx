@@ -808,7 +808,7 @@ export default function Landing() {
       <div style={{ background: "var(--bg2)", borderTop: "1px solid var(--border-c)", borderBottom: "1px solid var(--border-c)" }}>
         <section className="lp-cellar">
           <div className="lp-section-head">
-            <h2 className="lp-section-title">The Cellar</h2>
+            <h2 className="lp-section-title">Guides</h2>
             <p className="lp-section-sub">Where wine knowledge ages to perfection</p>
           </div>
 
@@ -841,7 +841,7 @@ export default function Landing() {
               setLocation("/academy");
             }}
           >
-            Enter The Cellar →
+            Explore All Guides →
           </button>
         </section>
       </div>
@@ -936,7 +936,7 @@ export default function Landing() {
                 {[
                   { label: "Map", href: "/explore" },
                   { label: "Journeys", href: "/journeys" },
-                  { label: "The Cellar", href: "/academy" },
+                  { label: "Guides", href: "/academy" },
                 ].map((link) => (
                   <button
                     key={link.href}

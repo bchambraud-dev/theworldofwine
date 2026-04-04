@@ -25,7 +25,7 @@ type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
   { key: "journeys", label: "JOURNEYS", href: "/journeys" },
-  { key: "academy", label: "THE CELLAR", href: "/academy" },
+  { key: "academy", label: "GUIDES", href: "/academy" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
 ];

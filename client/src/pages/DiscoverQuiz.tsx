@@ -521,7 +521,7 @@ function ResultsPage({ answers }: { answers: Answers }) {
       {recommendedGuides.length > 0 && (
         <section style={{ marginBottom: 40 }}>
           <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "var(--text)", marginBottom: 14 }}>
-            Guides from The Cellar
+            Recommended Guides
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {recommendedGuides.map((g) => (

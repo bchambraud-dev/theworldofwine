@@ -50,6 +50,69 @@ function getTopics(): string[] {
   return Array.from(topics).slice(0, 10);
 }
 
+// Individual expandable news card
+function NewsCard({ item, featured = false }: { item: NewsItem; featured?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const accentColor = getCategoryColor(item.tags);
+
+  return (
+    <div
+      className={`news-card${featured ? " nc-hero" : ""}${expanded ? " nc-expanded" : ""}`}
+      data-testid={`news-card-${item.id}`}
+      onClick={() => setExpanded(!expanded)}
+      style={{ cursor: "pointer" }}
+    >
+      <div className="nc-accent" style={{ background: accentColor }} />
+      <div className="nc-body">
+        <div className="nc-cat" style={{ color: accentColor }}>
+          {item.tags[0] || "Wine"}
+        </div>
+        <div className="nc-title">{item.title}</div>
+
+        {/* Collapsed: show excerpt clamped */}
+        {!expanded && (
+          <>
+            <div
+              className="nc-summary"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: featured ? undefined : 3,
+                WebkitBoxOrient: "vertical",
+                overflow: featured ? undefined : "hidden",
+              }}
+            >
+              {item.summary}
+            </div>
+            <div className="nc-read-more">READ MORE</div>
+          </>
+        )}
+
+        {/* Expanded: show full content */}
+        {expanded && (
+          <>
+            <div className="nc-summary">{item.summary}</div>
+            <div
+              className="nc-full-content"
+              dangerouslySetInnerHTML={{ __html: item.fullContent }}
+            />
+            <div className="nc-read-less">READ LESS</div>
+          </>
+        )}
+
+        <div className="nc-tags">
+          {(featured ? item.tags : item.tags.slice(0, 3)).map((tag) => (
+            <span key={tag} className="nc-tag">{tag}</span>
+          ))}
+        </div>
+        <div className="nc-footer">
+          <span className="nc-source">{item.source}</span>
+          <span className="nc-date">{formatDate(item.date)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function NewsFeed({
   news: _contextualNews,
   onSelectRegion,
@@ -120,54 +183,13 @@ export default function NewsFeed({
             {/* Featured card */}
             {featured && (
               <div className="nv-hero">
-                <div className="news-card nc-hero">
-                  <div className="nc-accent" style={{ background: getCategoryColor(featured.tags) }} />
-                  <div className="nc-body">
-                    <div className="nc-cat" style={{ color: getCategoryColor(featured.tags) }}>
-                      {featured.tags[0] || "Wine"}
-                    </div>
-                    <div className="nc-title">{featured.title}</div>
-                    <div className="nc-summary">{featured.summary}</div>
-                    <div className="nc-tags">
-                      {featured.tags.map((tag) => (
-                        <span key={tag} className="nc-tag">{tag}</span>
-                      ))}
-                    </div>
-                    <div className="nc-footer">
-                      <span className="nc-source">{featured.source}</span>
-                      <span className="nc-date">{formatDate(featured.date)}</span>
-                    </div>
-                  </div>
-                </div>
+                <NewsCard item={featured} featured={true} />
               </div>
             )}
 
             {/* Rest of cards */}
             {rest.map((item) => (
-              <div key={item.id} className="news-card" data-testid={`news-card-${item.id}`}>
-                <div className="nc-accent" style={{ background: getCategoryColor(item.tags) }} />
-                <div className="nc-body">
-                  <div className="nc-cat" style={{ color: getCategoryColor(item.tags) }}>
-                    {item.tags[0] || "Wine"}
-                  </div>
-                  <div className="nc-title">{item.title}</div>
-                  <div className="nc-summary" style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>{item.summary}</div>
-                  <div className="nc-tags">
-                    {item.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="nc-tag">{tag}</span>
-                    ))}
-                  </div>
-                  <div className="nc-footer">
-                    <span className="nc-source">{item.source}</span>
-                    <span className="nc-date">{formatDate(item.date)}</span>
-                  </div>
-                </div>
-              </div>
+              <NewsCard key={item.id} item={item} />
             ))}
           </div>
         )}

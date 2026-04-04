@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Filters, WineColor, PriceRange } from "@/lib/store";
 import { wineRegions } from "@/data/regions";
 import WineLoader from "@/components/WineLoader";
@@ -394,8 +395,17 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
             </svg>
           </button>
 
-          {dropdownOpen && (
-            <div className="fb-dropdown" data-testid="filter-dropdown">
+          {dropdownOpen && createPortal(
+            <>
+              {/* Mobile backdrop — closes dropdown when tapped */}
+              <div
+                className="fb-mobile-backdrop"
+                onClick={() => setDropdownOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="fb-dropdown" data-testid="filter-dropdown">
+                {/* Drag handle for mobile bottom sheet */}
+                <div className="fb-drag-handle" aria-hidden="true" />
               <div className="fb-dd-scroll">
 
                 {/* 1. WINE TYPE */}
@@ -561,7 +571,8 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
                 </button>
               </div>
             </div>
-          )}
+            </>
+          , document.body)}
         </div>
 
         {/* Active filter chips (L-R horizontal scroll) */}

@@ -147,30 +147,12 @@ export default function JourneyPlayer() {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        top: "var(--topbar)",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        zIndex: 50,
-      }}
+      className="jp-container"
       data-testid="journey-player"
     >
-      {/* LEFT PANEL */}
-      <div
-        style={{
-          width: "40%",
-          minWidth: 320,
-          maxWidth: 520,
-          background: "var(--wh)",
-          borderRight: "1px solid var(--border-c)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+      {/* CONTENT PANEL */}
+      <div className="jp-content">
+
         {/* Journey header */}
         <div
           style={{
@@ -384,7 +366,7 @@ export default function JourneyPlayer() {
       </div>
 
       {/* RIGHT PANEL — MAP */}
-      <div style={{ flex: 1, position: "relative" }}>
+      <div className="jp-map">
         <div ref={mapContainer} style={{ width: "100%", height: "100%" }} data-testid="journey-map" />
       </div>
     </div>

@@ -1611,3 +1611,46 @@
   0% { opacity: 0; transform: translateY(4px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+
+/* ── JOURNEY PLAYER LAYOUT ── */
+.jp-container {
+  position: fixed;
+  top: var(--topbar);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  z-index: 50;
+}
+.jp-content {
+  width: 40%;
+  min-width: 320px;
+  max-width: 520px;
+  background: var(--wh);
+  border-right: 1px solid var(--border-c);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.jp-map {
+  flex: 1;
+  position: relative;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .jp-container {
+    flex-direction: column;
+  }
+  .jp-content {
+    width: 100%;
+    min-width: unset;
+    max-width: unset;
+    height: 55%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-c);
+  }
+  .jp-map {
+    height: 45%;
+  }
+}

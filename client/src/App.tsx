@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useCallback } from "react";
 import FilterBar from "@/components/FilterBar";
 import { useWineStore } from "@/lib/store";
+import { Analytics } from "@vercel/analytics/react";
 
 import Landing from "@/pages/Landing";
 import Explore from "@/pages/Explore";
@@ -157,6 +158,7 @@ function App() {
             <AppRouter />
           </div>
         </Router>
+        <Analytics />
       </TooltipProvider>
     </QueryClientProvider>
   );

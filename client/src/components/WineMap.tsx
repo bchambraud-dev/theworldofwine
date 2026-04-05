@@ -26,17 +26,30 @@ const BOUNDARY_LINE_SELECTED = "region-line-selected";
 function buildGeoJSON(selectedId: string | null) {
   return {
     type: "FeatureCollection" as const,
-    features: regionBoundaries.map((rb) => ({
-      type: "Feature" as const,
-      properties: {
-        id: rb.id,
-        selected: rb.id === selectedId,
-      },
-      geometry: {
-        type: "Polygon" as const,
-        coordinates: rb.coordinates,
-      },
-    })),
+    features: regionBoundaries.map((rb) => {
+      // Detect if coordinates represent a MultiPolygon (array of polygons)
+      // Single polygon: [[[lng,lat], ...]] — first element is an array of [number, number]
+      // Multi polygon: [[[lng,lat], ...], [[lng,lat], ...]] — multiple rings at top level
+      const isMulti = rb.coordinates.length > 1 && 
+        Array.isArray(rb.coordinates[0]) && 
+        Array.isArray(rb.coordinates[0][0]) && 
+        typeof rb.coordinates[0][0][0] === 'number';
+      
+      return {
+        type: "Feature" as const,
+        properties: {
+          id: rb.id,
+          selected: rb.id === selectedId,
+        },
+        geometry: isMulti ? {
+          type: "MultiPolygon" as const,
+          coordinates: rb.coordinates.map((ring: any) => [ring]),
+        } : {
+          type: "Polygon" as const,
+          coordinates: rb.coordinates,
+        },
+      };
+    }),
   };
 }
 

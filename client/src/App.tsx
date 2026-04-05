@@ -205,6 +205,9 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/explore/region/:regionId" component={Explore} />
+      <Route path="/explore/producer/:producerId" component={Explore} />
+      <Route path="/news/:newsId" component={News} />
       <Route path="/explore" component={Explore} />
       <Route path="/explore/list" component={Explore} />
       <Route path="/journeys" component={JourneysBrowse} />

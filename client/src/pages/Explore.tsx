@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import WineMap from "@/components/WineMap";
 import RegionDetail from "@/components/RegionDetail";
@@ -9,11 +9,23 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Explore() {
   const [isListRoute] = useRoute("/explore/list");
+  const [, regionParams] = useRoute("/explore/region/:regionId");
+  const [, producerParams] = useRoute("/explore/producer/:producerId");
   const [, setLocation] = useLocation();
   const store = useWineStore();
   const { toast } = useToast();
 
   const isListView = isListRoute;
+
+  // Auto-select region or producer from URL params
+  useEffect(() => {
+    if (regionParams?.regionId) {
+      store.selectRegion(regionParams.regionId);
+    } else if (producerParams?.producerId) {
+      store.selectProducer(producerParams.producerId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionParams?.regionId, producerParams?.producerId]);
 
   // Determine if side panel should be open
   const panelOpen =
@@ -59,8 +71,14 @@ export default function Explore() {
           <WineMap
             producers={store.filteredProducers}
             regions={store.allRegions}
-            onSelectProducer={store.selectProducer}
-            onSelectRegion={store.selectRegion}
+            onSelectProducer={(id) => {
+              store.selectProducer(id);
+              setLocation("/explore/producer/" + id);
+            }}
+            onSelectRegion={(id) => {
+              store.selectRegion(id);
+              setLocation("/explore/region/" + id);
+            }}
             selectedRegionId={
               store.detailView === "region"
                 ? store.selectedRegion?.id || null
@@ -128,7 +146,7 @@ export default function Explore() {
                       className={`lv-region-card${(region as any)._dimmed ? ' lv-rc-dimmed' : ''}`}
                       onClick={() => {
                         store.selectRegion(region.id);
-                        setLocation("/explore");
+                        setLocation("/explore/region/" + region.id);
                       }}
                       data-testid={`list-region-${region.id}`}
                     >
@@ -198,7 +216,7 @@ export default function Explore() {
                         className="lv-producer-card"
                         onClick={() => {
                           store.selectProducer(producer.id);
-                          setLocation("/explore");
+                          setLocation("/explore/producer/" + producer.id);
                         }}
                         data-testid={`list-producer-${producer.id}`}
                       >
@@ -255,14 +273,26 @@ export default function Explore() {
           <RegionDetail
             region={store.selectedRegion}
             producers={store.allProducers}
-            onClose={store.closeDetail}
-            onSelectProducer={store.selectProducer}
+            onClose={() => {
+              store.closeDetail();
+              setLocation("/explore");
+            }}
+            onSelectProducer={(id) => {
+              store.selectProducer(id);
+              setLocation("/explore/producer/" + id);
+            }}
           />
         ) : store.detailView === "producer" && store.selectedProducer ? (
           <ProducerDetail
             producer={store.selectedProducer}
-            onClose={store.closeDetail}
-            onSelectRegion={store.selectRegion}
+            onClose={() => {
+              store.closeDetail();
+              setLocation("/explore");
+            }}
+            onSelectRegion={(id) => {
+              store.selectRegion(id);
+              setLocation("/explore/region/" + id);
+            }}
           />
         ) : null}
       </div>

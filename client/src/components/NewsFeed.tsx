@@ -5,6 +5,7 @@ interface NewsFeedProps {
   news: NewsItem[];
   onSelectRegion: (id: string) => void;
   onSelectProducer: (id: string) => void;
+  autoExpandId?: string | null;
 }
 
 const categoryColors: Record<string, string> = {
@@ -51,8 +52,8 @@ function getTopics(): string[] {
 }
 
 // Individual expandable news card
-function NewsCard({ item, featured = false }: { item: NewsItem; featured?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
+function NewsCard({ item, featured = false, initialExpanded = false }: { item: NewsItem; featured?: boolean; initialExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(initialExpanded);
   const accentColor = getCategoryColor(item.tags);
 
   return (
@@ -117,6 +118,7 @@ export default function NewsFeed({
   news: _contextualNews,
   onSelectRegion,
   onSelectProducer,
+  autoExpandId,
 }: NewsFeedProps) {
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const topics = useMemo(getTopics, []);
@@ -183,13 +185,13 @@ export default function NewsFeed({
             {/* Featured card */}
             {featured && (
               <div className="nv-hero">
-                <NewsCard item={featured} featured={true} />
+                <NewsCard item={featured} featured={true} initialExpanded={autoExpandId === featured.id} />
               </div>
             )}
 
             {/* Rest of cards */}
             {rest.map((item) => (
-              <NewsCard key={item.id} item={item} />
+              <NewsCard key={item.id} item={item} initialExpanded={autoExpandId === item.id} />
             ))}
           </div>
         )}

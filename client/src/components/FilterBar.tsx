@@ -95,6 +95,7 @@ const allCountries: string[] = Array.from(
 export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onReset }: FilterBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Pending state — mirrors filters but not applied until Apply is clicked
   const [pending, setPending] = useState<Filters>(filters);
@@ -109,10 +110,13 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
     }
   }, [dropdownOpen]);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click (check both trigger ref and portal panel ref)
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inTrigger = dropdownRef.current?.contains(target);
+      const inPanel = panelRef.current?.contains(target);
+      if (!inTrigger && !inPanel) {
         setDropdownOpen(false);
       }
     };
@@ -403,7 +407,7 @@ export default function FilterBar({ filters, onUpdateFilter, onSetFilters, onRes
                 onClick={() => setDropdownOpen(false)}
                 aria-hidden="true"
               />
-              <div className="fb-dropdown" data-testid="filter-dropdown">
+              <div className="fb-dropdown" data-testid="filter-dropdown" ref={panelRef}>
                 {/* Drag handle for mobile bottom sheet */}
                 <div className="fb-drag-handle" aria-hidden="true" />
               <div className="fb-dd-scroll">

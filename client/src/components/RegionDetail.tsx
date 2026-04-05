@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import type { WineRegion } from "@/data/regions";
 import type { Producer } from "@/data/producers";
 import { newsItems } from "@/data/news";
+import ExpandableNewsCard from "@/components/ExpandableNewsCard";
 
 interface RegionDetailProps {
   region: WineRegion;
@@ -200,20 +201,7 @@ export default function RegionDetail({
               </div>
             ) : (
               regionNews.map((item) => (
-                <div key={item.id} className="sp-news-card" data-testid={`sp-news-${item.id}`}>
-                  <div className="sp-news-cat">{item.tags[0] || "Wine"}</div>
-                  <div className="sp-news-title">{item.title}</div>
-                  <div className="sp-news-summary" style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>{item.summary}</div>
-                  <div className="sp-news-footer">
-                    <span className="sp-news-source">{item.source}</span>
-                    <span className="sp-news-source">{new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                  </div>
-                </div>
+                <ExpandableNewsCard key={item.id} item={item} testId={`sp-news-${item.id}`} />
               ))
             )
           )}

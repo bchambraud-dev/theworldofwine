@@ -1860,3 +1860,22 @@
     height: 45%;
   }
 }
+
+/* Expandable news cards in slide panel */
+.sp-news-card {
+  transition: all 0.2s ease;
+}
+.sp-news-expanded {
+  background: var(--wh);
+  border: 1px solid var(--border-c);
+  border-radius: 8px;
+  padding: 12px !important;
+  margin: 4px 0;
+}
+.sp-news-full p {
+  margin-bottom: 10px;
+}
+.sp-news-full strong {
+  font-weight: 600;
+  color: var(--text);
+}

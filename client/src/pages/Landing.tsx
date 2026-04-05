@@ -44,7 +44,7 @@ export default function Landing() {
           justify-content: center;
           text-align: center;
           overflow: hidden;
-          background-image: url('./hero-bg.webp');
+          background-image: url('/hero-bg.webp');
           background-size: cover;
           background-position: center top;
         }
@@ -293,7 +293,7 @@ export default function Landing() {
         .lp-interlude {
           width: 100%;
           height: 220px;
-          background-image: url('./editorial-wine.webp');
+          background-image: url('/editorial-wine.webp');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;

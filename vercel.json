@@ -13,6 +13,9 @@
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/regions/(.*)", "destination": "/regions/$1" },
     { "source": "/guides/(.*)", "destination": "/guides/$1" },
+    { "source": "/favicon.svg", "destination": "/favicon.svg" },
+    { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/apple-touch-icon.png", "destination": "/apple-touch-icon.png" },
     { "source": "/hero-bg.webp", "destination": "/hero-bg.webp" },
     { "source": "/editorial-wine.webp", "destination": "/editorial-wine.webp" },
     { "source": "/(.*)", "destination": "/index.html" }

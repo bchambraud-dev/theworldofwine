@@ -17,6 +17,6 @@
     { "source": "/apple-touch-icon.png", "destination": "/apple-touch-icon.png" },
     { "source": "/hero-bg.webp", "destination": "/hero-bg.webp" },
     { "source": "/editorial-wine.webp", "destination": "/editorial-wine.webp" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(?!api/)(.*)", "destination": "/index.html" }
   ]
 }

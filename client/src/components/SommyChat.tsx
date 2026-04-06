@@ -48,6 +48,7 @@ export default function SommyChat() {
       setStreamingText("");
 
       try {
+        setStreamingText("...");
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -56,45 +57,20 @@ export default function SommyChat() {
 
         if (!response.ok) throw new Error("Chat request failed");
 
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error("No response stream");
+        const data = await response.json();
 
-        const decoder = new TextDecoder();
-        let fullText = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
-
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.text) {
-                  fullText += data.text;
-                  setStreamingText(fullText);
-                }
-                if (data.done) {
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: "assistant", content: fullText },
-                  ]);
-                  setStreamingText("");
-                }
-                if (data.error) {
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: "assistant", content: data.error },
-                  ]);
-                  setStreamingText("");
-                }
-              } catch {}
-            }
-          }
+        if (data.text) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: data.text },
+          ]);
+        } else if (data.error) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: data.error },
+          ]);
         }
+        setStreamingText("");
       } catch (err) {
         setMessages((prev) => [
           ...prev,

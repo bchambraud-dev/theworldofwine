@@ -4,7 +4,7 @@
   "framework": null,
   "installCommand": "npm install",
   "functions": {
-    "api/chat.ts": {
+    "api/chat.js": {
       "maxDuration": 30
     }
   },

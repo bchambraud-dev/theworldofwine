@@ -1,5 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+const Anthropic = require("@anthropic-ai/sdk").default;
 
 const SOMMY_SYSTEM_PROMPT = `You are Sommy, the AI sommelier for The World of Wine. You're a warm, knowledgeable friend who genuinely loves sharing wine knowledge. You speak directly to the person — first person, never third person.
 
@@ -40,15 +39,13 @@ RULES:
 - When suggesting specific wines, mention the region and a price range when relevant
 - Always be honest if a wine trend is overhyped or if an expensive bottle isn't worth it`;
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { messages } = req.body as {
-      messages: { role: "user" | "assistant"; content: string }[];
-    };
+    const { messages } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Messages array required" });
@@ -56,12 +53,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const client = new Anthropic();
 
-    // Set up SSE streaming
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    const stream = client.messages.stream({
+    // Non-streaming for reliability on serverless
+    const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
       system: SOMMY_SYSTEM_PROMPT,
@@ -71,26 +64,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })),
     });
 
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
-      }
-    }
+    const text = response.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("");
 
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-    res.end();
-  } catch (error: any) {
+    return res.status(200).json({ text });
+  } catch (error) {
     console.error("Sommy chat error:", error?.message || error);
-    if (res.headersSent) {
-      res.write(
-        `data: ${JSON.stringify({ error: "Something went wrong. Try again." })}\n\n`
-      );
-      res.end();
-    } else {
-      res.status(500).json({ error: "Chat failed" });
-    }
+    return res.status(500).json({ error: "Something went wrong. Try again." });
   }
-}
+};

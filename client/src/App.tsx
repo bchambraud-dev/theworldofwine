@@ -19,6 +19,7 @@ import GrapeDetail from "@/pages/GrapeDetail";
 import QuizPage from "@/pages/QuizPage";
 import NotFound from "@/pages/not-found";
 import DiscoverQuiz from "@/pages/DiscoverQuiz";
+import SommyChat from "@/components/SommyChat";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 
@@ -249,6 +250,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
+      <SommyChat />
         <Router>
           <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
             <NavBar />

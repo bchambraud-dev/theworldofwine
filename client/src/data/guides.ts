@@ -12,6 +12,8 @@ export interface Guide {
   description: string;
   readTimeMinutes: number;
   icon: string;
+  heroImage?: string; // path to hero image (editorial photo or illustration)
+  illustrations?: { src: string; alt: string; afterSection?: number }[]; // inline images placed after a section index
   sections: GuideSection[];
   relatedJourneyIds: string[];
   relatedGrapeIds: string[];
@@ -30,6 +32,7 @@ export const guides: Guide[] = [
       "Terroir is French for 'a sense of place' — the idea that wine carries the fingerprint of the land it came from. This guide unpacks what that actually means, from soil chemistry to climate and the human factor.",
     readTimeMinutes: 8,
     icon: "terroir",
+    heroImage: "/guides/illus-02-terroir.webp",
     sections: [
       {
         heading: "The Big Idea: Place Matters",
@@ -73,6 +76,7 @@ export const guides: Guide[] = [
       "Tasting wine isn't about having the right vocabulary or impressing people — it's about training your attention to notice things you'd otherwise miss. This guide makes the classic Look-Swirl-Smell-Taste-Finish framework actually useful.",
     readTimeMinutes: 7,
     icon: "tasting",
+    heroImage: "/guides/illus-01-tasting.webp",
     sections: [
       {
         heading: "Why Tasting Matters (It's Not About Being Fancy)",
@@ -121,6 +125,7 @@ export const guides: Guide[] = [
       "A wine label is a compressed system of information — and once you know how to decode it, choosing a bottle becomes much easier. This guide cuts through the confusion of two very different labeling traditions.",
     readTimeMinutes: 6,
     icon: "label",
+    heroImage: "/guides/photo-reading-labels.webp",
     sections: [
       {
         heading: "Two Different Systems, One Goal",
@@ -164,6 +169,7 @@ export const guides: Guide[] = [
       "Wine scores are everywhere — 94 points, 97 points, 'Best in Class.' This guide explains who gives them, how they work, and why they're both useful and wildly overused in the wine industry.",
     readTimeMinutes: 6,
     icon: "scores",
+    heroImage: "/guides/photo-wine-scores.webp",
     sections: [
       {
         heading: "The 100-Point Scale: How It Happened",
@@ -207,6 +213,7 @@ export const guides: Guide[] = [
       "Wine comes in more forms than most people realize. This guide maps the entire landscape — eight fundamental styles — giving you the vocabulary and framework to explore more confidently.",
     readTimeMinutes: 10,
     icon: "styles",
+    heroImage: "/guides/photo-wine-styles.webp",
     sections: [
       {
         heading: "Why Styles Matter More Than Grape Names",
@@ -258,6 +265,7 @@ export const guides: Guide[] = [
       "Pairing wine and food isn't a mysterious art reserved for sommeliers. It's based on a few practical principles that once understood, let you improvise confidently. This guide gives you the tools and the inspiration.",
     readTimeMinutes: 7,
     icon: "pairing",
+    heroImage: "/guides/photo-food-pairing.webp",
     sections: [
       {
         heading: "The Guiding Principle: Balance",
@@ -309,6 +317,7 @@ export const guides: Guide[] = [
       "Wine is older than the written word. This guide traces its journey from ancient Georgia to the tables of Roman emperors, through medieval monasteries to the New World and today's natural wine movement — the remarkable human story behind every glass.",
     readTimeMinutes: 10,
     icon: "history",
+    heroImage: "/guides/photo-history.webp",
     sections: [
       {
         heading: "The Beginning: Georgia and the Ancient World",
@@ -356,6 +365,7 @@ export const guides: Guide[] = [
       "These three terms are often used interchangeably, but they mean very different things. This guide explains each one precisely, identifies what they guarantee (and what they don't), and helps you decide what to look for based on your values.",
     readTimeMinutes: 8,
     icon: "natural",
+    heroImage: "/guides/photo-natural-organic.webp",
     sections: [
       {
         heading: "Why This Matters (And Why It's Confusing)",
@@ -398,6 +408,7 @@ export const guides: Guide[] = [
       "The year on a wine label isn't just a date — it's a story about weather, harvest decisions, and the luck of farming. This guide explains what makes a vintage, how to read a vintage chart, and when the year genuinely matters (and when it doesn't).",
     readTimeMinutes: 10,
     icon: "scores",
+    heroImage: "/guides/photo-vintage.webp",
     sections: [
       {
         heading: "What Makes a Vintage?",
@@ -441,6 +452,7 @@ export const guides: Guide[] = [
       "Every bottle of wine is the result of a series of decisions — harvest timing, fermentation method, aging vessel, bottling date — made by people who are part scientist, part artist, part gambler. This guide walks through the full process.",
     readTimeMinutes: 12,
     icon: "terroir",
+    heroImage: "/guides/illus-06-winemaking.webp",
     sections: [
       {
         heading: "Harvest and Crush",
@@ -489,6 +501,7 @@ export const guides: Guide[] = [
       "Wine classification systems can feel like hieroglyphics, but they encode centuries of accumulated knowledge about which vineyards and producers reliably produce the best wine. This guide decodes them, region by region.",
     readTimeMinutes: 10,
     icon: "label",
+    heroImage: "/guides/illus-05-pyramid.webp",
     sections: [
       {
         heading: "Why Classifications Exist",
@@ -537,6 +550,8 @@ export const guides: Guide[] = [
       "Serving wine correctly isn't fussiness — it's the difference between experiencing a wine at its best or missing what makes it special. Temperature, decanting, and glass shape all genuinely matter. Here's what you need to know.",
     readTimeMinutes: 8,
     icon: "tasting",
+    heroImage: "/guides/illus-03-glasses.webp",
+    illustrations: [{ src: "/guides/illus-04-temperature.webp", alt: "Wine serving temperature guide", afterSection: 1 }],
     sections: [
       {
         heading: "Temperature: Most Reds Too Warm, Most Whites Too Cold",
@@ -580,6 +595,7 @@ export const guides: Guide[] = [
       "Knowing when a wine is actually faulty — and when it's just unfamiliar — is one of the most useful skills in wine. This guide walks through the main faults, what causes them, how to recognize them, and what to do about them.",
     readTimeMinutes: 7,
     icon: "scores",
+    heroImage: "/guides/illus-08-faults.webp",
     sections: [
       {
         heading: "Cork Taint: The Most Common Fault",
@@ -623,6 +639,7 @@ export const guides: Guide[] = [
       "Wine is one of the very few beverages that genuinely improves with age — at least, some wine does. This guide explains the science and art of wine evolution, what to look for, which wines age, and how to store them properly.",
     readTimeMinutes: 9,
     icon: "history",
+    heroImage: "/guides/illus-07-aroma.webp",
     sections: [
       {
         heading: "Primary Aromas: The Grape's Voice",
@@ -670,6 +687,7 @@ export const guides: Guide[] = [
       "Inside every great wine region is a set of smaller, more specific places that wine lovers argue about obsessively. This guide explains what makes sub-appellations distinctive and why the difference between Pauillac and Margaux matters more than you might think.",
     readTimeMinutes: 12,
     icon: "styles",
+    heroImage: "/guides/photo-sub-appellations.webp",
     sections: [
       {
         heading: "Why Sub-Appellations Matter",
@@ -717,6 +735,7 @@ export const guides: Guide[] = [
       "Biodynamic farming divides wine people like almost nothing else: its practitioners include some of the world's greatest producers, its critics include some of its finest scientists. This guide examines what biodynamics actually is, what its great practitioners do, and what the evidence says.",
     readTimeMinutes: 10,
     icon: "natural",
+    heroImage: "/guides/photo-biodynamic.webp",
     sections: [
       {
         heading: "Rudolf Steiner and the Origins",
@@ -764,6 +783,7 @@ export const guides: Guide[] = [
       "Orange wine is white wine made like red wine — with skin contact during fermentation. It's been made in Georgia for 8,000 years. It was rediscovered in Friuli in the 1990s. Now it's everywhere. This guide explains what it is, why it matters, and whether you'll like it.",
     readTimeMinutes: 9,
     icon: "natural",
+    heroImage: "/guides/photo-orange-wine.webp",
     sections: [
       {
         heading: "What Orange Wine Actually Is",
@@ -811,6 +831,7 @@ export const guides: Guide[] = [
       "Some bottles of wine are worth more than a car. The secondary market for fine wine is a multi-billion dollar global industry with its own indices, auction houses, storage requirements, and — like any investment market — its own risks. This guide explains how it works.",
     readTimeMinutes: 11,
     icon: "scores",
+    heroImage: "/guides/photo-investment.webp",
     sections: [
       {
         heading: "Why Wine Appreciates: Scarcity and Drinking",

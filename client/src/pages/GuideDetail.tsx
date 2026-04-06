@@ -110,34 +110,73 @@ export default function GuideDetail() {
           </p>
         </div>
 
+        {/* Hero Image */}
+        {guide.heroImage && (
+          <div
+            style={{
+              marginBottom: 32,
+              borderRadius: "var(--r, 12px)",
+              overflow: "hidden",
+              border: "1px solid var(--border-c, #D4D1CA)",
+            }}
+          >
+            <img
+              src={guide.heroImage}
+              alt={guide.title}
+              style={{ width: "100%", height: "auto", display: "block" }}
+              loading="lazy"
+            />
+          </div>
+        )}
+
         {/* Sections */}
         {guide.sections.map((section, i) => (
-          <div key={i} style={{ marginBottom: 32 }}>
-            <h2
-              style={{
-                fontFamily: "'Fraunces', serif",
-                fontSize: "1.25rem",
-                fontWeight: 500,
-                color: "var(--text)",
-                marginBottom: 12,
-                lineHeight: 1.2,
-              }}
-            >
-              {section.heading}
-            </h2>
-            {section.content.split("\n\n").map((paragraph, pi) => (
-              <p
-                key={pi}
+          <div key={i}>
+            <div style={{ marginBottom: 32 }}>
+              <h2
                 style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 300,
-                  color: "var(--text2)",
-                  lineHeight: 1.8,
-                  marginBottom: 16,
+                  fontFamily: "'Fraunces', serif",
+                  fontSize: "1.25rem",
+                  fontWeight: 500,
+                  color: "var(--text)",
+                  marginBottom: 12,
+                  lineHeight: 1.2,
                 }}
               >
-                {paragraph}
-              </p>
+                {section.heading}
+              </h2>
+              {section.content.split("\n\n").map((paragraph, pi) => (
+                <p
+                  key={pi}
+                  style={{
+                    fontSize: "0.95rem",
+                    fontWeight: 300,
+                    color: "var(--text2)",
+                    lineHeight: 1.8,
+                    marginBottom: 16,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: paragraph }}
+                />
+              ))}
+            </div>
+            {/* Inline illustration after this section */}
+            {guide.illustrations?.filter(il => il.afterSection === i).map((il, ili) => (
+              <div
+                key={ili}
+                style={{
+                  marginBottom: 32,
+                  borderRadius: "var(--r, 12px)",
+                  overflow: "hidden",
+                  border: "1px solid var(--border-c, #D4D1CA)",
+                }}
+              >
+                <img
+                  src={il.src}
+                  alt={il.alt}
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                  loading="lazy"
+                />
+              </div>
             ))}
           </div>
         ))}

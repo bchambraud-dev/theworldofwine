@@ -1,7 +1,12 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import type { WineRegion } from "@/data/regions";
+import { wineRegions } from "@/data/regions";
 import type { Producer } from "@/data/producers";
 import { newsItems } from "@/data/news";
+import { quizzes } from "@/data/quizzes";
+import { guides } from "@/data/guides";
+import { journeys } from "@/data/journeys";
 import ExpandableNewsCard from "@/components/ExpandableNewsCard";
 
 interface RegionDetailProps {
@@ -65,12 +70,49 @@ export default function RegionDetail({
   onClose,
   onSelectProducer,
 }: RegionDetailProps) {
+  const [, setLocation] = useLocation();
   const regionProducers = producers.filter((p) => p.regionId === region.id);
   const regionNews = useMemo(
     () => newsItems.filter((n) => n.regionIds.includes(region.id)).slice(0, 5),
     [region.id]
   );
   const [activeTab, setActiveTab] = useState<"producers" | "news">("producers");
+
+  // CTAs computed values
+  const regionQuiz = useMemo(
+    () => quizzes.find((q) => q.regionId === region.id),
+    [region.id]
+  );
+  const relatedJourneys = useMemo(
+    () => journeys.filter((j) =>
+      j.stops.some((s) => s.type === "region" && s.targetId === region.id)
+    ).slice(0, 2),
+    [region.id]
+  );
+  const relatedGuides = useMemo(() => {
+    // Find guides relevant by country/region
+    const countryKeywords: Record<string, string[]> = {
+      France: ["classifications", "sub-appellations", "what-is-terroir"],
+      Italy: ["classifications", "sub-appellations"],
+      Germany: ["classifications"],
+      Spain: ["classifications"],
+      "United States": ["sub-appellations"],
+    };
+    const ids = countryKeywords[region.country] || ["what-is-terroir"];
+    return guides.filter((g) => ids.includes(g.id)).slice(0, 2);
+  }, [region.country]);
+  const similarRegions = useMemo(() => {
+    return wineRegions
+      .filter((r) => r.id !== region.id)
+      .map((r) => ({
+        region: r,
+        shared: r.grapes.filter((g) => region.grapes.includes(g)).length,
+      }))
+      .filter((r) => r.shared > 0)
+      .sort((a, b) => b.shared - a.shared)
+      .slice(0, 3)
+      .map((r) => r.region);
+  }, [region.id, region.grapes]);
 
   const flavors = extractFlavors(region.flavorProfile);
 
@@ -206,6 +248,142 @@ export default function RegionDetail({
             )
           )}
         </div>
+
+        {/* Continue Your Journey CTAs */}
+        {(regionQuiz || relatedJourneys.length > 0 || relatedGuides.length > 0 || similarRegions.length > 0) && (
+          <div style={{ padding: "24px 20px 32px", borderTop: "1px solid var(--border-c)" }}>
+            <h3
+              style={{
+                fontFamily: "'Fraunces', serif",
+                fontSize: "1.1rem",
+                fontWeight: 400,
+                color: "var(--text)",
+                marginBottom: 16,
+              }}
+            >
+              Continue Your Journey
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* Take the Quiz */}
+              {regionQuiz && (
+                <button
+                  onClick={() => setLocation(`/quiz/${regionQuiz.id}`)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "12px 16px",
+                    background: "var(--wine-pale)",
+                    border: "1px solid rgba(140,28,46,0.2)",
+                    borderRadius: "var(--r)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>📝</span>
+                  <div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.88rem", color: "var(--wine)", fontWeight: 500 }}>
+                      Take the Quiz
+                    </div>
+                    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {regionQuiz.title} · {regionQuiz.questions.length} questions
+                    </div>
+                  </div>
+                  <span style={{ marginLeft: "auto", color: "var(--wine)" }}>›</span>
+                </button>
+              )}
+
+              {/* Similar Regions */}
+              {similarRegions.length > 0 && (
+                <div>
+                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text3)", marginBottom: 8 }}>
+                    Similar Regions
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {similarRegions.map((r) => (
+                      <button
+                        key={r.id}
+                        onClick={() => setLocation(`/map?region=${r.id}`)}
+                        style={{
+                          fontFamily: "'Geist Mono', monospace",
+                          fontSize: "0.62rem",
+                          padding: "6px 12px",
+                          borderRadius: "var(--r)",
+                          border: "1px solid var(--border-c)",
+                          background: "var(--wh)",
+                          color: "var(--text2)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {r.name} · {r.country}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Related Journeys */}
+              {relatedJourneys.map((journey) => (
+                <button
+                  key={journey.id}
+                  onClick={() => setLocation(`/journeys/${journey.id}`)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "12px 16px",
+                    background: "rgba(74,26,110,0.05)",
+                    border: "1px solid rgba(74,26,110,0.15)",
+                    borderRadius: "var(--r)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>🗺</span>
+                  <div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.88rem", color: "var(--plum)", fontWeight: 500 }}>
+                      Related Journey
+                    </div>
+                    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {journey.title}
+                    </div>
+                  </div>
+                  <span style={{ marginLeft: "auto", color: "var(--plum)" }}>›</span>
+                </button>
+              ))}
+
+              {/* Read the Guide */}
+              {relatedGuides.map((guide) => (
+                <button
+                  key={guide.id}
+                  onClick={() => setLocation(`/guides/${guide.id}`)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "12px 16px",
+                    background: "rgba(74,122,82,0.05)",
+                    border: "1px solid rgba(74,122,82,0.15)",
+                    borderRadius: "var(--r)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>📖</span>
+                  <div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.88rem", color: "var(--sage)", fontWeight: 500 }}>
+                      Read the Guide
+                    </div>
+                    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {guide.title}
+                    </div>
+                  </div>
+                  <span style={{ marginLeft: "auto", color: "var(--sage)" }}>›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

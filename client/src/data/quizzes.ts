@@ -703,4 +703,379 @@ export const quizzes: Quiz[] = [
       },
     ],
   },
+
+  // ── QUIZ 11: Vintage Knowledge Quiz ─────────────────────────────────────────
+  {
+    id: "vintage-knowledge-quiz",
+    title: "Vintage Knowledge Quiz",
+    description:
+      "How well do you know your great vintages? Test your knowledge of the years that produced legendary wines — and the conditions that made them special.",
+    guideId: "vintage-variation",
+    questions: [
+      {
+        id: "vk-q1",
+        question: "Which of the following is widely considered one of the greatest Bordeaux vintages of the modern era for its extraordinary structure and freshness?",
+        options: [
+          "2003 (the famous heatwave year)",
+          "2010",
+          "2007",
+          "2001",
+        ],
+        correctIndex: 1,
+        explanation:
+          "The 2010 Bordeaux vintage is celebrated for combining richness with exceptional freshness and acidity — a counterpoint to the opulent 2009. Many critics consider it the finest Bordeaux vintage of the modern era for its classical structure and extraordinary aging potential.",
+      },
+      {
+        id: "vk-q2",
+        question: "What does 'NV' on a Champagne label indicate about the wine's vintage?",
+        options: [
+          "The vintage was poor, so no date was declared",
+          "The wine is a blend of multiple harvest years to achieve a consistent house style",
+          "The wine was made from non-vinifera grape varieties",
+          "It stands for 'Natural Vintage' — farmed without intervention",
+        ],
+        correctIndex: 1,
+        explanation:
+          "NV (Non-Vintage) Champagne is intentionally blended from multiple years using reserve wines, creating the house's consistent flavor profile regardless of annual variation. It's an art form in itself — not a compromise.",
+      },
+      {
+        id: "vk-q3",
+        question: "In Burgundy, which recent vintage is celebrated for producing Pinot Noir and Chardonnay of extraordinary richness and depth?",
+        options: ["2011", "2013", "2015", "2008"],
+        correctIndex: 2,
+        explanation:
+          "The 2015 Burgundy vintage produced wines of remarkable concentration, depth, and balance — one of the most celebrated in recent decades. The 2019 is its nearest rival in the current era.",
+      },
+      {
+        id: "vk-q4",
+        question: "Which climatic event most commonly threatens a harvest in cool-climate regions like Chablis and Champagne?",
+        options: [
+          "Extended summer drought causing vine shutdown",
+          "Late spring frosts after bud break, destroying young shoots",
+          "Coastal fog blocking essential sunlight in July and August",
+          "Excessive summer heat causing grapes to over-ripen",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Spring frosts after bud break are a constant existential threat in cool-climate regions. Once the vine has sprouted, a single frost night can destroy the entire year's potential crop — a risk that drives significant investment in frost protection systems.",
+      },
+      {
+        id: "vk-q5",
+        question: "In warm, consistent wine-producing regions like much of California and South Australia, why does vintage variation tend to matter less to everyday wine buyers?",
+        options: [
+          "These regions use technology to standardize wine chemistry regardless of harvest conditions",
+          "The consistent warm climate produces reliably ripe fruit each year, with far less dramatic variation than cooler European regions",
+          "Wine from these regions is blended from multiple vintages before bottling, regardless of the label date",
+          "Vintage variation only affects white wine, not red wine styles common in these regions",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Warm, consistent climates produce reliably ripe fruit without the dramatic swings between cool, wet years and warm, dry years that define vintage character in places like Burgundy or the Mosel. This consistency is a feature for everyday wine but reduces the excitement of vintage variation.",
+      },
+    ],
+  },
+
+  // ── QUIZ 12: Winemaking Process Quiz ─────────────────────────────────────────
+  {
+    id: "winemaking-process-quiz",
+    title: "Winemaking Process Quiz",
+    description:
+      "From harvest to bottling, do you understand what actually happens inside the winery? Test your knowledge of the decisions that turn grapes into wine.",
+    guideId: "winemaking",
+    questions: [
+      {
+        id: "wp-q1",
+        question: "What is malolactic fermentation, and what flavor change does it produce in white wines like Chardonnay?",
+        options: [
+          "A second sugar fermentation that increases alcohol and adds a fruity sweetness",
+          "A bacterial process that converts sharp malic acid to softer lactic acid, producing buttery, creamy notes",
+          "A clarification process using egg whites that removes harsh tannins",
+          "Cold stabilization that precipitates tartaric acid crystals before bottling",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Malolactic fermentation (MLF) converts tart malic acid to softer lactic acid via bacteria — the same transformation that gives yogurt its creamy texture. In Chardonnay, MLF produces diacetyl (the compound that smells of butter), creating the rich, creamy, buttery style associated with many barrel-fermented Chardonnays.",
+      },
+      {
+        id: "wp-q2",
+        question: "What is the primary difference between using wild (native) yeast versus cultured yeast in fermentation?",
+        options: [
+          "Wild yeast produces more alcohol; cultured yeast produces less",
+          "Wild yeast fermentations are riskier but can produce more complex, terroir-expressive wines; cultured yeast is reliable and predictable",
+          "Cultured yeast can only be used for red wine fermentation",
+          "Wild yeast adds sulfur dioxide naturally; cultured yeast does not",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Wild yeasts — native to the vineyard and winery — ferment more slowly and unpredictably, with risk of stuck fermentation or off-flavors. But when they work well, they're celebrated for producing wines with greater complexity, site specificity, and character that cultured yeasts cannot replicate.",
+      },
+      {
+        id: "wp-q3",
+        question: "In red winemaking, what is maceration and why does it matter?",
+        options: [
+          "Filtering the wine through a membrane to remove particles before bottling",
+          "Leaving the juice in contact with grape skins during fermentation to extract color, tannins, and flavor",
+          "Blending wines from different grape varieties before final bottling",
+          "Chilling the wine rapidly after fermentation to preserve fresh fruit aromas",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Maceration is the contact between juice and grape skins during fermentation — it's what makes red wine red, extracting anthocyanin pigments, tannins, and flavor compounds from the skins. Longer, more aggressive maceration produces darker, more tannic wines; gentler, shorter maceration produces lighter, more fruit-forward styles.",
+      },
+      {
+        id: "wp-q4",
+        question: "Which aging vessel is described as 'inert' — adding no flavor to the wine — making it ideal for preserving fresh fruit aromatics?",
+        options: [
+          "New French oak barrique (225-liter barrel)",
+          "Old large-format oak foudre",
+          "Stainless steel tank",
+          "New American oak barrel",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Stainless steel is chemically inert: it neither adds flavor nor allows the micro-oxygenation that occurs in oak or clay vessels. This makes it ideal for wines where fresh, primary fruit aromatics — like Sauvignon Blanc, crisp Pinot Grigio, or young Riesling — are the point.",
+      },
+      {
+        id: "wp-q5",
+        question: "What are the three structural elements in wine that most determine its aging potential?",
+        options: [
+          "Color, clarity, and body",
+          "Temperature, humidity, and cellar age at bottling",
+          "Acidity, tannin, and residual sugar (or extract)",
+          "Oak influence, alcohol level, and grape variety",
+        ],
+        correctIndex: 2,
+        explanation:
+          "High acidity, firm tannins, and significant extract (or residual sugar in sweet wines) are the structural pillars of age-worthy wine. Acidity preserves freshness; tannins slowly polymerize and soften over time; extract provides the richness that supports long development. Without these elements, wine simply fades rather than evolves.",
+      },
+    ],
+  },
+
+  // ── QUIZ 13: Wine Classifications Quiz ───────────────────────────────────────
+  {
+    id: "wine-classifications-quiz",
+    title: "Wine Classifications Quiz",
+    description:
+      "From Bordeaux's 1855 rankings to Italy's DOCG — do you understand the classification systems that underpin fine wine? Test yourself here.",
+    guideId: "classifications",
+    questions: [
+      {
+        id: "wc-q1",
+        question: "The 1855 Bordeaux Classification ranked châteaux into how many 'Growths' (Crus), and which châteaux are currently classified as Premier Cru Classé?",
+        options: [
+          "Three growths; Lafite, Latour, Margaux, and Pichon Baron",
+          "Five growths; Lafite, Latour, Margaux, Haut-Brion, and Mouton Rothschild",
+          "Five growths; Lafite, Latour, Margaux, Léoville-Las Cases, and Haut-Brion",
+          "Four growths; Lafite, Latour, Pétrus, and Mouton Rothschild",
+        ],
+        correctIndex: 1,
+        explanation:
+          "The 1855 Classification has five tiers (growths). The five Premier Cru Classé estates are Lafite Rothschild, Latour, Margaux, Haut-Brion (the only Graves estate in the original list), and Mouton Rothschild — which was elevated from Second to First Growth in 1973, the only change in 170 years.",
+      },
+      {
+        id: "wc-q2",
+        question: "In Burgundy, what is a 'Grand Cru' designation, and approximately what percentage of total Burgundy production does it represent?",
+        options: [
+          "A prestigious producer cooperative; represents about 10% of production",
+          "The highest vineyard classification in Burgundy; represents about 1% of total production",
+          "A regional designation for wines from the Cote d'Or; represents about 30% of production",
+          "An aging classification requiring minimum 5 years in barrel; represents about 5% of production",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Grand Cru is Burgundy's highest vineyard designation — just 33 vineyards hold it, covering a tiny fraction of the region's total area and producing roughly 1% of Burgundy's wine. This extraordinary scarcity, combined with the wines' reputation, is why Grand Cru Burgundy commands some of the world's highest prices.",
+      },
+      {
+        id: "wc-q3",
+        question: "Italy's Super Tuscans (Sassicaia, Tignanello, Ornellaia) are often labeled as IGT despite being among Italy's most prestigious and expensive wines. Why?",
+        options: [
+          "These wines intentionally downgrade their classification for marketing reasons",
+          "They were made from international varieties or using methods not permitted under DOC rules when first produced",
+          "IGT is actually Italy's highest quality designation, equivalent to France's Grand Cru",
+          "The producers refused Demeter biodynamic certification, making them ineligible for higher classifications",
+        ],
+        correctIndex: 1,
+        explanation:
+          "When pioneering Tuscan producers planted Cabernet Sauvignon and used new French oak barrels, these practices fell outside existing DOC regulations. So world-class wines like Sassicaia and Tignanello were labeled as humble Vino da Tavola (later IGT) — the classification system simply hadn't caught up with their ambitions.",
+      },
+      {
+        id: "wc-q4",
+        question: "In Germany, the VDP (Verband Deutscher Prädikatsweinüter) uses a quality hierarchy for dry wines. What is the top designation, equivalent to a Grand Cru?",
+        options: [
+          "Trockenbeerenauslese",
+          "Kabinett",
+          "Grosses Gewächs",
+          "Erste Lage",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Grosses Gewächs (GG) is the VDP's top tier for dry wines — always from a single, named Grand Cru vineyard site. It's the German equivalent of Burgundy's Grand Cru, and a Mosel or Rheingau Riesling GG from a top estate is among the finest dry whites in the world.",
+      },
+      {
+        id: "wc-q5",
+        question: "What is the key difference between how European wine classification systems and New World systems like the US AVA define quality?",
+        options: [
+          "European systems are voluntary while New World systems are mandatory",
+          "European systems define specific rules (permitted grapes, yields, production methods) within geographic boundaries; New World systems primarily just define geographic boundaries without prescribing production methods",
+          "New World systems are more rigorous because they require independent tasting panels before wines can be released",
+          "There is no meaningful difference — both systems serve the same function of guaranteeing quality",
+        ],
+        correctIndex: 1,
+        explanation:
+          "European appellations encode rules about grape varieties, yields, ripeness levels, and winemaking methods — the appellation guarantees a style as well as an origin. An AVA in California defines geographic boundaries only: what grapes are grown, how the wine is made, and what the wine tastes like are entirely the producer's decision.",
+      },
+    ],
+  },
+
+  // ── QUIZ 14: Wine Service Quiz ────────────────────────────────────────────────
+  {
+    id: "wine-service-quiz",
+    title: "Wine Service Quiz",
+    description:
+      "Temperature, decanting, glassware, restaurant etiquette — do you know how to serve wine to get the most out of it? Let's find out.",
+    guideId: "wine-service",
+    questions: [
+      {
+        id: "ws-q1",
+        question: "What is the ideal serving temperature for a full-bodied red wine like Bordeaux or Barolo?",
+        options: [
+          "8–10°C (chilled, like a white wine)",
+          "15–17°C (cool room temperature)",
+          "17–18°C (slightly below typical room temperature)",
+          "22–24°C (typical heated room temperature)",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Full-bodied reds are best at 17–18°C — slightly cooler than a modern heated room (22–24°C). Serving reds too warm makes the alcohol seem harsh and suppresses delicate aromatics. A quick 20-minute chill in the fridge brings most reds to the right temperature before serving.",
+      },
+      {
+        id: "ws-q2",
+        question: "Decanting serves two distinct purposes. Which of the following correctly identifies both?",
+        options: [
+          "To chill the wine quickly and to add oxygen before serving",
+          "To remove sediment from old wines and to aerate young tannic wines",
+          "To remove tannins from young wines and to add flavor from the decanter",
+          "To warm cold wines and to filter out natural sulfites",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Decanting does two distinct jobs: it separates sediment (important for old wines and vintage Port) and aerates young, tannic wines (exposing them to oxygen softens tannins and opens up aromatics). Different wines need different approaches — old wines should be decanted carefully and drunk promptly; young reds can breathe for hours.",
+      },
+      {
+        id: "ws-q3",
+        question: "Why is a large bowl typically preferred for Burgundy-style Pinot Noir glasses over a taller, narrower Bordeaux-style glass?",
+        options: [
+          "Burgundy is always served at a lower temperature, and the larger bowl keeps it cooler",
+          "Pinot Noir is higher in alcohol than Cabernet, requiring more space for vapors to dissipate",
+          "The wide bowl allows vigorous swirling to capture and concentrate Pinot Noir's delicate, complex aromatics",
+          "A larger bowl is required because Burgundy is traditionally served in larger pours",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Pinot Noir's aromatics are delicate and complex — they need room to develop and be captured. The broad Burgundy bowl allows generous swirling without spillage, concentrating fragile cherry, earth, and floral notes in the glass. The slightly narrower rim then focuses those aromas as you bring it to your nose.",
+      },
+      {
+        id: "ws-q4",
+        question: "When tasting a wine in a restaurant before it's served to the table, what are you actually being asked to evaluate?",
+        options: [
+          "Whether the wine meets your personal taste preferences and you'd like to order something different",
+          "Whether the wine is free from faults (particularly cork taint) — not whether you like the style",
+          "Whether the wine has been stored correctly and is at the right temperature",
+          "Whether the vintage matches the label and the wine hasn't been substituted",
+        ],
+        correctIndex: 1,
+        explanation:
+          "The restaurant tasting ritual is a quality check for faults, not a style approval. You're smelling and tasting for cork taint (musty, wet cardboard), oxidation, or other defects. If the wine smells clean and is technically correct, approve it — even if you'd have chosen a different style. Sending back a perfectly sound wine you simply don't love is bad form.",
+      },
+      {
+        id: "ws-q5",
+        question: "An old Burgundy (20+ years) is opened for a special dinner. What decanting approach is most appropriate?",
+        options: [
+          "Decant 2–3 hours in advance to allow full aeration and tannin softening",
+          "Do not decant at all — pour directly from the bottle into the glass slowly",
+          "Decant gently just before serving to remove sediment, then pour and drink promptly",
+          "Decant overnight in the refrigerator to allow slow, cold aeration",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Old wines are fragile — their tertiary aromatics (dried flowers, forest floor, tobacco, leather) are volatile and can fade within minutes of excessive air exposure. Decant gently to separate sediment, then serve immediately. Over-decanting an old wine is one of the most heartbreaking things you can do to it.",
+      },
+    ],
+  },
+
+  // ── QUIZ 15: Wine Faults Quiz ─────────────────────────────────────────────────
+  {
+    id: "wine-faults-quiz",
+    title: "Wine Faults Quiz",
+    description:
+      "Would you recognize a corked wine? Know when to send it back and when you're just encountering something unfamiliar? Test your fault-spotting skills.",
+    guideId: "wine-faults",
+    questions: [
+      {
+        id: "wf-q1",
+        question: "Cork taint (TCA) in a wine most commonly produces which aroma?",
+        options: [
+          "A sharp vinegar or nail polish remover smell",
+          "A musty, damp basement or wet cardboard smell",
+          "A barnyard or horse sweat character",
+          "A struck match or burnt rubber smell",
+        ],
+        correctIndex: 1,
+        explanation:
+          "TCA (2,4,6-Trichloroanisole), the compound responsible for cork taint, produces an unmistakable musty, damp, wet cardboard smell that strips the wine of its fresh fruit character. Once you've experienced it, you'll recognize it immediately — and know to send the bottle back without hesitation.",
+      },
+      {
+        id: "wf-q2",
+        question: "A wine smells strongly of struck match or rubber when first opened, but the smell largely dissipates after 15 minutes in the glass. This is most likely:",
+        options: [
+          "Cork taint that has partially cleared due to contact with air",
+          "Reduction — a reductive winemaking condition that often blows off with air exposure",
+          "Volatile acidity that has converted to ethyl acetate in the glass",
+          "Brettanomyces that is resolving itself at room temperature",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Struck match and rubber notes are classic reduction (too little oxygen exposure during winemaking). Unlike most faults, reduction is often temporary and resolves with swirling and aeration. This is why sommeliers pour a small taste first — if the sulfur note blows off within minutes, it's not a fault that warrants returning the bottle.",
+      },
+      {
+        id: "wf-q3",
+        question: "Which of the following is definitively NOT a wine fault?",
+        options: [
+          "Cork taint producing a musty, cardboard aroma",
+          "Tartrate crystals (white crystal deposits) found in a white wine",
+          "Volatile acidity producing a vinegar-like sharpness",
+          "Heat damage producing stewed fruit and prune aromas",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Tartrate crystals are deposits of tartaric acid (cream of tartar) that have crystallized due to cold temperatures. They're completely harmless, tasteless, and natural — a sign the wine hasn't been cold-stabilized through filtration. Some people actually see them as a mark of less-processed wine.",
+      },
+      {
+        id: "wf-q4",
+        question: "Brettanomyces ('Brett') in wine is controversial because:",
+        options: [
+          "It only affects expensive wines, making it a sign of quality rather than a fault",
+          "At low levels many wine drinkers find it complex and appealing; at high levels it's clearly unpleasant and overwhelms the wine",
+          "It is only detectable by trained professionals and cannot be smelled by casual wine drinkers",
+          "It adds the buttery, creamy quality that makes oaked Chardonnay so popular",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Brett produces barnyard, leather, and saddle notes — at low levels these can be perceived as complexity and terroir character, especially in traditional Rhône wines. At high levels, the medicinal, band-aid quality becomes a fault that overwhelms all other character. The line between complex and unpleasant is intensely personal and debated.",
+      },
+      {
+        id: "wf-q5",
+        question: "A white wine opened at dinner appears significantly brown in color and smells flat and applesauce-like. This most likely indicates:",
+        options: [
+          "The wine is a naturally oxidized style like Sherry — correct and intentional",
+          "Reduction from insufficient oxygen during winemaking",
+          "Oxidation from excessive oxygen exposure, probably from a compromised closure or poor storage",
+          "Brettanomyces, which causes color changes in white wine",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Browning in white wine and flat, applesauce or sherry-like aromas are classic signs of oxidation. White wines brown just as cut apples do when exposed to air. A compromised cork, improper storage, or a wine left open too long are the usual culprits. Unlike Sherry, where oxidation is intentional, this is a fault in a conventional white wine.",
+      },
+    ],
+  },
 ];

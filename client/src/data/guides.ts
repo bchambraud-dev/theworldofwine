@@ -8,6 +8,7 @@ export interface Guide {
   title: string;
   subtitle: string;
   category: "fundamentals" | "tasting" | "regions" | "culture";
+  level: "beginner" | "intermediate" | "expert";
   description: string;
   readTimeMinutes: number;
   icon: string;
@@ -24,6 +25,7 @@ export const guides: Guide[] = [
     title: "What is Terroir? The Soul of Wine",
     subtitle: "Why the same grape tastes completely different depending on where it grows",
     category: "fundamentals",
+    level: "beginner",
     description:
       "Terroir is French for 'a sense of place' — the idea that wine carries the fingerprint of the land it came from. This guide unpacks what that actually means, from soil chemistry to climate and the human factor.",
     readTimeMinutes: 8,
@@ -66,6 +68,7 @@ export const guides: Guide[] = [
     title: "How to Taste Wine Like You Mean It",
     subtitle: "Practical, non-pretentious techniques that actually help you enjoy wine more",
     category: "tasting",
+    level: "beginner",
     description:
       "Tasting wine isn't about having the right vocabulary or impressing people — it's about training your attention to notice things you'd otherwise miss. This guide makes the classic Look-Swirl-Smell-Taste-Finish framework actually useful.",
     readTimeMinutes: 7,
@@ -113,6 +116,7 @@ export const guides: Guide[] = [
     title: "Reading a Wine Label",
     subtitle: "Old World, New World, and what the terms actually tell you about what's inside",
     category: "fundamentals",
+    level: "beginner",
     description:
       "A wine label is a compressed system of information — and once you know how to decode it, choosing a bottle becomes much easier. This guide cuts through the confusion of two very different labeling traditions.",
     readTimeMinutes: 6,
@@ -155,6 +159,7 @@ export const guides: Guide[] = [
     title: "Understanding Wine Scores",
     subtitle: "Parker, Wine Spectator, Jancis Robinson — what the numbers mean and what they don't",
     category: "culture",
+    level: "beginner",
     description:
       "Wine scores are everywhere — 94 points, 97 points, 'Best in Class.' This guide explains who gives them, how they work, and why they're both useful and wildly overused in the wine industry.",
     readTimeMinutes: 6,
@@ -197,6 +202,7 @@ export const guides: Guide[] = [
     title: "The World's Wine Styles Explained",
     subtitle: "Light reds, full reds, crisp whites, rich whites, rosé, sparkling, dessert, fortified — the complete picture",
     category: "fundamentals",
+    level: "beginner",
     description:
       "Wine comes in more forms than most people realize. This guide maps the entire landscape — eight fundamental styles — giving you the vocabulary and framework to explore more confidently.",
     readTimeMinutes: 10,
@@ -247,6 +253,7 @@ export const guides: Guide[] = [
     title: "Wine and Food: The Art of Pairing",
     subtitle: "The principles that actually work — and the surprising pairings you didn't see coming",
     category: "tasting",
+    level: "beginner",
     description:
       "Pairing wine and food isn't a mysterious art reserved for sommeliers. It's based on a few practical principles that once understood, let you improvise confidently. This guide gives you the tools and the inspiration.",
     readTimeMinutes: 7,
@@ -297,6 +304,7 @@ export const guides: Guide[] = [
     title: "A Brief History of Wine",
     subtitle: "8,000 years in 10 minutes — from Georgian clay pots to global phenomenon",
     category: "culture",
+    level: "beginner",
     description:
       "Wine is older than the written word. This guide traces its journey from ancient Georgia to the tables of Roman emperors, through medieval monasteries to the New World and today's natural wine movement — the remarkable human story behind every glass.",
     readTimeMinutes: 10,
@@ -343,6 +351,7 @@ export const guides: Guide[] = [
     title: "Natural, Organic, Biodynamic: What's the Difference?",
     subtitle: "Cutting through the label confusion — what each term really means in the vineyard and cellar",
     category: "culture",
+    level: "beginner",
     description:
       "These three terms are often used interchangeably, but they mean very different things. This guide explains each one precisely, identifies what they guarantee (and what they don't), and helps you decide what to look for based on your values.",
     readTimeMinutes: 8,
@@ -376,5 +385,465 @@ export const guides: Guide[] = [
     ],
     relatedJourneyIds: ["natural-wine-movement", "hidden-gems-uncommon-regions"],
     relatedGrapeIds: ["chenin-blanc", "assyrtiko", "grenache"],
+  },
+
+  // ── GUIDE 9 (INTERMEDIATE) ────────────────────────────────────────────────────
+  {
+    id: "vintage-variation",
+    title: "Vintage Variation: Why the Year Matters",
+    subtitle: "What makes one harvest legendary and another forgettable — and how to use that knowledge",
+    category: "fundamentals",
+    level: "intermediate",
+    description:
+      "The year on a wine label isn't just a date — it's a story about weather, harvest decisions, and the luck of farming. This guide explains what makes a vintage, how to read a vintage chart, and when the year genuinely matters (and when it doesn't).",
+    readTimeMinutes: 10,
+    icon: "scores",
+    sections: [
+      {
+        heading: "What Makes a Vintage?",
+        content:
+          "Every bottle of wine with a year on the label is telling you something specific: this is when the grapes were harvested. Not when the wine was bottled, not when it was released — when those particular grapes hung on those particular vines, absorbing sunshine and rain and the specific character of that specific year. <strong>Vintage is a snapshot of weather</strong>, and weather, as every farmer knows, is never the same twice.\n\nThe growing season typically runs from bud break in spring through harvest in autumn — roughly six to eight months during which the vine goes from dormancy to producing ripe fruit. During that window, everything matters: rainfall and its timing, temperature during flowering (which affects how many berries set), heat during the growing season, and — critically — the conditions in the final weeks before harvest. A warm, dry September can rescue a mediocre summer; a cold, wet October can ruin a brilliant one.\n\nWinemakers watch the weather obsessively, because the decisions they make at harvest — when to pick, how quickly, which plots first — can mean the difference between a great vintage and a difficult one. In some years, <strong>those decisions are made for you by the weather</strong>; in others, the harvest window is generous and timing becomes a question of philosophy (pick earlier for freshness, later for richness).",
+      },
+      {
+        heading: "How Weather Shapes Wine",
+        content:
+          "Think about what a grape needs: warmth to build sugar and flavor compounds, rainfall to keep the vine alive, sunlight to drive photosynthesis, and cool nights to preserve the acidity that makes wine taste fresh rather than flat. The ideal growing season provides all of these in roughly the right proportions and sequence. The problem is that nature rarely obliges.\n\nToo much rain — especially at harvest — dilutes grape juice and promotes rot. Too little rain throughout summer stresses the vine and can shut down ripening entirely. <strong>Hail is every vineyard's nightmare</strong> — a single storm in June can devastate an entire harvest before the berries have even formed properly. Spring frosts after bud break can kill an entire year's growth in a single night. Chablis and Champagne, both cold-climate regions, are particularly vulnerable to frost damage that can reduce a crop by 80% or more.\n\nThe flip side of difficult conditions is that extraordinary conditions produce extraordinary wines. The great vintages in cooler regions are usually defined by the combination of a warm summer that built sugar and flavor, cool nights that preserved acidity and freshness, and a dry, sunny autumn that allowed a leisurely harvest at perfect ripeness. In warmer regions, the great vintages are defined by <strong>unusual freshness</strong> — a cooler year that moderated the alcohol and preserved the structure that these climates can sometimes lack.",
+      },
+      {
+        heading: "Great Vintages by Region",
+        content:
+          "In <strong>Bordeaux</strong>, the legendary modern vintages are 2005, 2009, 2010, 2015, and 2016. The 2005 was called the vintage of the century at the time — hot summer, late harvest, dense concentrated wines. Then 2009 arrived and surpassed it in sheer hedonistic richness. The 2010 was the structural counterpoint — more restrained, with incredible freshness, arguably the greatest Bordeaux vintage of the modern era. The 2015 and 2016 are the most recent additions to the pantheon: 2015 warm and luscious, 2016 more classical and age-worthy. Any bottle from these years from a top producer is something worth finding.\n\nIn <strong>Burgundy</strong>, 2015 and 2019 are the current stars — both producing wines of extraordinary richness and depth. Burgundy is far more variable than Bordeaux because Pinot Noir is more sensitive to weather, and the tiny plots mean site-level differences are amplified by vintage conditions. A grand cru from a great Burgundy vintage can be one of the most profound bottles of wine you'll ever open.\n\nIn <strong>Piedmont</strong>, 2010 and 2016 stand out as Barolo and Barbaresco vintages of a generation. Both combined the warm growing season that Nebbiolo needs with the cool autumn temperatures that allow a long, slow, perfect ripening. The 2016 Barolos in particular are already being talked about in legendary terms — and they've barely started to open up. Buy some now and hide them for a decade.",
+      },
+      {
+        heading: "How to Read a Vintage Chart",
+        content:
+          "A vintage chart is a simplified grid: regions on one axis, years on the other, scores in the boxes. The best ones come from experienced critics who actually tasted the wines shortly after release and understand regional variation. Wine Spectator, Decanter, Wine Advocate, and Robert Parker's website all publish vintage charts — and while no two agree in every detail, there's usually broad consensus on the truly great and truly difficult years.\n\nRead vintage charts with an understanding of what they actually represent: <strong>average quality for the region that year</strong>. A bad year in Bordeaux doesn't mean every bottle is flawed — it means the producer had to work harder, and the best estates often made excellent wine even when the year was difficult. Conversely, a great year doesn't guarantee a great bottle if the producer made mistakes at harvest or in the cellar.\n\nThe most practical use of a vintage chart is in restaurant wine lists: if you're choosing between two unfamiliar bottles at similar prices, a good year versus a mediocre year for the same region can be a reasonable tiebreaker. But don't be a vintage snob — there are great wines in every year, and some of the most interesting bottles come from winemakers who excelled despite difficult conditions.",
+      },
+      {
+        heading: "When Vintage Doesn't Matter",
+        content:
+          "Here's the counterintuitive part: for a very large proportion of the wine market, vintage variation matters relatively little. Most everyday wine — the bottle you're opening on a Tuesday with dinner — is made to be consistent across years. The winemaker blends from multiple parcels and sometimes multiple years specifically to produce reliability and approachability rather than vintage character.\n\n<strong>Non-vintage Champagne</strong> is the canonical example. The great houses (Moët & Chandon, Veuve Clicquot, Billecart-Salmon) maintain enormous reserve stocks of older wine precisely to blend away the inconsistencies of any given year and create a consistent 'house style.' The NV Champagne you buy this year should taste essentially the same as the one you bought last year. This is an art form in itself — the blending expertise required is extraordinary — and it's why NV Champagne from a top house is always a reliable choice.\n\nFor most everyday wines in the $12–25 range, <strong>vintage variation is largely managed away</strong> by large-scale sourcing and blending. In warm, consistent climates like much of California, South Australia, and Chile, dramatic vintage swings simply don't happen with the frequency of cooler European regions. If you're not spending a lot on a bottle, don't spend a lot of time worrying about the year on the label.",
+      },
+    ],
+    relatedJourneyIds: ["six-grapes-that-changed-everything"],
+    relatedGrapeIds: ["cabernet-sauvignon", "pinot-noir"],
+    quizId: "vintage-knowledge-quiz",
+  },
+
+  // ── GUIDE 10 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "winemaking",
+    title: "How Wine is Made: From Grape to Glass",
+    subtitle: "The full journey from harvest through fermentation, aging, and bottling",
+    category: "fundamentals",
+    level: "intermediate",
+    description:
+      "Every bottle of wine is the result of a series of decisions — harvest timing, fermentation method, aging vessel, bottling date — made by people who are part scientist, part artist, part gambler. This guide walks through the full process.",
+    readTimeMinutes: 12,
+    icon: "terroir",
+    sections: [
+      {
+        heading: "Harvest and Crush",
+        content:
+          "Everything begins with a decision: when to pick. <strong>Harvest timing is the most consequential choice</strong> a winemaker makes all year — too early and the grapes lack flavor and ripeness; too late and they lose freshness, acidity collapses, and botrytis (rot) can set in uninvited. In practice, picking windows are often measured in days or even hours, and the best winemakers obsessively track sugar levels (Brix), pH, and what they call 'physiological ripeness' — the actual flavor of the grape — before committing.\n\nIn regions with high-quality ambitions, the grapes are still often hand-harvested: pickers move through the vineyard row by row, selecting only ripe, healthy bunches. Machine harvesting is faster and cheaper but less discriminating. For some wines — those with intentional bunch selection or that require whole clusters — machine harvesting is simply not possible. The crew you pick your grapes with, and how carefully they work, matters enormously.\n\nAfter harvest comes crushing — breaking the grape skins to release the juice. Modern wineries often use gentle destemming machines and crushers rather than the romantic image of barefoot treading (though foot-treading is still used for premium Port production in the Douro). Some producers prefer whole-cluster fermentation — putting entire, uncrushed bunches into the fermentation vessel — which creates different flavors and adds structural complexity.",
+      },
+      {
+        heading: "Fermentation: Wild vs Cultured Yeast and Temperature Control",
+        content:
+          "Fermentation is the core transformation: yeast consumes the sugar in grape juice and produces alcohol and carbon dioxide. It sounds simple, but the choices around fermentation are where winemaking philosophy becomes most visible. <strong>The first major question is: which yeast?</strong>\n\nCultured yeasts — selected strains developed for predictability, efficiency, and specific flavor contributions — are used by most commercial wineries worldwide. They're reliable: fermentation starts quickly, finishes completely, and produces consistent results year after year. Wild or 'native' yeasts — the indigenous yeasts that live on grape skins and in the winery environment — are the choice of producers who want maximum terroir expression and character. Wild fermentations are slower, riskier, sometimes volatile, and often produce wines with greater complexity and individuality. The risk is stuck fermentation or off-flavors; the reward is something genuinely distinctive.\n\nTemperature control during fermentation is equally fundamental. <strong>White wines are fermented cool</strong> (12–18°C) to preserve delicate fruit aromatics — warmth drives off the volatile aromatics that make a crisp Sauvignon Blanc or fragrant Riesling what it is. Red wines are typically fermented warmer (22–28°C) because heat helps extract color and tannin from the skins. Some producers push temperatures higher for extraction; others keep them moderate for elegance and freshness.",
+      },
+      {
+        heading: "Maceration and Extraction: Color, Tannin, and Character",
+        content:
+          "For red wine, fermentation and maceration happen simultaneously: the juice (must) macerates on the grape skins, extracting color pigments (anthocyanins), tannins, and flavor compounds that are only present in the skins, not the juice itself. <strong>This skin contact is what makes red wine red</strong> — white grapes, even those with pink or red skins, can make white wine if you remove the skins immediately after crushing.\n\nHow long and how aggressively you macerate determines the style of the wine. Gentle extraction over a moderate time produces wines that are more elegant, with softer tannins and brighter fruit. Aggressive extraction — longer maceration, intensive pump-overs (pumping juice from the bottom of the tank over the 'cap' of skins that floats on top) or punch-downs — produces more deeply colored, more tannic, more structured wines. The right approach depends entirely on the grape variety, the vintage, and the style you're aiming for.\n\nPigéage (punch-down) is the traditional method for moving the cap: workers literally push the floating mass of skins down into the liquid with poles or paddles. It's gentle and effective. Délestage (rack and return) is more dramatic — draining all the liquid off the skins and then pouring it back over — and produces wines with more structural tannin. The options are many, the philosophy is what differentiates producers.",
+      },
+      {
+        heading: "Aging: Oak vs Steel vs Concrete vs Amphora",
+        content:
+          "Once fermentation is complete, the wine needs a home while it develops complexity. <strong>The vessel choice fundamentally shapes the wine's character</strong>. Stainless steel tanks are inert — they protect the wine from oxidation while preserving fresh fruit aromatics. Most crisp whites (Sauvignon Blanc, light Pinot Grigio, Muscadet) age in steel for exactly this reason. The wine tastes of the grape and the vintage, with no interference.\n\nOak barrels are the traditional choice for wines meant to develop complexity and age-worthiness. Oak is slightly permeable, allowing micro-oxygenation that softens tannins and rounds mouthfeel. More importantly, <strong>new oak adds compounds</strong> — vanillin (vanilla flavor), toast (toasty, smoky), tannins (grippy structure), lactones (coconut and cedarwood notes) — that become part of the wine's flavor profile. The size of the barrel matters: smaller barriques (225 liters) have more wood-to-wine contact than large format barrels (500 liters, demi-muids) or large foudres (thousands of liters), creating more oak influence. New oak is more impactful than older, used oak.\n\nConcrete tanks are having a renaissance — they're inert like steel but thermally stable and somewhat porous, producing wines with great texture and minerality without oak influence. Amphora (clay vessels) are the oldest fermentation and aging vessel in the world, still used in Georgia and increasingly by natural wine producers worldwide, producing wines of distinctive tannic grip and earthy depth.",
+      },
+      {
+        heading: "Malolactic Fermentation: Why Chardonnay Tastes Buttery",
+        content:
+          "After primary fermentation, most red wines and many white wines go through a second, bacterial fermentation called <strong>malolactic fermentation (MLF)</strong>. This process converts sharp malic acid (think green apples) into softer lactic acid (think milk or cream) — softening the wine's acidity and producing a compound called diacetyl, which smells unmistakably of butter.\n\nIn Chardonnay, the choice of whether to allow or prevent MLF defines the style more than almost any other decision. Allow full MLF plus aging in new French oak and you get the classic Napa or Meursault style: creamy, buttery, vanilla-edged, rich and textured. Block MLF — often by keeping fermentation temperatures low or adding a small amount of sulfur — and you get the lean, mineral, high-acid style of Chablis or Champagne base wine. Both are valid; they're simply different philosophies about what Chardonnay should taste like.\n\n<strong>Nearly all red wine goes through MLF</strong> — it's a natural process that happens in the cellar, often spontaneously. For reds, the impact on texture is the main benefit: MLF softens the harsh edges of primary fermentation, integrates tannins, and rounds out the mouthfeel. Wines that don't complete MLF can feel angular and sharp in their youth. It's one of the reasons winemakers carefully monitor fermentation progress — in temperature-controlled modern wineries, MLF can be induced with specific bacterial cultures or allowed to proceed naturally.",
+      },
+      {
+        heading: "Bottling and Aging Potential",
+        content:
+          "Bottling is the final decision point before the wine leaves the producer's hands. <strong>Timing matters</strong>: bottle too early and the wine lacks integration; bottle too late and it may have lost freshness. Most wines are bottled between 6 and 24 months after harvest, with longer aging for premium and age-worthy wines. Before bottling, most wines are fined (using agents like egg whites or bentonite clay to clarify and soften) and filtered to remove particles — though some producers skip these steps, believing they strip character.\n\nThe closure also matters. Natural cork allows micro-oxygenation and is associated with long-term aging, but can transmit cork taint (TCA). Screwcaps are perfectly reliable, inert, and increasingly used even for serious wines in New Zealand and Australia — but some producers and markets resist them. Diam closures (technical corks made from agglomerated cork particles treated to remove TCA) offer cork's aesthetic appeal with screwcap's reliability.\n\n<strong>Aging potential is a function of acidity, tannin, and sugar</strong> — the structural elements that allow wine to evolve positively rather than deteriorate. High-acid whites (Riesling, Chenin Blanc, Chablis) can age for decades, softening and developing extraordinary complexity. Big tannic reds (Barolo, Bordeaux, Hermitage) age on the back of their tannin structure, which slowly polymerizes and softens over years. Most wine, however, is made to be drunk now — within 1–5 years of vintage. Knowing which is which prevents the disappointment of opening a wine either too young or past its peak.",
+      },
+    ],
+    relatedJourneyIds: [],
+    relatedGrapeIds: ["chardonnay", "syrah"],
+    quizId: "winemaking-process-quiz",
+  },
+
+  // ── GUIDE 11 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "classifications",
+    title: "Understanding Wine Classifications",
+    subtitle: "From Bordeaux's 1855 rankings to Italy's DOCG — the systems that define prestige",
+    category: "fundamentals",
+    level: "intermediate",
+    description:
+      "Wine classification systems can feel like hieroglyphics, but they encode centuries of accumulated knowledge about which vineyards and producers reliably produce the best wine. This guide decodes them, region by region.",
+    readTimeMinutes: 10,
+    icon: "label",
+    sections: [
+      {
+        heading: "Why Classifications Exist",
+        content:
+          "Long before the internet, before wine critics, before the 100-point scale, buyers needed a reliable way to know which bottles were worth paying more for. <strong>Classification systems are the original quality signal</strong> — a way of encoding market wisdom and critical judgment into a durable framework that could survive individual buyers and critics.\n\nThe oldest surviving classifications are based on two things: land and reputation. Certain vineyards, through their consistent production of exceptional wine over generations, earned recognition that became formalized into legal hierarchies. In Europe, where winemaking has been continuous for centuries, these systems have extraordinary depth — the 1855 Bordeaux classification ranks châteaux whose reputations were already well established by that point.\n\nModern classifications add a layer of regulatory control: defining not just which producers are recognized as quality leaders, but what they're allowed to grow, how much they can produce, and how they must make the wine. The classification becomes a guarantee of style as much as quality — which is why a Chablis tastes reliably different from a Meursault even when both are excellent.",
+      },
+      {
+        heading: "France: AOC, Cru Classé, Grand Cru, Premier Cru",
+        content:
+          "France's classification system operates at multiple levels simultaneously. At the broadest level, the <strong>Appellation d'Origine Contrôlée (AOC/AOP)</strong> system defines which wines can use which geographic names, what grapes are permitted, and what practices must be followed. Every French wine of consequence exists within this framework.\n\nBordeaux's 1855 Classification is the most famous and most frozen. Commissioned by Napoleon III for the Paris Universal Exhibition, it ranked 61 red wine châteaux from the Médoc (and one from Graves — Haut-Brion) into five growths, from Premier Cru to Cinquième Cru. The ranking was based on the market prices achieved by those châteaux at the time, which turned out to be a surprisingly reliable proxy for quality. <strong>Only one château has been promoted since 1855</strong>: Mouton Rothschild, elevated from Second to First Growth in 1973. The rest of the classification is essentially unchanged after 170 years.\n\nIn Burgundy, the system is vineyard-based rather than producer-based, which is a fundamentally different philosophy. The hierarchy runs: regional (Bourgogne), village or communal (e.g., Gevrey-Chambertin), Premier Cru (a specific high-quality vineyard, of which there are about 640), and <strong>Grand Cru</strong> (the 33 greatest sites, producing around 1% of total Burgundy output). The same Grand Cru vineyard might be divided among 20 different producers — which is why the producer matters as much as the vineyard in Burgundy.",
+      },
+      {
+        heading: "Italy: DOCG, DOC, IGT — The Quality Pyramid",
+        content:
+          "Italy's classification system, broadly similar to France's AOC structure, has three main levels. <strong>DOC (Denominazione di Origine Controllata)</strong> is the basic geographic and stylistic guarantee, defining which grape varieties, production methods, and aging requirements apply to a given region. There are over 300 DOC zones across Italy.\n\nDOCG (Denominazione di Origine Controllata e Garantita) is the top tier — the 'G' stands for 'Guaranteed,' meaning the wines are also subject to tasting panels before release. Famous DOCGs include Barolo, Barbaresco, Brunello di Montalcino, Chianti Classico, and Amarone della Valpolicella. These names on a label guarantee a specific style and minimum quality.\n\nThe most interesting — and counterintuitive — category is <strong>IGT (Indicazione Geografica Tipica)</strong>, which is theoretically the humblest designation but includes some of Italy's most celebrated wines. The Super Tuscans — Sassicaia, Tignanello, Ornellaia — are classified as IGT because they were made from international varieties (Cabernet Sauvignon, Merlot) that weren't permitted under the existing DOC rules. So wines worth hundreds of euros per bottle carry the same classification as basic table wine. The IGT label is a warning that the classification system isn't always a reliable guide to quality.",
+      },
+      {
+        heading: "Spain: DO, DOCa, and Vino de Pago",
+        content:
+          "Spain's system closely parallels France and Italy, with <strong>DO (Denominación de Origen)</strong> as the standard quality tier and DOCa (Denominación de Origen Calificada) as the higher designation — currently awarded only to Rioja and Priorat. Within DO wines, Spain adds its own unique aging classification system: Joven (young), Crianza (minimum aging), Reserva (extended aging), and Gran Reserva (maximum aging), with specific legal minimums for time in oak and bottle for each category.\n\nThe highest individual-estate classification in Spain is <strong>Vino de Pago</strong> — a designation for a single estate of exceptional quality that has been awarded its own protected designation independent of the DO system. Currently there are around 20 recognized Pagos, mostly in Castile. It's similar in concept to Burgundy's Grand Cru but estate-based rather than vineyard-based.\n\nSpain's classification system rewards aging time as a proxy for quality, which works well for traditional regions like Rioja but can disadvantage modern producers who make better wine with shorter barrel time and higher-quality fruit. As a result, some forward-thinking Spanish producers are bottling under the most basic classification to have maximum freedom — a parallel to the Italian Super Tuscan situation.",
+      },
+      {
+        heading: "Germany: Prädikatswein and the VDP",
+        content:
+          "Germany's classification is unique because it's based primarily on <strong>ripeness at harvest</strong> rather than geography. The Prädikatswein system (from Kabinett through Spätlese, Auslese, Beerenauslese, and Trockenbeerenauslese) ranks wines by how ripe the grapes were when picked — which correlates loosely with sweetness and concentration. Kabinett wines are the driest and most delicate; TBA (Trockenbeerenauslese) wines are made from individually selected, botrytized berries and are among the rarest, sweetest, most expensive wines in the world.\n\nThe <strong>VDP (Verband Deutscher Prädikatsweingüter)</strong> is a private association of Germany's top estates that has created its own parallel quality classification more focused on vineyard site. VDP wines are recognizable by the eagle logo and carry a Burgundy-inspired hierarchy: Gutsweins (estate level), Ortswein (village level), Erste Lage (First Cru), and <strong>Grosses Gewächs</strong> (Great Growth — the German equivalent of Grand Cru). VDP membership is voluntary but selective, and VDP Grosses Gewächs from top sites in the Mosel, Rheingau, or Pfalz are among Germany's most prestigious wines.\n\nOne complexity: the Prädikat system applies to wines of any sweetness level at a given ripeness tier. A wine labeled Spätlese can be off-dry or bone dry depending on the producer. The VDP GG designation is always dry, which helps clarify the style.",
+      },
+      {
+        heading: "New World: AVA, GI — Why They Work Differently",
+        content:
+          "The American Viticultural Area (AVA) system and Australia's Geographical Indication (GI) system are fundamentally more permissive than their European counterparts. <strong>They define boundaries, not rules</strong>. An AVA in California tells you the wine comes from that geography; it doesn't tell you what grapes were grown, how the wine was made, what yields were permitted, or what quality standards were required. The winemaker has complete freedom within those geographic bounds.\n\nThis has advantages: it encourages innovation and doesn't lock producers into historical grape varieties or traditional styles. The emergence of Rhône varieties in California or Italian grapes in Australia wouldn't have been possible under a European-style regulatory framework. New World producers can experiment freely, and the best of them do so brilliantly.\n\nThe limitation is that geographic designations like 'Napa Valley' or 'Barossa Valley' don't guarantee much beyond origin. The quality signal comes from the producer's reputation, which the buyer has to evaluate independently. Some sub-AVAs (like Oakville, Rutherford, or Stags Leap within Napa) have developed strong enough track records that they carry meaningful quality associations — but this is market-created reputation, not regulatory guarantee.",
+      },
+    ],
+    relatedJourneyIds: ["france-in-five-regions"],
+    relatedGrapeIds: [],
+    quizId: "wine-classifications-quiz",
+  },
+
+  // ── GUIDE 12 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "wine-service",
+    title: "Wine Service: Temperature, Decanting & Glassware",
+    subtitle: "The practical stuff that makes a real difference between a good glass and a great one",
+    category: "tasting",
+    level: "intermediate",
+    description:
+      "Serving wine correctly isn't fussiness — it's the difference between experiencing a wine at its best or missing what makes it special. Temperature, decanting, and glass shape all genuinely matter. Here's what you need to know.",
+    readTimeMinutes: 8,
+    icon: "tasting",
+    sections: [
+      {
+        heading: "Temperature: Most Reds Too Warm, Most Whites Too Cold",
+        content:
+          "Here's the uncomfortable truth about wine temperature: most people drink it wrong. Most reds are served <strong>too warm</strong> — 'room temperature' in a modern heated home is 22–24°C, which is hot enough to make alcohol seem harsh and mute the more delicate aromatic compounds. Most whites are served <strong>too cold</strong> — straight from a 4°C refrigerator, flavor compounds are suppressed and you're essentially tasting cold liquid rather than wine.\n\nThe practical target temperatures: light, crisp whites (Pinot Grigio, Vinho Verde, basic Sauvignon Blanc) work well at 8–10°C. Full-bodied whites (white Burgundy, Viognier, Alsatian Pinot Gris) are better at 12–14°C — they need some warmth to express their texture and complexity. Light reds (Beaujolais, lighter Pinot Noir) can be served at 14–15°C, slightly chilled — genuinely refreshing and often revelatory. Medium reds (Chianti, Rioja Crianza) at 16–17°C. Full-bodied reds (Bordeaux, Barolo, Napa Cabernet) at 17–18°C.\n\nThe simple rule: put your reds in the fridge for 20–30 minutes before serving, and take your whites out of the fridge 20–30 minutes before serving. These adjustments alone will noticeably improve the experience. <strong>A wine thermometer costs almost nothing</strong> and takes the guesswork out entirely.",
+      },
+      {
+        heading: "Decanting: When, Why, and How Long",
+        content:
+          "Decanting serves two distinct purposes, and confusing them is one of the most common wine service mistakes. The first purpose is <strong>sediment removal</strong>: old wines (particularly vintage Port and Bordeaux over 10 years) develop sediment — tannin and pigment compounds that have polymerized and precipitated out of solution. This is completely natural and not a fault, but drinking sediment is gritty and unpleasant. Decanting slowly against a light source allows you to see the sediment moving and stop pouring before it enters the decanter.\n\nThe second purpose is <strong>aeration</strong> — exposing the wine to oxygen to open up the aromas and soften the tannins. Young, structured reds (a current-release Barolo, a just-released Napa Cabernet, a tight young Bordeaux) can benefit enormously from an hour or two of breathing in a decanter. The oxygen softens tannins and allows the aromatics to develop. How long? A general rule: the younger and more tannic the wine, the longer it benefits from decanting. A young Barolo can handle 2–3 hours; a lighter Pinot Noir might need only 20–30 minutes.\n\nOld wines need careful handling. An aged Burgundy that's 20 or 30 years old should be decanted just before serving — enough to remove sediment but without excessive oxygen exposure, which can cause the wine to fade within minutes. The delicate tertiary aromas that make old wine magical (forest floor, dried flowers, tobacco) are volatile and disappear with too much air. <strong>For old wines, timing is everything</strong>.",
+      },
+      {
+        heading: "Glassware: Why Shape Matters",
+        content:
+          "Wine glass shapes are not just aesthetic choices — they genuinely affect how the wine smells, tastes, and feels. The key variables are the bowl size (which determines how much wine can be swirled and how much aromatic surface area is exposed), the bowl shape (which directs the wine to different parts of the palate when you drink), and the rim diameter (which determines how concentrated the aromatics are when you put your nose in the glass).\n\n<strong>Bordeaux glasses</strong> are large, tall, and relatively narrow at the rim — designed for full-bodied, tannic reds. The size allows aeration; the narrower rim concentrates the complex aromatics of Cabernet-based wines. <strong>Burgundy glasses</strong> are broader and more balloon-shaped, with a wide bowl and slightly narrower rim — designed to capture and concentrate the delicate, complex aromatics of Pinot Noir and Chardonnay. The wide bowl allows vigorous swirling without spillage.\n\nFlutes for sparkling wine direct the bubbles and concentrate the carbonation — though many sommeliers now serve Champagne in a white wine glass, arguing that the flute suppresses the complexity of the wine. Universal glasses — a compromise shape that works reasonably well for most wines — are the practical choice for most households. <strong>The single most important thing</strong> is that the glass is large enough to swirl without spilling, clean (not perfumed with soap residue), and held by the stem so your hand doesn't warm the wine.",
+      },
+      {
+        heading: "Opening and Pouring",
+        content:
+          "Removing a wine capsule and cork is a skill worth developing properly, not because of tradition, but because a badly opened wine is a minor annoyance and a broken cork falling into the glass is a genuine problem. <strong>A waiter's friend corkscrew</strong> (the folding kind with a serrated knife, a worm, and a double-hinged lever) is the most reliable tool for most bottles — it's compact, durable, and effective once you get the technique right.\n\nThe technique: cut the capsule below the lip of the bottle (not above it) with the small knife, wipe the top of the cork, insert the worm at a slight angle to the center of the cork, and use the two-stage lever to withdraw it smoothly. For old wines with fragile corks, an Ah-So opener (two thin blades that slide down both sides of the cork and grip it) is gentler and less likely to push a crumbling cork into the bottle.\n\nPouring: a standard pour in a restaurant is 150ml (about 5oz) per glass — a 750ml bottle gives roughly five glasses. At home, generosity is fine, but avoid filling glasses more than a third full; the empty space is where the aromatics collect and swirling happens. <strong>Holding the bottle from the bottom</strong> (not the neck) gives you more control. After pouring, a slight twist of the wrist stops drips.",
+      },
+      {
+        heading: "Ordering Wine at a Restaurant Without Stress",
+        content:
+          "Restaurant wine lists can feel intimidating, especially when the sommelier is hovering and your guests are waiting. A few practical strategies reduce the stress considerably. First: <strong>tell the sommelier your budget</strong>. This is standard practice among experienced wine buyers and will be met with professionalism, not judgment. Point to a price on the list and say 'something around here' — you don't have to say the number out loud.\n\nSecond: tell them what you're eating. A good sommelier can work with 'we're having fish and pasta' far better than 'something not too heavy.' If there's no sommelier, the house wine or wine-by-the-glass selections are usually safe — restaurants have incentive to make these work. The second-cheapest bottle on any list is usually excellent value (restaurants know that's where customers go when they're trying to avoid the cheapest).\n\nThird: the ritual of tasting before the table is served. You're not being asked to approve the wine; you're being given the opportunity to <strong>check for faults</strong> (particularly cork taint — a musty, wet cardboard smell). If the wine seems fine, approve it confidently. If you're genuinely uncertain, smell it again. If it smells like wet cardboard or vinegar, send it back — any good restaurant will replace it without question.",
+      },
+    ],
+    relatedJourneyIds: [],
+    relatedGrapeIds: ["cabernet-sauvignon", "pinot-noir", "chardonnay"],
+    quizId: "wine-service-quiz",
+  },
+
+  // ── GUIDE 13 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "wine-faults",
+    title: "Wine Faults: When to Send It Back",
+    subtitle: "The faults that ruin wine, the ones you can work with, and what's definitely not a fault",
+    category: "tasting",
+    level: "intermediate",
+    description:
+      "Knowing when a wine is actually faulty — and when it's just unfamiliar — is one of the most useful skills in wine. This guide walks through the main faults, what causes them, how to recognize them, and what to do about them.",
+    readTimeMinutes: 7,
+    icon: "scores",
+    sections: [
+      {
+        heading: "Cork Taint: The Most Common Fault",
+        content:
+          "Cork taint is caused by a compound called <strong>2,4,6-Trichloroanisole (TCA)</strong>, produced when certain airborne fungi react with chlorine compounds in natural corks. The result is unmistakable once you've encountered it: a musty, damp smell that's variously described as wet cardboard, wet dog, musty basement, or damp newspaper. It strips the fruit from a wine and replaces it with this overwhelmingly unpleasant musty character.\n\nAt higher concentrations, cork taint is immediately obvious. At lower concentrations — 'threshold taint' — the wine may not smell obviously musty but tastes flat, dull, and stripped of its character. You might not be able to put your finger on what's wrong, but the wine seems somehow less than it should be. This subtler expression is actually more common and harder to diagnose.\n\n<strong>Between 2–5% of all natural cork-sealed wines are affected</strong> by some level of TCA contamination — though estimates vary and the wine industry has worked hard to reduce the incidence. The solution when you encounter cork taint in a restaurant is straightforward: politely tell the sommelier that the wine seems corked. You don't need to be certain. They should smell it, agree or disagree, and if the wine is faulty, replace it without hesitation.",
+      },
+      {
+        heading: "Oxidation: When Air Gets to the Wine",
+        content:
+          "Oxidation is what happens when wine is exposed to too much oxygen during production or after opening. Controlled oxidation is actually desirable in some wines — the nutty complexity of Sherry and the tawny richness of aged Port come from intentional oxidation. But <strong>unintentional oxidation in a non-oxidative wine</strong> is a fault.\n\nA white wine that's been oxidized will be noticeably brown or amber in color (white wines brown just like cut apples). The fresh fruit aromas are replaced by flat, sherried, applesauce-like notes. The acidity seems to have dropped. In a red wine, oxidation produces a browning at the rim, a flat aroma, and a wine that tastes tired and spiritless.\n\nOxidation can be caused by a compromised closure (a leaking or dried-out cork in storage), poor winemaking hygiene, or simply a wine that's been open too long. A wine that was perfectly fine yesterday can be noticeably oxidized today. <strong>Refrigerating open bottles and using a wine pump</strong> to remove air from the bottle extends life by a day or two, but wine is fundamentally an ephemeral product — the best time to open a bottle is usually with other people, so it gets finished.",
+      },
+      {
+        heading: "Volatile Acidity and Reduction",
+        content:
+          "Volatile acidity (VA) is the presence of acetic acid — the same compound that makes vinegar smell sharp. At very low levels, VA is a normal component of wine and can actually add complexity. At elevated levels, it becomes a fault: the wine smells sharply of vinegar or nail polish remover (the latter is ethyl acetate, which forms alongside acetic acid). <strong>A wine with high VA is essentially partway to becoming vinegar</strong>.\n\nReduction is almost the opposite problem: not too much oxygen, but too little. Reduced wines smell of sulfur compounds — struck match, rubber, burnt rubber, or in more severe cases, rotten egg. This sounds alarming, but reduction is often temporary and fixable. Many wines that smell reductive when first opened will blow off the sulfur within 20–30 minutes of being poured or decanted. Swirling vigorously helps. Give the wine time before declaring it faulty.\n\nThis is why restaurants pour a small taste before serving — if a wine smells of struck match but tastes fine after swirling, it's likely just reductive and will resolve quickly. <strong>Reduction is one of the most common 'false faults'</strong> — wines that seem wrong but aren't actually flawed, just temporarily closed in on themselves.",
+      },
+      {
+        heading: "Brettanomyces: The Controversial One",
+        content:
+          "Brettanomyces — usually called 'Brett' — is a wild yeast that produces phenolic compounds in wine, most notably 4-ethylphenol and 4-ethylguaiacol. The resulting aromas are distinctive: <strong>barnyard, horse sweat, leather, saddle, band-aid, medicinal</strong>. Brett is one of the most divisive topics in wine because at low levels, many wine drinkers and critics consider it a complexity-adding characteristic rather than a fault.\n\nClassic Rhône Valley reds, particularly from Châteauneuf-du-Pape, have historically shown elevated Brett levels, and traditional lovers of these wines consider the barnyard character part of the wine's identity. Similarly, some traditional Bordeaux châteaux produce wines with noticeable Brett. The counter-argument is that Brett masks rather than complements terroir expression, and that modern clean winemaking produces more authentic and expressive wines without it.\n\nAt high levels, Brett is unambiguously a fault — the medicinal, band-aid character overwhelms everything else. At low levels, the decision about whether to enjoy it or reject it as a fault is genuinely personal. <strong>Context matters</strong>: a wine from a traditional region with historical Brett notes is different from a fresh, supposedly fruit-forward wine ruined by unexpected barnyard. Trust your nose and your enjoyment — if it bothers you, it bothers you.",
+      },
+      {
+        heading: "Heat Damage and What's Definitely Not a Fault",
+        content:
+          "Heat-damaged wine — sometimes called a 'cooked' wine — results from exposure to high temperatures during storage or transport. The proteins in wine denature under heat, destroying fruity aromatics and producing flat, jammy, stewed fruit flavors. The wine smells cooked: prune, raisin, jam, or sometimes caramel. The color in reds may be noticeably brown, and the cork may have pushed slightly above the level of the bottle lip (a sign of heat-expansion).\n\nHeat damage cannot be fixed. The chemical changes are permanent. If you open a wine expecting fresh, vivid fruit and find stewed jam instead, suspect heat damage — especially if the closure seems compromised or the bottle was stored somewhere warm. <strong>This is a reason to buy from reputable merchants</strong> who store wine properly, and to be wary of bottles that have spent time on shelves in warm shops or non-temperature-controlled warehouses.\n\nNow, the reassurance: many things in wine that alarm new drinkers are emphatically not faults. <strong>Sediment</strong> in a red wine or port is completely normal — it's just polymerized tannins and pigments, and you can decant the wine to separate them. <strong>Tartrate crystals</strong> — small, white crystal deposits in white wine or on the bottom of a cork — are harmless deposits of tartaric acid (cream of tartar) that have crystallized at cold temperatures. They look alarming but are entirely natural and tasteless. Natural wines may be cloudy, slightly fizzy, and taste yeasty — that can be entirely intentional. When in doubt, smell the wine: if it smells clean and appealing, drink it.",
+      },
+    ],
+    relatedJourneyIds: ["natural-wine-movement"],
+    relatedGrapeIds: [],
+    quizId: "wine-faults-quiz",
+  },
+
+  // ── GUIDE 14 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "wine-aging",
+    title: "Beyond the Basics: How Wine Evolves With Age",
+    subtitle: "Primary, secondary, and tertiary aromas — and why patience transforms the greatest wines",
+    category: "culture",
+    level: "intermediate",
+    description:
+      "Wine is one of the very few beverages that genuinely improves with age — at least, some wine does. This guide explains the science and art of wine evolution, what to look for, which wines age, and how to store them properly.",
+    readTimeMinutes: 9,
+    icon: "history",
+    sections: [
+      {
+        heading: "Primary Aromas: The Grape's Voice",
+        content:
+          "Primary aromas are the first thing you smell in a young wine — the direct, immediate character of the grape variety itself. These are the <strong>fruit, floral, and herbal notes</strong> that are most vivid and expressive in the first few years after a wine is made. Cabernet Sauvignon's blackcurrant and green pepper. Riesling's lime, white peach, and floral blossom. Sauvignon Blanc's cut grass and gooseberry. Pinot Noir's cherry and raspberry. These are primary aromas.\n\nIn a very young wine — say, within the first year or two of release — primary aromas dominate everything. The wine tastes vivid, sometimes exuberantly fruity, often a little raw. The structure (acidity, tannin) can feel sharp and angular because it hasn't integrated yet. Many wine drinkers, accustomed to young, primary wines, have never experienced what happens to those aromas as the wine evolves.\n\n<strong>Primary aromas are the most volatile and fragile</strong>. They're the first to dissipate as a wine ages, giving way to more complex, subtle, and (many would argue) more interesting aromas as the wine evolves. This is the central paradox of wine aging: the things that make a young wine appealing are precisely what fades first. What develops in its place is often far more remarkable.",
+      },
+      {
+        heading: "Secondary Aromas: Fermentation's Contribution",
+        content:
+          "Secondary aromas come from fermentation — the chemical processes by which yeast converts sugar to alcohol. These include the classic <strong>yeasty, bready, and creamy notes</strong> associated with wines that have spent time aging on their lees (the dead yeast cells left after fermentation). Champagne and Champagne-method sparkling wines are the canonical example: brioche, toast, fresh baked bread, croissant — all secondary aromas from extended lees contact.\n\nFor still wines, secondary aromas include the buttery quality from malolactic fermentation (diacetyl, as discussed in the winemaking guide), the vanilla and toast from oak aging (technically a secondary process), and the yeasty richness that comes from wines fermented on their skins or in barrel. A white Burgundy fermented and aged in new French oak barrels shows primary (Chardonnay fruit) and secondary (butter, toast, hazelnut) aromas in distinct layers.\n\nSecondary aromas tend to be more durable than primary ones — they persist into a wine's middle age, integrating with emerging tertiary complexity. <strong>The best wines at 5–10 years old</strong> typically show primary fruit still present but beginning to mellow, with secondary complexity fully integrated and the first hints of tertiary development beginning to appear. It's an exciting stage — the wine has moved beyond simplicity without losing vibrancy.",
+      },
+      {
+        heading: "Tertiary Aromas: Aging's Gift",
+        content:
+          "Tertiary aromas — sometimes called 'bouquet' to distinguish them from primary and secondary 'aromas' — develop through oxidation and other chemical reactions during extended aging in bottle. These are the notes that make an old wine feel like a completely different experience from a young one: <strong>leather, tobacco, dried flowers, forest floor, truffle, mushroom, dried fruit, dried herbs, earth, tea, game, smoke</strong>.\n\nIn aged red wines, particularly Bordeaux, Burgundy, and Barolo, tertiary aromas are the reward for patience. A Barolo that smells of tar and roses in its youth — a famous description of young Nebbiolo — develops into something much more complex at 15 or 20 years: dried roses, leather, truffle, tobacco, dried cherry. The tar note softens into a kind of umami richness. The wine has been transformed.\n\n<strong>White wines develop tertiary aromas too</strong> — particularly aged Riesling (petrol, honey, beeswax, lanolin), aged Chenin Blanc (quince, dried apricot, beeswax, honey), and aged white Burgundy (nuttiness, mushroom, hazelnut). The first time you open an old white wine that has developed magnificent tertiary complexity is usually a revelation — these wines bear almost no resemblance to their young selves.",
+      },
+      {
+        heading: "How Tannins Soften Over Time",
+        content:
+          "Tannins are the structural backbone of age-worthy red wines — the compounds responsible for that firm, drying sensation in young reds. Over time, <strong>tannin molecules polymerize</strong>: they link together into larger chains that are too big to bind to the proteins in your saliva, and so they no longer create that drying, astringent sensation. The wine feels softer, silkier, more harmonious.\n\nAt the same time, tannins combine with anthocyanin pigment molecules, forming larger color compounds that eventually precipitate as sediment. This is why aged red wines are lighter in color than their young selves — some of the color has literally fallen out of the wine as sediment. The remaining color is more brick-red or garnet-orange at the rim rather than the deep purple of youth.\n\nThe practical implication is that <strong>tannic red wines meant for aging should not be opened young</strong>. A Barolo or a top Bordeaux opened at 3–5 years may taste harsh, closed, and unappealing — not because it's a bad wine, but because the tannins haven't had time to soften and integrate. Merchants, sommeliers, and critics will often give a 'drink from' date alongside a score, indicating when a wine is expected to enter its drinking window. Pay attention to these recommendations.",
+      },
+      {
+        heading: "Which Wines Age and Which Don't",
+        content:
+          "The honest answer is that most wine — perhaps 90% of what is produced — is made to be drunk within 1–5 years of vintage, and will not improve with additional aging. The structural elements that allow wine to age gracefully (high acidity, high tannin, residual sugar, low pH) are also what make young wine feel tight or austere. Most wine is made to be approachable and enjoyable immediately.\n\nThe wines that genuinely age and improve are a relatively small and well-defined group: <strong>top Bordeaux and top Burgundy</strong> (regularly cellared for 10–30 years), Barolo and Barbaresco (10–25 years), Northern Rhône Syrah (Hermitage, Côte-Rôtie), great German Riesling (10–30 years or more), Sauternes (10–50 years), aged Champagne, Vintage Port (20–50 years), and some exceptional examples from Rioja, Ribera del Duero, Australia, and California. Aged Chenin Blanc from the Loire (Savennières, Vouvray) can also develop magnificently.\n\n<strong>Most everyday wine does not age well</strong> and should be drunk young and fresh. This includes most under-$20 wine, most rosé, most Pinot Grigio and basic Sauvignon Blanc, most light reds. Trying to age these wines results in a wine that has lost its primary fruit without developing interesting tertiary complexity — just a faded, flat version of what it once was.",
+      },
+      {
+        heading: "Practical Storage: Temperature, Humidity, Light, Vibration",
+        content:
+          "If you're going to age wine, you need to store it properly — otherwise, you'll open a bottle in 10 years and find that poor storage has ruined what should have been something magnificent. <strong>Temperature is the most critical factor</strong>: wines should be stored at around 12–14°C (54–57°F), consistent year-round. Temperature fluctuation — not just high temperature — is damaging, because repeated expansion and contraction degrades the wine and eventually compromises the closure.\n\nHumidity should be moderate — around 70% — to prevent corks from drying out and allowing air ingress. If corks dry out completely, the seal is compromised and the wine oxidizes. This is why traditional wine cellars are underground: the earth naturally maintains both a cool, stable temperature and moderate humidity. If you're using a wine fridge rather than a cellar, look for one with humidity control.\n\nLight — particularly UV light — degrades wine over time by breaking down certain aromatic compounds. Wine bottles are dark-colored for exactly this reason, but even so, wines should be stored away from direct light. <strong>Vibration is also damaging</strong> over extended periods — it disturbs sediment and can affect the chemical reactions in aging wine. This is why positioning bottles horizontally (label up so you can see without disturbing the sediment) in a vibration-free environment is the traditional and correct approach.",
+      },
+    ],
+    relatedJourneyIds: [],
+    relatedGrapeIds: [],
+  },
+
+  // ── GUIDE 15 (INTERMEDIATE) ───────────────────────────────────────────────────
+  {
+    id: "sub-appellations",
+    title: "Wine Regions Masterclass: Sub-Appellations That Matter",
+    subtitle: "When a region isn't just a region — how geography shapes personality at the neighborhood level",
+    category: "regions",
+    level: "intermediate",
+    description:
+      "Inside every great wine region is a set of smaller, more specific places that wine lovers argue about obsessively. This guide explains what makes sub-appellations distinctive and why the difference between Pauillac and Margaux matters more than you might think.",
+    readTimeMinutes: 12,
+    icon: "styles",
+    sections: [
+      {
+        heading: "Why Sub-Appellations Matter",
+        content:
+          "The bigger the region, the less the name on the label tells you about what's in the glass. 'Bordeaux' covers over 120,000 hectares and 60 sub-appellations producing red, white, sweet, rosé, and sparkling wine. <strong>'Pauillac' covers 1,200 hectares and produces only red wine</strong> from Cabernet Sauvignon-dominant blends on gravel-and-clay soils that produce some of the most structured, long-lived wine in the world. These are radically different levels of specificity.\n\nSub-appellations encode geographical and stylistic distinctions that took centuries to discover and codify. The differences between neighboring appellations are real: different soil types, different drainage patterns, different aspects and elevations, different microclimates created by topography. The winemakers who know these places intimately can feel and taste the differences between plots that are separated by a few hundred meters. The sub-appellation system exists to make those differences visible and legally protected.\n\nLearning sub-appellations rewards you in practical terms: <strong>knowing the difference between the Bordeaux appellations</strong> means you can predict whether you're getting something Merlot-dominant and approachable (Pomerol, St-Émilion) or Cabernet Sauvignon-dominant and structured (Pauillac, St-Julien). That knowledge translates directly into better choices at the wine shop or restaurant.",
+      },
+      {
+        heading: "Bordeaux: Pauillac vs Margaux vs St-Émilion",
+        content:
+          "The Left Bank of Bordeaux is dominated by <strong>Cabernet Sauvignon</strong> on gravelly soils deposited by the Gironde estuary. But within this broad template, the sub-appellations are genuinely distinct. Pauillac — home to three of the five First Growths (Lafite, Latour, Mouton) — produces the most powerful, tannic, and structured wines of the Médoc. Pauillac is built for the long haul: most great Pauillacs need 15–25 years to fully open.\n\nMargaux, just to the south, is different in character. The soils are similar but with more clay, and somehow the wines — including Château Margaux, the First Growth — have a delicacy and perfume that makes them feel more feminine, more lifted, more floral. Classic descriptions include 'velvet glove' rather than Pauillac's 'iron fist.' The fragrance of a great Margaux is one of wine's most memorable experiences.\n\nCross the Gironde to the Right Bank and everything changes. <strong>St-Émilion and Pomerol</strong> are Merlot country — clay soils, softer wines, more approachable in youth. St-Émilion has its own classification (completely separate from the 1855 system, and controversially revised every decade), with Premier Grand Cru Classé at the top. Pomerol has no official classification, yet Pétrus — a tiny estate of unique clay — is one of the world's most expensive wines.",
+      },
+      {
+        heading: "Burgundy's Four-Level Hierarchy",
+        content:
+          "Burgundy operates the most rigorous and intellectually satisfying vineyard classification in the wine world. <strong>Four levels of specificity</strong>, each representing a real quality distinction based on centuries of observation: Bourgogne Régional (broad, regional wines), Communale or Village (wines from a specific village's territory, e.g., Gevrey-Chambertin), Premier Cru (a specific high-quality named vineyard within that village, e.g., Gevrey-Chambertin 'Clos Saint-Jacques'), and Grand Cru (the 33 greatest individual vineyards in Burgundy, e.g., 'Chambertin').\n\nThe distinction between a village wine and a Premier Cru from the same producer can be remarkable — and instructive. The same domaine, the same vintage, the same winemaking, but different plots. Tasting them side by side is one of the clearest demonstrations that terroir is real: the grand cru wine is simply more complex, more layered, more persistent. The money buys you something specific.\n\nAt the top, the <strong>Grand Crus of the Côte de Nuits</strong> (Chambertin, Musigny, Romanée-Conti, Richebourg, La Tâche) and Côte de Beaune (Montrachet, Corton-Charlemagne, Bâtard-Montrachet) are benchmarks by which all other wines in the world are sometimes measured. They're expensive because they're genuinely exceptional and desperately scarce. If you ever have the opportunity to taste one, it's worth it.",
+      },
+      {
+        heading: "Barolo vs Barbaresco: Same Grape, Different Personality",
+        content:
+          "Both Barolo and Barbaresco are made from <strong>100% Nebbiolo</strong> in the Langhe hills of Piedmont. Both are among Italy's most celebrated wines. And yet they are noticeably different experiences, shaped by geography that creates distinct microclimates and soil compositions within a relatively small area.\n\nBarolo is the bigger, more structured wine — higher in tannin, more powerful, requiring more aging before it opens. The Barolo zone is divided into historic subzones (comuni): Serralunga d'Alba produces the most austere, tannic, longest-lived Barolos; La Morra and Barolo village produce silkier, more aromatic, earlier-maturing wines. <strong>The terroir variation within Barolo itself</strong> rivals the differences between different regions in other countries.\n\nBarbaresco is smaller, slightly lower in tannin, and generally more approachable earlier — but no less complex. The three main villages (Barbaresco, Neive, Treiso) each produce wines with distinct characteristics. Producers like Gaja (Barbaresco) and Giacomo Conterno (Barolo) have built international reputations on the distinctiveness of their specific terroirs. Learning to distinguish between these two great wines — and between their internal geographies — is one of the more rewarding challenges in Italian wine.",
+      },
+      {
+        heading: "Northern vs Southern Rhône",
+        content:
+          "The Rhône Valley is divided into two distinct wine worlds by a geographic gap of about 50 kilometers where virtually no vines are planted. <strong>The Northern Rhône is Syrah's kingdom</strong>: a narrow band of near-vertical granite terraces flanking the river, where Côte-Rôtie ('roasted slope'), Hermitage, Cornas, and Saint-Joseph produce the world's greatest and most age-worthy Syrah. These are wines of smoked meat, violet, black olive, iron, and extraordinary density — sometimes comparable in structure to top Bordeaux.\n\nViognier — one of the world's most seductively aromatic white grapes — also comes from the Northern Rhône, specifically Condrieu and Château-Grillet. These wines have essentially no parallel elsewhere: rich, opulent, peach and apricot and blossom-scented, with low acidity but extraordinary aromatic complexity.\n\nThe Southern Rhône is Mediterranean, warm, and dominated by <strong>Grenache-based blends</strong> — Châteauneuf-du-Pape (which can blend up to 13 grape varieties), Gigondas, Vacqueyras, Rasteau. These are ripe, generous, sun-soaked wines of red and dark fruit, garrigue (wild herbs of the Provençal hills), and spice. The contrast between a Côte-Rôtie and a Châteauneuf-du-Pape is an object lesson in how radically the same river valley can produce different wine worlds.",
+      },
+      {
+        heading: "Napa Sub-AVAs: Where It Gets Specific",
+        content:
+          "Napa Valley itself is an AVA, but within it, <strong>16 sub-AVAs</strong> have been established that encode meaningful geographical distinctions. As Napa's reputation grew from the 1970s onward, producers and critics noticed that wines from different parts of the valley tasted distinctly different, and the sub-AVA system was developed to codify those differences.\n\nOakville and Rutherford, in the central valley floor, produce classic Napa Cabernet: full-bodied, rich, structured, with what Rutherford winemakers call 'Rutherford dust' — a distinctive earthy, mineral quality in the tannins attributed to the benchland's unique gravelly loam soils. <strong>Stags Leap District</strong>, in the southeastern corner, has softer, more velvety tannins and was the site of the 1976 Judgment of Paris win that put California on the world map.\n\nMount Veeder, Spring Mountain, and Howell Mountain are mountain AVAs — higher altitude, cooler temperatures, volcanic and rocky soils producing smaller berries with more concentrated flavors. Mountain Napa Cabernets tend to be firmer, more structured, and longer-lived than valley floor wines. The different characters of these sub-AVAs represent decades of observation and the maturing understanding that Napa, like Burgundy, is a landscape of microclimates rather than a monolithic whole.",
+      },
+    ],
+    relatedJourneyIds: ["france-in-five-regions", "italy-north-to-south"],
+    relatedGrapeIds: [],
+  },
+
+  // ── GUIDE 16 (EXPERT) ────────────────────────────────────────────────────────
+  {
+    id: "biodynamic",
+    title: "Biodynamic Wine: Science, Philosophy & the Calendar",
+    subtitle: "From Rudolf Steiner's cosmic agriculture to Romanée-Conti — the most rigorous farming philosophy in wine",
+    category: "culture",
+    level: "expert",
+    description:
+      "Biodynamic farming divides wine people like almost nothing else: its practitioners include some of the world's greatest producers, its critics include some of its finest scientists. This guide examines what biodynamics actually is, what its great practitioners do, and what the evidence says.",
+    readTimeMinutes: 10,
+    icon: "natural",
+    sections: [
+      {
+        heading: "Rudolf Steiner and the Origins",
+        content:
+          "Biodynamic agriculture begins with a series of eight lectures delivered in 1924 by <strong>Rudolf Steiner</strong>, an Austrian philosopher, social reformer, and founder of anthroposophy. Steiner was responding to a group of farmers who had noticed that agricultural yields and soil health were declining across Europe after decades of increasingly intensive conventional farming. His response was not incremental — it was radical.\n\nSteiner proposed treating the farm as a <strong>self-sustaining organism</strong>, connected to larger rhythms of the cosmos: the moon, the planets, the stars. He spoke of 'cosmic forces' and 'spiritual forces' shaping the health of plants and soil. His framework incorporated homeopathic preparations, lunar calendars, and a holistic view of the farm ecosystem that was profoundly at odds with the reductionist, chemistry-based agriculture that was then becoming dominant.\n\nSteiner himself never farmed, and he died in 1925 before he could see biodynamics fully implemented. But his ideas were taken up by practitioners who developed the system into a coherent agricultural practice, eventually codified and certified by the organization <strong>Demeter International</strong>, now the global standard-setting and certifying body for biodynamic agriculture. Today, Demeter-certified farms operate in over 60 countries.",
+      },
+      {
+        heading: "The Preparations: Horn Manure and Horn Silica",
+        content:
+          "The most iconic — and to critics, most baffling — elements of biodynamic practice are the nine 'preparations': specially made amendments designed to stimulate soil life, encourage root development, and improve plant health. Each is prepared in a specific way, often involving animal organs as vessels, and applied in homeopathic dilutions after vigorous stirring (dynamization) in water.\n\n<strong>Preparation 500 (horn manure)</strong> is made by packing fresh cow manure into a cow horn and burying it in the soil over winter. The horn is unearthed in spring and the transformed, earthy material inside is diluted in warm water — stirred for one hour in alternating directions — and sprayed on the soil. The goal is to stimulate soil microbial life and root growth. <strong>Preparation 501 (horn silica)</strong> uses finely ground quartz crystal packed into a horn and buried in summer; the resulting material is sprayed on foliage in minute quantities to stimulate photosynthesis and improve plant resistance.\n\nThe scientific explanation for these preparations is contested. There is no credible mechanism by which such extreme dilutions could have a direct chemical effect. Biodynamic proponents argue that the preparations work through stimulating soil biology in ways that conventional soil science doesn't fully account for, or through energetic mechanisms not yet understood. What's less disputed is that biodynamic vineyards consistently show high levels of soil microbial diversity and organic matter — possibly because the farming system as a whole (no synthetic inputs, cover crops, diverse plant life) creates beneficial conditions regardless of the specific preparations.",
+      },
+      {
+        heading: "The Biodynamic Calendar",
+        content:
+          "Maria Thun, a German biodynamic researcher, spent decades studying the relationship between lunar cycles and plant growth, publishing her findings as the <strong>Biodynamic Calendar</strong> — now used by thousands of farmers worldwide. The calendar divides days into four types based on which element the moon is in as it transits the zodiac: <strong>Root days</strong> (earth signs — Capricorn, Taurus, Virgo), Flower days (air signs), Fruit days (fire signs — Aries, Leo, Sagittarius), and Leaf days (water signs — Pisces, Cancer, Scorpio).\n\nThe claim is that plants respond to these cosmic rhythms: root days are best for working with root vegetables and red wines (which should be drunk, harvested, or bottled on fruit days for optimal expression). Fruit days — when wines are said to taste most expressive and vibrant — are the preferred days for tasting and selling wine. Some critics and sommeliers organize their most important tastings on fruit days as a matter of professional standard.\n\nThe scientific evidence for the biodynamic calendar is thin. Controlled experiments trying to distinguish wine tasted on fruit days from wine tasted on other days have generally failed to find statistically significant differences. <strong>But many experienced tasters swear by it</strong>, and the practice remains influential among serious wine professionals. Whether the mechanism is cosmic, placebo, or something else entirely is a question the wine world has chosen to leave open.",
+      },
+      {
+        heading: "Who Practices It: DRC, Leroy, and the Greats",
+        content:
+          "Biodynamics has attracted an extraordinary concentration of the wine world's most celebrated producers. In Burgundy, <strong>Domaine de la Romanée-Conti (DRC)</strong> — possibly the world's most famous winery — has been biodynamic since the early 1990s. Domaine Leroy, run by the legendary Lalou Bize-Leroy, is perhaps the most rigorous biodynamic practitioner in Burgundy, farming with fanatical attention to soil health and vine vitality. The yields at Leroy are astonishingly low, the wines astonishingly complex.\n\nIn Alsace, <strong>Zind-Humbrecht</strong> is one of the region's reference producers, biodynamic since 1997. In the Rhône, Chapoutier — one of the largest wine producers in the region — practices biodynamics across its entire portfolio, a remarkable commitment given the scale. In Austria, <strong>Nikolaihof</strong> in the Wachau is the oldest biodynamic wine estate in Austria, certified since 1971.\n\nThe list of great biodynamic producers is long enough to suggest that the philosophy either attracts exceptional people or makes exceptional wine, or both. Nicolas Joly at Coulée de Serrant in the Loire is perhaps biodynamics' most vocal advocate — his estate produces Chenin Blanc of startling longevity and complexity. Whether biodynamics is the cause or the correlation of excellence is the debate that refuses to be settled.",
+      },
+      {
+        heading: "The Debate: Science vs Belief",
+        content:
+          "The scientific community's position on biodynamics is broadly skeptical of its theoretical framework while acknowledging some of its practical outcomes. <strong>The cosmic forces and planetary influences are not scientifically established</strong>. The preparations are applied at dilutions that would have no detectable chemical effect. The biodynamic calendar lacks robust experimental support.\n\nWhat research does show is that biodynamically farmed soils tend to have higher levels of microbial diversity, organic matter, and earthworm activity than conventionally farmed soils. This is probably attributable to the prohibition on synthetic inputs and the emphasis on building soil health through compost and cover crops — standard principles of good organic farming that don't require the cosmic framework to work.\n\nThe debate within wine is whether the philosophical framework matters or whether the outcomes are what count. Many producers practice what might be called 'biodynamic lite': following the organic farming principles, applying some preparations, but not necessarily subscribing to every aspect of Steiner's cosmology. Others are full believers. The practical reality is that <strong>the farming system works</strong>, producing healthy vines, expressive wines, and demonstrably better soil health than intensive conventional viticulture — whatever the mechanism.",
+      },
+      {
+        heading: "Biodynamic vs Organic vs Natural: The Differences",
+        content:
+          "These three approaches are often conflated but represent distinct philosophies at different levels of rigor. <strong>Organic</strong> is the baseline certification: no synthetic pesticides, herbicides, or fertilizers in the vineyard, and restricted use of additives in the cellar. It's a well-defined regulatory standard. Most biodynamic farms are also certified organic; they go further.\n\n<strong>Biodynamic</strong> includes organic farming plus the Steiner-derived philosophical framework: the nine preparations, the biodynamic calendar, the farm-as-organism concept, and usually a stricter standard on self-sufficiency (the estate should ideally produce its own compost, keep animals, cultivate diverse plant life). Demeter certification is the recognized standard. Biodynamics is more demanding than organic and represents a more comprehensive commitment to the farming philosophy.\n\n<strong>Natural wine</strong> is neither a certification nor a farming standard — it's a cellar philosophy. Natural wine producers use minimal intervention: wild yeast fermentation, no added sugar, no fining or filtration, minimal or no added sulfur dioxide. Many natural wine producers are organic or biodynamic in the vineyard, but the 'natural' designation is specifically about what happens (or doesn't happen) in the winery. You can have organic grapes processed conventionally; you can have conventionally farmed grapes made into natural wine. The categories overlap but are not the same thing.",
+      },
+    ],
+    relatedJourneyIds: ["natural-wine-movement"],
+    relatedGrapeIds: ["pinot-noir"],
+  },
+
+  // ── GUIDE 17 (EXPERT) ────────────────────────────────────────────────────────
+  {
+    id: "orange-wine",
+    title: "Orange Wine & Skin-Contact: The Ancient Future",
+    subtitle: "Why the wine world's most polarizing style is also its oldest — and what it actually tastes like",
+    category: "culture",
+    level: "expert",
+    description:
+      "Orange wine is white wine made like red wine — with skin contact during fermentation. It's been made in Georgia for 8,000 years. It was rediscovered in Friuli in the 1990s. Now it's everywhere. This guide explains what it is, why it matters, and whether you'll like it.",
+    readTimeMinutes: 9,
+    icon: "natural",
+    sections: [
+      {
+        heading: "What Orange Wine Actually Is",
+        content:
+          "The name is confusing and the look is distinctive, but the concept is simple: <strong>orange wine is white wine made with extended skin contact</strong>. White grapes, fermented with their skins, seeds, and sometimes stems intact — the same technique used to make red wine, just with white grape varieties. The extended contact with skins extracts tannins and phenolic compounds that white wine normally lacks, along with pigments that turn the wine from pale straw or yellow to amber, orange, or even deep gold.\n\nThe result is a wine that occupies a genuinely new category: it has the fruit aromatics of a white wine but the tannic structure of a light red. It tends toward savory, nutty, oxidative flavors rather than the fresh fruit and acidity of conventional whites. It's often cloudy from natural particles. It can be divisive — the tannins and oxidative quality are unfamiliar to drinkers accustomed to conventional white wine — but for those who connect with it, it becomes one of the most compelling and versatile food wines imaginable.\n\n<strong>The color depends on maceration time</strong>: a few hours of skin contact might produce a barely tinted rosé-like white; a few days produces a light orange tint; weeks or months produces the deep amber color that gives these wines their name. The longer the maceration, the more tannin, the more phenolic complexity, the more pronounced the oxidative character.",
+      },
+      {
+        heading: "Georgia's 8,000-Year Qvevri Tradition",
+        content:
+          "The world's oldest wine culture didn't just make wine — it made orange wine, and it's been doing so continuously for approximately 8,000 years. In the Kakheti region of eastern Georgia, <strong>white grapes are fermented with their skins in clay vessels called qvevri</strong> — large, egg-shaped pots that are buried in the ground up to their necks. The earth maintains a cool, consistent temperature for fermentation; the egg shape promotes a gentle churning action that keeps the skins in contact with the juice without mechanical intervention.\n\nThe Kakhetian method — traditional to eastern Georgia — involves fermenting the entire harvest, grapes, skins, seeds, and stems, in the qvevri and leaving it all in contact for months. The resulting wines are deeply extracted, tannic, and amber-colored, with extraordinary complexity and savory, nutty depth. These aren't wines made in a primitive fashion; they're wines made in a sophisticated fashion that happens to be 8,000 years old.\n\nIn western Georgia, the Imeretian method uses less skin contact — sometimes just a few weeks — producing lighter, more delicate wines. Both traditions were nearly wiped out during Soviet collectivization, when industrial production replaced traditional qvevri winemaking. The revival of Georgian qvevri wine since independence, and particularly since the 2000s, is one of the wine world's most remarkable cultural recoveries. <strong>UNESCO recognized the qvevri winemaking tradition</strong> as an Intangible Cultural Heritage in 2013.",
+      },
+      {
+        heading: "The Friuli Pioneers: Gravner, Radikon, Princic",
+        content:
+          "The modern orange wine movement has a specific genesis point: northeastern Italy's Friuli-Venezia Giulia region in the 1990s. <strong>Josko Gravner</strong> is the pivotal figure — a conventional, technically accomplished winemaker who became increasingly dissatisfied with what modern technology was doing to wine, and who made a journey to Georgia in the late 1990s that changed his direction entirely.\n\nGravner returned to Friuli and began making wine in amphora and qvevri, with extended skin maceration, in the ancient Caucasian style. The wine was nothing like what anyone in Friuli was making. It was controversial, polarizing, and — for those who got it — extraordinary. His neighbor and friend <strong>Stanko Radikon</strong> followed a parallel path, making wines from Ribolla Gialla and other native varieties with skin maceration and minimal intervention. Dario Princic, another Friulian, added further voice to what was becoming a movement.\n\nThese producers didn't just make orange wine — they articulated a philosophy about what wine should be: an expression of place and variety, made without technological artifice, capable of aging magnificently and pairing brilliantly with food. The international wine community took notice slowly and then all at once. By the 2010s, <strong>skin-contact white wine had become one of the wine world's most discussed and debated categories</strong>.",
+      },
+      {
+        heading: "How It's Made: Maceration Time and Vessel",
+        content:
+          "The key decision in making orange wine is maceration time — how long the juice stays in contact with the skins. A few hours to a day produces what some call 'skin-contact white wine' rather than orange wine proper: slight tannin, slight color, but recognizably white-wine in character. A few days to weeks produces the classic orange wine: amber color, discernible tannins, richer mouthfeel. Months, in the Kakhetian style, produces deeply extracted, profoundly tannic wines that can age for a decade or more.\n\nThe vessel matters enormously. <strong>Qvevri and amphora</strong> — both ceramic or clay — are thermally stable and slightly porous, allowing micro-oxygenation that shapes the wine's oxidative character without overwhelming it. They impart no flavor of their own. Stainless steel with skin contact produces cleaner, more fruit-forward orange wine. Large oak vessels produce wines with subtle oak integration. Many producers use a combination — starting fermentation in amphora and finishing in barrel, or vice versa.\n\nSulfur use is often minimal in orange wine production — partly because the tannins from skin contact act as natural antioxidants, partly because the style's producers are typically aligned with the natural wine philosophy. The result is that orange wines can be more variable and more sensitive to poor storage than conventional whites. <strong>Temperature control is important</strong>: orange wine stored warm oxidizes more quickly than cool-stored bottles.",
+      },
+      {
+        heading: "What It Tastes Like",
+        content:
+          "The flavor profile of orange wine is unlike anything else in the white wine world — which is exactly why it confuses people expecting crisp, fresh, fruity white wine and excites those looking for something genuinely different. The aromatics tend toward the <strong>savory, nutty, and oxidative</strong>: dried apricot, orange peel, dried flowers, chamomile, hazelnut, quince, and in longer-macerated examples, wax, leather, and earthy depth.\n\nOn the palate, the tannins are the most immediate difference from conventional white wine. Depending on maceration length, they range from barely perceptible (a gentle grip) to firmly structured (rivaling a light red wine). This tannic texture makes orange wine <strong>extraordinarily versatile with food</strong> — it bridges the territory usually occupied by either red or white wine. Fatty, rich dishes that would overwhelm a white but don't need a full red? Orange wine. Charcuterie boards, grilled oily fish, strong cheeses, fermented foods, Middle Eastern mezze, Indian spiced dishes — orange wine handles all of these beautifully.\n\nThe flavor intensity can be polarizing. For drinkers accustomed to the clean, bright, fruit-forward profile of conventional whites, orange wine can seem strange, flat, or even faulty. <strong>Context and expectations matter</strong>: if you're expecting Sauvignon Blanc and you get orange wine, you'll be confused. If you approach it as its own category, with different reference points, it often reveals itself as one of the most interesting and complex styles in wine.",
+      },
+      {
+        heading: "The Natural Wine Connection and How to Approach It",
+        content:
+          "Orange wine and the natural wine movement grew up together, and there's a philosophical affinity: both prioritize minimal intervention, terroir expression, and rejection of technological shortcuts. Many of the world's most significant natural wine producers also make orange or skin-contact wine. The overlap is substantial enough that in many wine bars and shops, 'natural wine' and 'orange wine' are practically synonymous — though this is an oversimplification. Plenty of orange wine is made conventionally, and plenty of natural wine is not orange.\n\nThe association does have a practical implication: if you're exploring natural wine, you're very likely to encounter orange wine, and vice versa. The communities of producers, importers, restaurants, and drinkers that have grown up around both styles are largely the same community. <strong>Wine bars that specialize in natural wine</strong> (Terroirs in London, Chambers Street Wines in New York, Ten Bells in Manhattan) are the best places to explore the style in a guided, sympathetic context.\n\nIf you've never tried orange wine and want to approach it thoughtfully, start with shorter maceration examples — Gravner's Ribolla Gialla is a benchmark but intense; try a Friulian Pinot Grigio with 1–2 days of skin contact first, or an Italian Ramato (copper-colored Pinot Grigio). Serve it at red wine temperature (15–17°C), not chilled. Have it with food rather than on its own. <strong>Give it a second glass</strong> before deciding — orange wine is almost always more rewarding on the second pour than the first.",
+      },
+    ],
+    relatedJourneyIds: [],
+    relatedGrapeIds: ["pinot-grigio"],
+  },
+
+  // ── GUIDE 18 (EXPERT) ────────────────────────────────────────────────────────
+  {
+    id: "wine-investment",
+    title: "Wine as Investment: Futures, Auctions & the Secondary Market",
+    subtitle: "From en primeur Bordeaux to the Liv-ex 100 — understanding the financial side of fine wine",
+    category: "culture",
+    level: "expert",
+    description:
+      "Some bottles of wine are worth more than a car. The secondary market for fine wine is a multi-billion dollar global industry with its own indices, auction houses, storage requirements, and — like any investment market — its own risks. This guide explains how it works.",
+    readTimeMinutes: 11,
+    icon: "scores",
+    sections: [
+      {
+        heading: "Why Wine Appreciates: Scarcity and Drinking",
+        content:
+          "Wine is one of the few collectibles where the act of consumption literally reduces supply. Every bottle of 2005 Château Pétrus that gets opened and drunk means one fewer bottle available for the secondary market. <strong>Scarcity increases as drinking decreases supply</strong>, which is the fundamental economic driver of fine wine appreciation. This is most dramatic for the world's most limited productions: Pétrus makes around 25,000 bottles per year; Romanée-Conti produces around 6,000. When a significant proportion of these are opened over the following decades, the remaining bottles become increasingly rare and increasingly valuable.\n\nNot all wine appreciates, and the distinction is important. What makes a wine investment-grade? Four main factors: producer reputation (only the most storied names generate significant secondary market interest), vintage quality (poor or average vintages don't appreciate regardless of producer), critic scores (a perfect or near-perfect score from a major critic dramatically affects a wine's investment trajectory), and provenance (where the wine has been stored — wine from verifiable, professionally stored collections commands significant premiums over bottles of unknown history).\n\nThe time horizon also matters. <strong>Fine wine is a long-term investment</strong> — the appreciation happens over decades, not months. This is not a liquid asset class. Wine you buy today as an investment may reach its peak financial value in 10, 20, or 30 years. The investors who have done well in wine are those who understood it as a long-term store of value, not a short-term trade.",
+      },
+      {
+        heading: "En Primeur: Buying Bordeaux Before It's Bottled",
+        content:
+          "En primeur — known in the English-speaking market as 'wine futures' — is the system by which Bordeaux releases its finest wines for sale while they are still aging in barrel, approximately 18 months before bottling. <strong>Buyers commit to purchase at a price set during the 'campaign'</strong>, tasting barrel samples in April each year, before the wine has been bottled or had time to develop fully.\n\nThe rationale for buying en primeur is a potential price advantage: if a vintage is recognized as exceptional and the en primeur prices are reasonable, buying early locks in a price below what the wine will command on release and in the secondary market. In great vintages — 2009, 2010, 2015, 2016 — early buyers have seen significant appreciation. In mediocre vintages bought at inflated prices, the opposite has happened.\n\nThe en primeur system is dominated by Bordeaux's classified châteaux, with secondary markets in Burgundy, the Rhône, and occasionally Italy. It operates through a network of Bordeaux négociants (wine merchants who act as intermediaries) and international fine wine merchants. <strong>The process requires trust</strong>: you're paying for wine you haven't received, from a barrel sample that may not perfectly represent the finished wine, on the assumption that the producer will bottle it as expected and the market will validate your purchase price. For many top châteaux, the track record is long enough that this trust is well-placed.",
+      },
+      {
+        heading: "The Auction Houses: Christie's, Sotheby's, Hart Davis Hart",
+        content:
+          "Fine wine auctions are as old as the secondary market itself — <strong>Christie's held its first recorded wine auction in 1766</strong>, making wine one of the earliest established auction categories. Today, the major auction houses maintain specialist wine departments that handle thousands of lots per year, ranging from single bottles to large cellar consignments.",
+      },
+      {
+        heading: "The Liv-ex 100: The Stock Market of Wine",
+        content:
+          "The <strong>Liv-ex Fine Wine Exchange</strong>, founded in 1999, is the global marketplace for professional fine wine trading — essentially the stock market of the wine world. The Liv-ex 100 is its flagship index, tracking the price movements of the 100 most-traded fine wines, dominated by First Growth Bordeaux and a small number of reference wines from Burgundy, Italy, and the Rhône.\n\nThe Liv-ex 100 and its companion indices (the Liv-ex 1000, which covers a broader range of wines) provide data that allows investors, merchants, and collectors to track wine price movements with the same rigor applied to other asset classes. The index is published monthly and shows long-term appreciation that has often outperformed equities over extended periods — though with significant volatility, particularly during the 2011–2012 Bordeaux market correction when en primeur prices fell sharply.\n\nFor serious investors, <strong>Liv-ex data is an essential research tool</strong>. It shows which wines are trending in what direction, which producers command the most liquidity, and how specific vintages are performing relative to the broader market. Wines that trade heavily on Liv-ex have better exit liquidity than those that don't — an important practical consideration for anyone treating wine as an investment.",
+      },
+      {
+        heading: "What Makes a Wine Investable",
+        content:
+          "Investment-grade wine has a relatively well-defined profile. Producer is the most important factor: the investable universe is much smaller than most people realize. Bordeaux First Growths (Lafite, Latour, Margaux, Mouton, Haut-Brion), Pétrus, Le Pin, and a small number of other Right Bank estates dominate. From Burgundy: DRC, Leroy, Rousseau, and a handful of other domaines. From Italy: Sassicaia, Gaja, and a few Barolo producers. From California: Screaming Eagle, Harlan, and a few others. <strong>The investable list is perhaps 50 producers worldwide</strong>.\n\nVintage quality matters significantly. Top producers in exceptional vintages are the sweet spot. A First Growth from a great vintage (2005, 2009, 2010) is an entirely different investment proposition from the same producer in a mediocre year. Critic scores amplify this: a 100-point score from a major critic can move a wine's secondary market price dramatically upward within hours of publication.\n\nProvenance — documented storage history — is increasingly critical. A bottle of first-growth Bordeaux from a private cellar of unknown history trades at a significant discount to the same bottle with verifiable storage records. Wine investment funds and serious private collectors maintain meticulous storage documentation precisely because it protects the value of the asset. <strong>Without provenance, the authenticity and condition of the wine cannot be verified</strong>, and the market appropriately discounts it.",
+      },
+      {
+        heading: "Storage Requirements, Risks, and Realities",
+        content:
+          "Investment-grade wine must be stored professionally. Home storage — even in a well-maintained wine refrigerator — is not sufficient for wine intended for the secondary market, because <strong>provenance documentation requires verifiable professional storage</strong>. The world's leading wine storage facilities (London City Bond, Octavian Vaults, Iron Gate Wine in Hong Kong) maintain temperature-controlled, humidity-controlled environments at consistent 12–14°C, with chain-of-custody records that allow the storage history of every case to be documented and verified.\n\nThe costs of professional storage are real: typically £10–20 per case per year in the UK, with additional insurance costs. Import duties and taxes apply when wine is removed from bonded storage. These carrying costs must be factored into investment return calculations — a wine that appreciates 50% over 20 years sounds impressive, but if annual storage and insurance costs have consumed 2% per year, the real return is significantly lower.\n\nThe risks of wine investment extend beyond storage. <strong>Not everything goes up</strong>. The 2011–2012 Bordeaux correction saw en primeur prices fall 30–40% for some wines that had been bought at inflated prices. Wines that fail to achieve critical acclaim, suffer storage issues, or face competition from new regions can remain flat or depreciate. Counterfeiting is a real risk at the highest price levels — the Rudy Kurniawan case, in which a collector fabricated dozens of rare wines and sold them at auction, exposed significant vulnerabilities in the auction market's authentication processes. Wine investment requires the same due diligence as any other alternative asset class.",
+      },
+    ],
+    relatedJourneyIds: [],
+    relatedGrapeIds: [],
   },
 ];

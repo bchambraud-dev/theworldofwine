@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { guides } from "@/data/guides";
 import { grapes } from "@/data/grapes";
@@ -12,9 +13,12 @@ const categoryColors: Record<string, string> = {
   culture: "var(--plum)",
 };
 
+type LevelFilter = "all" | "beginner" | "intermediate" | "expert";
+
 export default function AcademyHub() {
   const [, setLocation] = useLocation();
   const track = useTrack();
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
 
   return (
     <div className="page-scroll" data-testid="academy-hub">
@@ -58,11 +62,43 @@ export default function AcademyHub() {
             fontSize: "1.4rem",
             fontWeight: 400,
             color: "var(--text)",
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
           Guides
         </h2>
+
+        {/* Level filter chips */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+          {(["all", "beginner", "intermediate", "expert"] as LevelFilter[]).map((level) => {
+            const count = level === "all"
+              ? guides.length
+              : guides.filter((g) => g.level === level).length;
+            const isActive = levelFilter === level;
+            return (
+              <button
+                key={level}
+                onClick={() => setLevelFilter(level)}
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: "0.58rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  padding: "5px 12px",
+                  borderRadius: 100,
+                  border: `1px solid ${isActive ? "var(--wine)" : "var(--border-c)"}`,
+                  background: isActive ? "var(--wine)" : "var(--wh)",
+                  color: isActive ? "#fff" : "var(--text3)",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {level === "all" ? "ALL" : level.toUpperCase()} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         <div
           style={{
             display: "grid",
@@ -70,7 +106,7 @@ export default function AcademyHub() {
             gap: 14,
           }}
         >
-          {guides.map((g) => (
+          {guides.filter((g) => levelFilter === "all" || g.level === levelFilter).map((g) => (
             <div
               key={g.id}
               data-testid={`guide-card-${g.id}`}
@@ -124,7 +160,7 @@ export default function AcademyHub() {
               >
                 {g.subtitle}
               </p>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                 <span
                   style={{
                     fontFamily: "'Geist Mono', monospace",
@@ -144,10 +180,25 @@ export default function AcademyHub() {
                   style={{
                     fontFamily: "'Geist Mono', monospace",
                     fontSize: "0.52rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    padding: "3px 8px",
+                    borderRadius: 100,
+                    background: g.level === "expert" ? "rgba(74,26,110,0.08)" : g.level === "intermediate" ? "rgba(74,122,82,0.08)" : "rgba(184,134,11,0.08)",
+                    color: g.level === "expert" ? "var(--plum)" : g.level === "intermediate" ? "var(--sage)" : "var(--gold)",
+                    border: `1px solid ${g.level === "expert" ? "rgba(74,26,110,0.2)" : g.level === "intermediate" ? "rgba(74,122,82,0.2)" : "rgba(184,134,11,0.2)"}`,
+                  }}
+                >
+                  {g.level}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: "0.52rem",
                     color: "var(--text3)",
                   }}
                 >
-                  {g.readTimeMinutes} min read
+                  {g.readTimeMinutes} min
                 </span>
               </div>
             </div>

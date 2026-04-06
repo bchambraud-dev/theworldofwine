@@ -9,7 +9,6 @@
     }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/regions/(.*)", "destination": "/regions/$1" },
     { "source": "/guides/(.*)", "destination": "/guides/$1" },

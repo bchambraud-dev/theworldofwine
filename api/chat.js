@@ -29,10 +29,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ text });
   } catch (e) {
     console.error("Sommy error:", e);
-    return res.status(500).json({ 
-      error: e.message || "Something went wrong",
-      hasKey: !!process.env.ANTHROPIC_API_KEY,
-      envKeys: Object.keys(process.env).filter(k => k.includes('ANTHRO') || k.includes('API')).join(', ')
-    });
+    return res.status(500).json({ error: "Something went wrong. Try again." });
   }
 }

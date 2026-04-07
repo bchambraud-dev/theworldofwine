@@ -41,7 +41,7 @@ function getActiveTab(path: string): NavTab | null {
   return null;
 }
 
-function NavBar({ onSommyToggle, sommyOpen }: { onSommyToggle: () => void; sommyOpen: boolean }) {
+function NavBar() {
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -108,29 +108,6 @@ function NavBar({ onSommyToggle, sommyOpen }: { onSommyToggle: () => void; sommy
 
         {/* Desktop nav tabs */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          {/* Ask Sommy button */}
-          <button
-            onClick={onSommyToggle}
-            data-testid="sommy-toggle"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "6px 14px",
-              borderRadius: 20,
-              border: sommyOpen ? "1.5px solid #6B1524" : "1.5px solid transparent",
-              background: "#8C1C2E",
-              color: "#F7F4EF",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              marginRight: 8,
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.68rem", fontWeight: 400, letterSpacing: "0.12em" }}>ASK</span>
-            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "0.88rem", fontWeight: 400 }}>Sommy</span>
-          </button>
-
           {navTabs.map((tab) => (
             <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
               <button
@@ -209,14 +186,6 @@ function NavBar({ onSommyToggle, sommyOpen }: { onSommyToggle: () => void; sommy
 
         {/* Nav links */}
         <nav className="mobile-menu-nav">
-          <button
-            className="mobile-menu-link"
-            onClick={() => { setMenuOpen(false); onSommyToggle(); }}
-            data-testid="mobile-nav-sommy"
-            style={{ color: "var(--wine)", fontWeight: 500 }}
-          >
-            Ask Sommy
-          </button>
           {navTabs.map((tab) => (
             <button
               key={tab.key}
@@ -286,7 +255,7 @@ function App() {
         <Toaster />
         <Router>
           <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-            <NavBar onSommyToggle={toggleSommy} sommyOpen={sommyOpen} />
+            <NavBar />
             <GlobalFilterBar />
             <AppRouter />
             <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />

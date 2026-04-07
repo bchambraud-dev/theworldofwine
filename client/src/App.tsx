@@ -19,6 +19,7 @@ import GrapeDetail from "@/pages/GrapeDetail";
 import QuizPage from "@/pages/QuizPage";
 import NotFound from "@/pages/not-found";
 import DiscoverQuiz from "@/pages/DiscoverQuiz";
+import FlavourMap from "@/pages/FlavourMap";
 import SommyChat from "@/components/SommyChat";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
@@ -219,6 +220,7 @@ function AppRouter() {
       <Route path="/quiz/:quizId" component={QuizPage} />
       <Route path="/news" component={News} />
       <Route path="/discover" component={DiscoverQuiz} />
+      <Route path="/flavour-map" component={FlavourMap} />
       <Route component={NotFound} />
     </Switch>
   );

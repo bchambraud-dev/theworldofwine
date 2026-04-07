@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import FilterBar from "@/components/FilterBar";
 import { useWineStore } from "@/lib/store";
 
@@ -115,25 +115,20 @@ function NavBar({ onSommyToggle, sommyOpen }: { onSommyToggle: () => void; sommy
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 5,
               padding: "6px 14px",
               borderRadius: 20,
-              border: sommyOpen ? "1.5px solid var(--wine)" : "1.5px solid transparent",
-              background: sommyOpen ? "var(--wine)" : "rgba(140,28,46,0.08)",
-              color: sommyOpen ? "var(--bg)" : "var(--wine)",
-              fontFamily: "'Jost', sans-serif",
-              fontSize: "0.78rem",
-              fontWeight: 500,
+              border: sommyOpen ? "1.5px solid #6B1524" : "1.5px solid transparent",
+              background: "#8C1C2E",
+              color: "#F7F4EF",
               cursor: "pointer",
               transition: "all 0.2s",
               marginRight: 8,
               flexShrink: 0,
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Ask Sommy
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.68rem", fontWeight: 400, letterSpacing: "0.12em" }}>ASK</span>
+            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "0.88rem", fontWeight: 400 }}>Sommy</span>
           </button>
 
           {navTabs.map((tab) => (
@@ -283,21 +278,18 @@ function GlobalFilterBar() {
 
 function App() {
   const [sommyOpen, setSommyOpen] = useState(false);
+  const toggleSommy = useCallback(() => setSommyOpen(o => !o), []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router>
-          <div style={{ height: "100vh", width: "100vw", overflow: "hidden", display: "flex", flexDirection: "column" }} data-testid="app-root">
-            <NavBar onSommyToggle={() => setSommyOpen(o => !o)} sommyOpen={sommyOpen} />
+          <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
+            <NavBar onSommyToggle={toggleSommy} sommyOpen={sommyOpen} />
             <GlobalFilterBar />
-            <div style={{ flex: 1, overflow: "hidden", display: "flex", position: "relative" }}>
-              <div style={{ flex: 1, overflow: "auto", transition: "margin-right 0.3s ease" }}>
-                <AppRouter />
-              </div>
-              <SommyChat isOpen={sommyOpen} onClose={() => setSommyOpen(false)} />
-            </div>
+            <AppRouter />
+            <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
           </div>
         </Router>
       </TooltipProvider>

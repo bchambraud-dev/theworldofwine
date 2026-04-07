@@ -1,0 +1,29 @@
+{
+  "name": "The World of Wine",
+  "short_name": "World of Wine",
+  "description": "Your Journey Through Wine — explore regions, producers, guides, and ask Sommy anything.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EF",
+  "theme_color": "#8C1C2E",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "food", "lifestyle"]
+}

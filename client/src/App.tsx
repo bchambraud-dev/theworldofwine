@@ -41,7 +41,7 @@ function getActiveTab(path: string): NavTab | null {
   return null;
 }
 
-function NavBar() {
+function NavBar({ onSommyToggle, sommyOpen }: { onSommyToggle: () => void; sommyOpen: boolean }) {
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -108,6 +108,34 @@ function NavBar() {
 
         {/* Desktop nav tabs */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {/* Ask Sommy button */}
+          <button
+            onClick={onSommyToggle}
+            data-testid="sommy-toggle"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: sommyOpen ? "1.5px solid var(--wine)" : "1.5px solid transparent",
+              background: sommyOpen ? "var(--wine)" : "rgba(140,28,46,0.08)",
+              color: sommyOpen ? "var(--bg)" : "var(--wine)",
+              fontFamily: "'Jost', sans-serif",
+              fontSize: "0.78rem",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              marginRight: 8,
+              flexShrink: 0,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Ask Sommy
+          </button>
+
           {navTabs.map((tab) => (
             <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
               <button
@@ -186,6 +214,14 @@ function NavBar() {
 
         {/* Nav links */}
         <nav className="mobile-menu-nav">
+          <button
+            className="mobile-menu-link"
+            onClick={() => { setMenuOpen(false); onSommyToggle(); }}
+            data-testid="mobile-nav-sommy"
+            style={{ color: "var(--wine)", fontWeight: 500 }}
+          >
+            Ask Sommy
+          </button>
           {navTabs.map((tab) => (
             <button
               key={tab.key}
@@ -246,16 +282,22 @@ function GlobalFilterBar() {
 }
 
 function App() {
+  const [sommyOpen, setSommyOpen] = useState(false);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-      <SommyChat />
         <Router>
-          <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-            <NavBar />
+          <div style={{ height: "100vh", width: "100vw", overflow: "hidden", display: "flex", flexDirection: "column" }} data-testid="app-root">
+            <NavBar onSommyToggle={() => setSommyOpen(o => !o)} sommyOpen={sommyOpen} />
             <GlobalFilterBar />
-            <AppRouter />
+            <div style={{ flex: 1, overflow: "hidden", display: "flex", position: "relative" }}>
+              <div style={{ flex: 1, overflow: "auto", transition: "margin-right 0.3s ease" }}>
+                <AppRouter />
+              </div>
+              <SommyChat isOpen={sommyOpen} onClose={() => setSommyOpen(false)} />
+            </div>
           </div>
         </Router>
       </TooltipProvider>

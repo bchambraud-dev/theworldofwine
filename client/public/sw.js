@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wow-v1';
+const CACHE_NAME = 'wow-v3'; // Bumped to force cache refresh after auth/chat fixes
 const PRECACHE = ['/', '/favicon-32.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

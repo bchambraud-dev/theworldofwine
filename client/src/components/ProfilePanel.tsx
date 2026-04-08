@@ -96,6 +96,9 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
       setJournal((journalRes.data || []) as JournalEntry[]);
       setActivity((actRes.data || []) as ActivityItem[]);
       setLoading(false);
+    }).catch((e) => {
+      console.error("Profile data load error:", e);
+      setLoading(false); // Always clear loading even if queries fail
     });
   }, [isOpen, user]);
 
@@ -153,13 +156,24 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid #EDEAE3" }} />
-            ) : (
-              <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "1.2rem", fontFamily: "'Jost', sans-serif", fontWeight: 500 }}>
-                {(profile?.display_name || user.email || "?")[0].toUpperCase()}
-              </div>
-            )}
+{(() => {
+              const avatarUrl = profile?.avatar_url ||
+                (user?.user_metadata?.avatar_url as string | undefined) ||
+                (user?.user_metadata?.picture as string | undefined);
+              const initials = (
+                profile?.display_name ||
+                (user?.user_metadata?.full_name as string | undefined) ||
+                (user?.user_metadata?.name as string | undefined) ||
+                user?.email || "?"
+              )[0].toUpperCase();
+              return avatarUrl ? (
+                <img src={avatarUrl} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid #EDEAE3" }} />
+              ) : (
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "1.2rem", fontFamily: "'Jost', sans-serif", fontWeight: 500 }}>
+                  {initials}
+                </div>
+              );
+            })()}
             <div>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410" }}>
                 {profile?.display_name?.split(" ")[0] ||

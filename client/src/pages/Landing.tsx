@@ -985,6 +985,22 @@ export default function Landing() {
             <p className="lp-footer-copy">
               Crafted for curious drinkers everywhere
             </p>
+            <div style={{ display: "flex", gap: 20, marginTop: 12 }}>
+              <button
+                className="lp-footer-link"
+                onClick={() => setLocation("/privacy")}
+                style={{ fontSize: "0.7rem" }}
+              >
+                Privacy Policy
+              </button>
+              <button
+                className="lp-footer-link"
+                onClick={() => setLocation("/terms")}
+                style={{ fontSize: "0.7rem" }}
+              >
+                Terms of Service
+              </button>
+            </div>
           </div>
         </div>
       </footer>

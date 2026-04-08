@@ -2,9 +2,12 @@ import { useLocation } from "wouter";
 
 const s = {
   page: {
-    minHeight: "100vh",
+    position: "fixed",
+    inset: 0,
+    overflowY: "auto",
     background: "#F7F4EF",
     padding: "60px 24px 80px",
+    zIndex: 50,
   } as React.CSSProperties,
   inner: {
     maxWidth: 720,

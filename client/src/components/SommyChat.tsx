@@ -74,12 +74,12 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
   const { user, profile } = useAuth();
-  const hasGreeted = useRef(false);
+  const hasGreeted = useRef<string | null>(null); // stores userId of last greeted user
 
   // Proactive greeting when signed-in user opens chat
   useEffect(() => {
-    if (!isOpen || !user || hasGreeted.current || messages.length > 0) return;
-    hasGreeted.current = true;
+    if (!isOpen || !user || hasGreeted.current === user.id || messages.length > 0) return;
+    hasGreeted.current = user.id;
     setIsLoading(true);
 
     // Fetch journal + goals to personalise greeting

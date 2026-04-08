@@ -1,4 +1,7 @@
 import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import GuideIcon from "@/components/GuideIcon";
 import { journeys } from "@/data/journeys";
 import { wineRegions } from "@/data/regions";
@@ -23,6 +26,19 @@ const difficultyColors: Record<string, string> = {
 export default function Landing() {
   const [, setLocation] = useLocation();
   const track = useTrack();
+  const { user, profile } = useAuth();
+  const [goals, setGoals] = useState<any[]>([]);
+  const [journalCount, setJournalCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("user_goals").select("*").eq("user_id", user.id).eq("completed", false).limit(3).then(({ data }) => {
+      if (data) setGoals(data);
+    });
+    supabase.from("wine_journal").select("id", { count: "exact" }).eq("user_id", user.id).then(({ count }) => {
+      if (count !== null) setJournalCount(count);
+    });
+  }, [user]);
 
   return (
     <div className="page-scroll" data-testid="landing-page">

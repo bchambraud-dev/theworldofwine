@@ -25,6 +25,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Onboarding from "@/pages/Onboarding";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import ProfilePanel from "@/components/ProfilePanel";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 
@@ -46,8 +47,8 @@ function getActiveTab(path: string): NavTab | null {
   return null;
 }
 
-function NavBar() {
-  const { user, profile, signOut } = useAuth();
+function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
+  const { user, profile } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -129,8 +130,8 @@ function NavBar() {
           {user ? (
             <div style={{ position: "relative", marginLeft: 4 }}>
               <button
-                onClick={() => signOut()}
-                title="Sign out"
+                onClick={onProfileOpen}
+                title="Your journey"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
               >
                 {profile?.avatar_url ? (
@@ -282,7 +283,17 @@ function GlobalFilterBar() {
 
 function App() {
   const [sommyOpen, setSommyOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const toggleSommy = useCallback(() => setSommyOpen(o => !o), []);
+
+  // Auto-open Sommy after onboarding
+  useEffect(() => {
+    if (window.location.search.includes("welcome=1")) {
+      setTimeout(() => setSommyOpen(true), 800);
+      // Clean up the URL without a reload
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -291,10 +302,11 @@ function App() {
         <Toaster />
         <Router>
           <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-            <NavBar />
+            <NavBar onProfileOpen={() => setProfileOpen(true)} />
             <GlobalFilterBar />
             <AppRouter />
             <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
+            <ProfilePanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
           </div>
         </Router>
       </TooltipProvider>

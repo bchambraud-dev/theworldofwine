@@ -64,7 +64,8 @@ export default function Onboarding() {
 
     await refreshProfile();
     setStep("done");
-    setTimeout(() => setLocation("/"), 1800);
+    // Auto-open Sommy with welcome greeting on landing page
+    setTimeout(() => setLocation("/?welcome=1"), 1800);
   };
 
   const styles = {

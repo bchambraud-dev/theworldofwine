@@ -1,8 +1,10 @@
 import { useRoute, useLocation } from "wouter";
+import { useEffect } from "react";
 import { guides } from "@/data/guides";
 import { journeys } from "@/data/journeys";
 import { grapes } from "@/data/grapes";
 import { useTrack } from "@/hooks/use-track";
+import { useActivity } from "@/hooks/use-activity";
 
 const categoryColors: Record<string, string> = {
   fundamentals: "var(--wine)",
@@ -17,6 +19,11 @@ export default function GuideDetail() {
   const track = useTrack();
 
   const guide = guides.find((g) => g.id === params?.guideId);
+  const trackActivity = useActivity();
+
+  useEffect(() => {
+    if (guide) trackActivity("guide_read", guide.id, guide.title);
+  }, [guide?.id]);
 
   if (!guide) {
     return (

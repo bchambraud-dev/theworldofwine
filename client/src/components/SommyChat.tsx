@@ -180,8 +180,8 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       const rawHistory = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
       const firstUserIdx = rawHistory.findIndex(m => m.role === "user");
       const cleanHistory = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
-      // Last 6 messages = 3 exchanges — enough context without blowing timeouts
-      const historyForApi = cleanHistory.slice(-6);
+      // Last 10 messages = 5 exchanges of context (Vercel Pro, 60s timeout)
+      const historyForApi = cleanHistory.slice(-10);
       const messagesWithContext = [
         ...historyForApi,
         { role: "user" as const, content: contextualText },

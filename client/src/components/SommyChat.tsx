@@ -175,12 +175,13 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
 
     try {
       const contextualText = context ? `[Context: ${context}]\n\n${userText}` : userText;
-      // Include full conversation history (last 20 turns) for cross-session memory
+      // Build history: drop leading assistant turns, then cap at last 6 messages
+      // to keep context tight and avoid Vercel function timeouts
       const rawHistory = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
-      // Anthropic requires the first message to be role "user" — drop any leading assistant turns
-      // (can happen when history loaded from Supabase starts with Sommy's greeting)
       const firstUserIdx = rawHistory.findIndex(m => m.role === "user");
-      const historyForApi = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
+      const cleanHistory = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
+      // Last 6 messages = 3 exchanges — enough context without blowing timeouts
+      const historyForApi = cleanHistory.slice(-6);
       const messagesWithContext = [
         ...historyForApi,
         { role: "user" as const, content: contextualText },

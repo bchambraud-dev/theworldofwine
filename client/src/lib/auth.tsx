@@ -84,14 +84,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      // Always clear local state even if Supabase call fails
-      setSession(null);
-      setUser(null);
-      setProfile(null);
-    }
+    // Clear local state IMMEDIATELY — never block sign-out on a network call
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    // Fire server-side invalidation in background (3s timeout — don't await)
+    Promise.race([
+      supabase.auth.signOut(),
+      new Promise(resolve => setTimeout(resolve, 3000)),
+    ]).catch(() => {});
   };
 
   return (

@@ -228,6 +228,36 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
               {tab.label}
             </button>
           ))}
+
+          {/* Auth */}
+          <div style={{ borderTop: "1px solid var(--border-c, #D4D1CA)", marginTop: 8, paddingTop: 8 }}>
+            {user ? (
+              <button
+                className="mobile-menu-link"
+                onClick={() => { setMenuOpen(false); onProfileOpen(); }}
+                data-testid="mobile-nav-profile"
+                style={{ display: "flex", alignItems: "center", gap: 10 }}
+              >
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }} />
+                ) : (
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "0.6rem", fontWeight: 500 }}>
+                    {(profile?.display_name || user.email || "?")[0].toUpperCase()}
+                  </div>
+                )}
+                MY JOURNEY
+              </button>
+            ) : (
+              <button
+                className="mobile-menu-link"
+                onClick={() => handleNavLink("/sign-in")}
+                data-testid="mobile-nav-sign-in"
+                style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}
+              >
+                SIGN IN
+              </button>
+            )}
+          </div>
         </nav>
       </div>
     </>

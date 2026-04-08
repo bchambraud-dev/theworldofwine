@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 interface Message {
   role: "user" | "assistant";
@@ -71,6 +73,53 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
+  const { user, profile } = useAuth();
+  const hasGreeted = useRef(false);
+
+  // Proactive greeting when signed-in user opens chat
+  useEffect(() => {
+    if (!isOpen || !user || hasGreeted.current || messages.length > 0) return;
+    hasGreeted.current = true;
+    setIsLoading(true);
+
+    // Fetch journal + goals to personalise greeting
+    Promise.all([
+      supabase.from("wine_journal").select("wine_name, region, personal_rating").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
+      supabase.from("user_goals").select("title, current_count, target_count, completed").eq("user_id", user.id).eq("completed", false).limit(2),
+    ]).then(async ([journalRes, goalsRes]) => {
+      const journal = journalRes.data || [];
+      const goals = goalsRes.data || [];
+      const name = profile?.display_name?.split(" ")[0] || "";
+
+      let contextParts = [`The user's name is ${name || "there"}.`];
+      if (journal.length > 0) {
+        contextParts.push(`Their recent journal entries: ${journal.map(j => `${j.wine_name}${j.region ? ` from ${j.region}` : ""}${j.personal_rating ? ` (rated ${j.personal_rating}/10)` : ""}`).join(", ")}.`);
+      }
+      if (goals.length > 0) {
+        contextParts.push(`Their active goals: ${goals.map(g => `"${g.title}" (${g.current_count}/${g.target_count})`).join(", ")}.`);
+      }
+      if (journal.length === 0 && goals.length === 0) {
+        contextParts.push("They are new — they just completed onboarding.");
+      }
+
+      const systemContext = contextParts.join(" ");
+      const prompt = `[Context: ${systemContext}]\n\nSend a warm, short, personalised greeting. Reference their recent wines or goal progress if they have any. Keep it to 2-3 sentences. Be natural and excited to help — like a friend who remembers what they told you last time.`;
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: prompt }] }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.text) {
+          setMessages([{ role: "assistant", content: data.text }]);
+        }
+      }
+      setIsLoading(false);
+    });
+  }, [isOpen, user, profile, messages.length]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

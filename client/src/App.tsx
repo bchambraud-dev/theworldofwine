@@ -20,7 +20,11 @@ import QuizPage from "@/pages/QuizPage";
 import NotFound from "@/pages/not-found";
 import DiscoverQuiz from "@/pages/DiscoverQuiz";
 import FlavourMap from "@/pages/FlavourMap";
+import SignIn from "@/pages/SignIn";
+import AuthCallback from "@/pages/AuthCallback";
+import Onboarding from "@/pages/Onboarding";
 import SommyChat from "@/components/SommyChat";
+import { AuthProvider, useAuth } from "@/lib/auth";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
 
@@ -43,6 +47,7 @@ function getActiveTab(path: string): NavTab | null {
 }
 
 function NavBar() {
+  const { user, profile, signOut } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -119,6 +124,31 @@ function NavBar() {
               </button>
             </Link>
           ))}
+
+          {/* User avatar / sign in */}
+          {user ? (
+            <div style={{ position: "relative", marginLeft: 4 }}>
+              <button
+                onClick={() => signOut()}
+                title="Sign out"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.display_name || ""} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid var(--border-c, #D4D1CA)" }} />
+                ) : (
+                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "0.75rem", fontFamily: "'Jost', sans-serif", fontWeight: 500 }}>
+                    {(profile?.display_name || user.email || "?")[0].toUpperCase()}
+                  </div>
+                )}
+              </button>
+            </div>
+          ) : (
+            <Link href="/sign-in" style={{ textDecoration: "none", marginLeft: 4 }}>
+              <button className="nav-btn" data-testid="nav-sign-in" style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}>
+                SIGN IN
+              </button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile hamburger button */}
@@ -221,6 +251,9 @@ function AppRouter() {
       <Route path="/news" component={News} />
       <Route path="/discover" component={DiscoverQuiz} />
       <Route path="/flavour-map" component={FlavourMap} />
+      <Route path="/sign-in" component={SignIn} />
+      <Route path="/auth/callback" component={AuthCallback} />
+      <Route path="/onboarding" component={Onboarding} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -253,6 +286,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Router>
@@ -264,6 +298,7 @@ function App() {
           </div>
         </Router>
       </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

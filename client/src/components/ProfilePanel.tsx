@@ -103,8 +103,13 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
 
   const handleSignOut = async () => {
     onClose();
-    await signOut();
-    setLocation("/");
+    try {
+      await signOut();
+    } catch (e) {
+      console.error("Sign out error:", e);
+    } finally {
+      setLocation("/");
+    }
   };
 
   const WINE_TYPES = ["red", "white", "sparkling", "rosé", "fortified"];
@@ -157,7 +162,10 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
             )}
             <div>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410" }}>
-                {profile?.display_name?.split(" ")[0] || "Traveller"}
+                {profile?.display_name?.split(" ")[0] ||
+                  (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ||
+                  (user?.user_metadata?.name as string | undefined)?.split(" ")[0] ||
+                  "You"}
               </div>
               {profile?.experience_level && (
                 <span style={{

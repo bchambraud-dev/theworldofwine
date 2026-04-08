@@ -20,13 +20,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    if (data) setProfile(data as UserProfile);
+  const fetchProfile = async (userId: string, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (data) {
+        setProfile(data as UserProfile);
+        return;
+      }
+      // Retry after delay — profile may not exist yet (trigger latency)
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 600));
+    }
   };
 
   const refreshProfile = async () => {
@@ -34,11 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Get initial session — await profile so we never flash "Traveller" on first render
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) await fetchProfile(session.user.id);
       setLoading(false);
     });
 
@@ -67,10 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      // Always clear local state even if Supabase call fails
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   return (

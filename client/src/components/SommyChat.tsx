@@ -176,7 +176,11 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
     try {
       const contextualText = context ? `[Context: ${context}]\n\n${userText}` : userText;
       // Include full conversation history (last 20 turns) for cross-session memory
-      const historyForApi = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+      const rawHistory = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+      // Anthropic requires the first message to be role "user" — drop any leading assistant turns
+      // (can happen when history loaded from Supabase starts with Sommy's greeting)
+      const firstUserIdx = rawHistory.findIndex(m => m.role === "user");
+      const historyForApi = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
       const messagesWithContext = [
         ...historyForApi,
         { role: "user" as const, content: contextualText },
@@ -196,20 +200,21 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       if (data.text) {
         const { card, prose } = parseWineCard(data.text);
         setMessages(prev => [...prev, { role: "assistant", content: prose, wineCard: card || undefined }]);
-        // Save to conversation history if signed in
+        // Fire-and-forget — do NOT await, so a slow/failed Supabase write never blocks the loading state
         if (user) {
-          await supabase.from("sommy_conversations").insert([
+          supabase.from("sommy_conversations").insert([
             { user_id: user.id, role: "user", content: userText, has_image: !!img },
             { user_id: user.id, role: "assistant", content: prose },
-          ]);
+          ]).catch(() => {});
         }
       } else if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: data.error }]);
       }
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, having trouble connecting. Try again in a moment." }]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [messages, isLoading, context, pendingImage]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };

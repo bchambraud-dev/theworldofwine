@@ -309,7 +309,7 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
           {/* Input */}
           <form onSubmit={handleSubmit} style={{ padding: "10px 12px", borderTop: "1px solid #EDEAE3", display: "flex", gap: 8, flexShrink: 0 }}>
             {/* Hidden file input */}
-            <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleImageSelect} style={{ display: "none" }} />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
 
             {/* Camera button */}
             <button

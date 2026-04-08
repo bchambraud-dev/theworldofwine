@@ -90,59 +90,57 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  // Load conversation history for signed-in users
+  useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
+
+  // Single sequential effect: load history first, then greet if no history
   useEffect(() => {
     if (!isOpen || !user || historyLoaded.current === user.id) return;
     historyLoaded.current = user.id;
 
-    supabase
-      .from("sommy_conversations")
-      .select("role, content, has_image")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          // Reverse to chronological order
-          const history = [...data].reverse().map(row => ({
-            role: row.role as "user" | "assistant",
-            content: row.content,
-          }));
-          setMessages(history);
-          // Don't show proactive greeting if we already have history
-          hasGreeted.current = user.id;
-        }
-      });
-  }, [isOpen, user]);
-  useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
+    const init = async () => {
+      // Step 1: load history
+      const { data: history } = await supabase
+        .from("sommy_conversations")
+        .select("role, content")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
 
-  // Proactive greeting for signed-in users
-  useEffect(() => {
-    if (!isOpen || !user || hasGreeted.current === user.id || messages.length > 0) return;
-    hasGreeted.current = user.id;
-    setIsLoading(true);
-    Promise.all([
-      supabase.from("wine_journal").select("wine_name, region, personal_rating").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
-      supabase.from("user_goals").select("title, current_count, target_count").eq("user_id", user.id).eq("completed", false).limit(2),
-    ]).then(async ([journalRes, goalsRes]) => {
-      const journal = journalRes.data || [];
-      const goals = goalsRes.data || [];
-      const name = profile?.display_name?.split(" ")[0] || "";
-      let parts = [`The user's name is ${name || "there"}.`];
-      if (journal.length > 0) parts.push(`Recent wines: ${journal.map(j => `${j.wine_name}${j.region ? ` from ${j.region}` : ""}${j.personal_rating ? ` (${j.personal_rating}/10)` : ""}`).join(", ")}.`);
-      if (goals.length > 0) parts.push(`Active goals: ${goals.map(g => `"${g.title}" (${g.current_count}/${g.target_count})`).join(", ")}.`);
-      if (journal.length === 0 && goals.length === 0) parts.push("They just completed onboarding.");
-      const response = await fetch("/api/chat", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [{ role: "user", content: `[Context: ${parts.join(" ")}]\n\nSend a warm, short, personalised greeting. Reference recent wines or goals if they have any. 2-3 sentences max.` }] }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.text) setMessages([{ role: "assistant", content: data.text }]);
+      if (history && history.length > 0) {
+        // Has history — restore it, no greeting needed
+        setMessages([...history].reverse().map(r => ({ role: r.role as "user" | "assistant", content: r.content })));
+        return;
       }
+
+      // Step 2: no history — send proactive greeting
+      hasGreeted.current = user.id;
+      setIsLoading(true);
+      try {
+        const [journalRes, goalsRes] = await Promise.all([
+          supabase.from("wine_journal").select("wine_name, region, personal_rating").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
+          supabase.from("user_goals").select("title, current_count, target_count").eq("user_id", user.id).eq("completed", false).limit(2),
+        ]);
+        const journal = journalRes.data || [];
+        const goals = goalsRes.data || [];
+        const name = profile?.display_name?.split(" ")[0] || "";
+        let parts = [`The user's name is ${name || "there"}.`];
+        if (journal.length > 0) parts.push(`Recent wines: ${journal.map(j => `${j.wine_name}${j.region ? ` from ${j.region}` : ""}${j.personal_rating ? ` (${j.personal_rating}/10)` : ""}`).join(", ")}.`);
+        if (goals.length > 0) parts.push(`Active goals: ${goals.map(g => `"${g.title}" (${g.current_count}/${g.target_count})`).join(", ")}.`);
+        if (journal.length === 0 && goals.length === 0) parts.push("They just completed onboarding.");
+        const res = await fetch("/api/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ role: "user", content: `[Context: ${parts.join(" ")}]\n\nSend a warm, short, personalised greeting. 2-3 sentences max.` }] }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.text) setMessages([{ role: "assistant", content: data.text }]);
+        }
+      } catch { /* silent */ }
       setIsLoading(false);
-    });
-  }, [isOpen, user, profile, messages.length]);
+    };
+
+    init();
+  }, [isOpen, user, profile]);
 
   // Handle image file selection
   const handleImageSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,23 +250,9 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
               <div>
                 <div style={{ background: "#EDEAE3", borderRadius: "14px 14px 14px 4px", padding: "12px 15px", maxWidth: "88%", marginBottom: 14 }}>
                   <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: 0 }}>
-                    Hey, I'm Sommy. Ask me anything about wine — or snap a label and I'll tell you if it's worth your time.
+                    Hey, I'm Sommy. Ask me anything about wine — or tap the <strong style={{fontWeight:500}}>+</strong> below to scan a label and I'll tell you if it's worth your time.
                   </p>
                 </div>
-
-                {/* Scan CTA */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "12px 14px", background: "white", border: "1.5px solid #8C1C2E", borderRadius: 12, cursor: "pointer", marginBottom: 10, transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "#8C1C2E"; e.currentTarget.style.color = "#F7F4EF"; const span = e.currentTarget.querySelector("span"); if (span) (span as HTMLElement).style.color = "#F7F4EF"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "inherit"; const span = e.currentTarget.querySelector("span"); if (span) (span as HTMLElement).style.color = "#8C1C2E"; }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                  <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 500, color: "#8C1C2E" }}>Scan a wine label</span>
-                </button>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {chips.map(chip => (
@@ -346,17 +330,14 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
             {/* Hidden file input */}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
 
-            {/* Camera button */}
+            {/* + button for image upload */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              title="Scan a label"
-              style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #D4D1CA", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: pendingImage ? "#8C1C2E" : "#5A5248" }}
+              title="Upload photo or scan a label"
+              style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px solid ${pendingImage ? "#8C1C2E" : "#D4D1CA"}`, background: pendingImage ? "rgba(140,28,46,0.08)" : "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: pendingImage ? "#8C1C2E" : "#5A5248", fontSize: "1.3rem", fontWeight: 300, lineHeight: 1, transition: "all 0.15s" }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
+              +
             </button>
 
             <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={pendingImage ? "Add a message or just send…" : "Ask me anything about wine…"} disabled={isLoading} data-testid="sommy-input"

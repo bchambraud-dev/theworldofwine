@@ -56,47 +56,32 @@ export interface ChatMessage {
 
 export async function sommyChat(
   messages: ChatMessage[],
-  onChunk?: (text: string) => void
+  image?: { data: string; mediaType: string }
 ): Promise<string> {
-  // Convert to Anthropic format
-  const anthropicMessages = messages.map((m) => ({
-    role: m.role as "user" | "assistant",
-    content: m.content,
-  }));
-
-  if (onChunk) {
-    // Streaming
-    let fullResponse = "";
-    const stream = client.messages.stream({
-      model: "claude_sonnet_4_6",
-      max_tokens: 1024,
-      system: SOMMY_SYSTEM_PROMPT,
-      messages: anthropicMessages,
-    });
-
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        fullResponse += event.delta.text;
-        onChunk(event.delta.text);
-      }
+  // Build Anthropic messages — attach image to last user message if provided
+  const anthropicMessages = messages.map((m, i) => {
+    const isLast = i === messages.length - 1;
+    if (isLast && image && m.role === "user") {
+      return {
+        role: "user" as const,
+        content: [
+          { type: "image" as const, source: { type: "base64" as const, media_type: (image.mediaType || "image/jpeg") as any, data: image.data } },
+          { type: "text" as const, text: m.content || "What wine is this? Please read the label and tell me about it." },
+        ],
+      };
     }
+    return { role: m.role as "user" | "assistant", content: m.content };
+  });
 
-    return fullResponse;
-  } else {
-    // Non-streaming
-    const response = await client.messages.create({
-      model: "claude_sonnet_4_6",
-      max_tokens: 1024,
-      system: SOMMY_SYSTEM_PROMPT,
-      messages: anthropicMessages,
-    });
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
+    system: SOMMY_SYSTEM_PROMPT,
+    messages: anthropicMessages,
+  });
 
-    return response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join("");
-  }
+  return response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("");
 }

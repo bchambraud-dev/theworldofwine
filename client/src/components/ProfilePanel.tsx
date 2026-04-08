@@ -141,7 +141,7 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
       <div style={{
         position: "fixed", top: 0, right: 0, width: "min(380px, 100vw)", height: "100vh",
         background: "#F7F4EF", zIndex: 981, display: "flex", flexDirection: "column",
-        boxShadow: "-4px 0 40px rgba(0,0,0,0.12)", overflowY: "auto",
+        boxShadow: "-4px 0 40px rgba(0,0,0,0.12)", overflow: "hidden",
       }}>
         {/* Header */}
         <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid #EDEAE3", flexShrink: 0 }}>

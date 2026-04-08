@@ -82,12 +82,38 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const { context, chips } = usePageContext();
   const { user, profile } = useAuth();
   const hasGreeted = useRef<string | null>(null);
+  const historyLoaded = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+
+  // Load conversation history for signed-in users
+  useEffect(() => {
+    if (!isOpen || !user || historyLoaded.current === user.id) return;
+    historyLoaded.current = user.id;
+
+    supabase
+      .from("sommy_conversations")
+      .select("role, content, has_image")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          // Reverse to chronological order
+          const history = [...data].reverse().map(row => ({
+            role: row.role as "user" | "assistant",
+            content: row.content,
+          }));
+          setMessages(history);
+          // Don't show proactive greeting if we already have history
+          hasGreeted.current = user.id;
+        }
+      });
+  }, [isOpen, user]);
   useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
 
   // Proactive greeting for signed-in users
@@ -151,8 +177,10 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
 
     try {
       const contextualText = context ? `[Context: ${context}]\n\n${userText}` : userText;
+      // Include full conversation history (last 20 turns) for cross-session memory
+      const historyForApi = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
       const messagesWithContext = [
-        ...newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content })),
+        ...historyForApi,
         { role: "user" as const, content: contextualText },
       ];
 
@@ -170,6 +198,13 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       if (data.text) {
         const { card, prose } = parseWineCard(data.text);
         setMessages(prev => [...prev, { role: "assistant", content: prose, wineCard: card || undefined }]);
+        // Save to conversation history if signed in
+        if (user) {
+          await supabase.from("sommy_conversations").insert([
+            { user_id: user.id, role: "user", content: userText, has_image: !!img },
+            { user_id: user.id, role: "assistant", content: prose },
+          ]);
+        }
       } else if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: data.error }]);
       }

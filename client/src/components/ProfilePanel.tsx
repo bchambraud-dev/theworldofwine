@@ -51,17 +51,31 @@ interface Props {
 }
 
 export default function ProfilePanel({ isOpen, onClose }: Props) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const [, setLocation] = useLocation();
   const [stats, setStats] = useState<Stats>({ journalCount: 0, goalsCompleted: 0, regionsExplored: 0, guidesRead: 0 });
   const [goals, setGoals] = useState<Goal[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingPrefs, setEditingPrefs] = useState(false);
+  const [preferences, setPreferences] = useState<any>({});
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isOpen || !user) return;
     setLoading(true);
+
+    // Load preferences
+    supabase.from("user_preferences").select("*").eq("user_id", user.id).single().then(({ data }) => {
+      if (data) {
+        setPreferences(data);
+        setSelectedTypes(data.preferred_types || []);
+      }
+    });
+    setSelectedLevel(profile?.experience_level || "");
 
     Promise.all([
       supabase.from("wine_journal").select("id", { count: "exact" }).eq("user_id", user.id),
@@ -91,6 +105,23 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
     onClose();
     await signOut();
     setLocation("/");
+  };
+
+  const WINE_TYPES = ["red", "white", "sparkling", "rosé", "fortified"];
+  const LEVELS = [
+    { key: "beginner", label: "Beginner", desc: "Still finding my feet" },
+    { key: "intermediate", label: "Intermediate", desc: "I know what I like" },
+    { key: "expert", label: "Expert", desc: "Serious about wine" },
+  ];
+
+  const savePreferences = async () => {
+    if (!user) return;
+    setSavingPrefs(true);
+    await supabase.from("user_profiles").update({ experience_level: selectedLevel }).eq("id", user.id);
+    await supabase.from("user_preferences").upsert({ user_id: user.id, preferred_types: selectedTypes });
+    await refreshProfile();
+    setSavingPrefs(false);
+    setEditingPrefs(false);
   };
 
   return (
@@ -157,6 +188,39 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
           ))}
         </div>
 
+        {/* Preferences editor */}
+        {editingPrefs ? (
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 16 }}>YOUR PREFERENCES</div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 400, color: "#1A1410", marginBottom: 10 }}>Experience level</div>
+              {LEVELS.map(l => (
+                <button key={l.key} onClick={() => setSelectedLevel(l.key)} style={{ display: "block", width: "100%", padding: "10px 14px", marginBottom: 6, border: `1.5px solid ${selectedLevel === l.key ? "#8C1C2E" : "#EDEAE3"}`, borderRadius: 10, background: selectedLevel === l.key ? "rgba(140,28,46,0.05)" : "white", cursor: "pointer", textAlign: "left" }}>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: selectedLevel === l.key ? 500 : 400, color: "#1A1410" }}>{l.label}</div>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>{l.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 400, color: "#1A1410", marginBottom: 10 }}>What do you usually drink?</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {WINE_TYPES.map(t => (
+                  <button key={t} onClick={() => setSelectedTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}
+                    style={{ padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${selectedTypes.includes(t) ? "#8C1C2E" : "#EDEAE3"}`, background: selectedTypes.includes(t) ? "#8C1C2E" : "white", color: selectedTypes.includes(t) ? "#F7F4EF" : "#1A1410", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer", textTransform: "capitalize" }}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setEditingPrefs(false)} style={{ flex: 1, padding: "11px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer" }}>Cancel</button>
+              <button onClick={savePreferences} disabled={savingPrefs} style={{ flex: 1, padding: "11px", border: "none", borderRadius: 10, background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, cursor: "pointer" }}>{savingPrefs ? "Saving..." : "Save"}</button>
+            </div>
+          </div>
+        ) : (
         <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
           {loading ? (
             <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", color: "#D4D1CA", textAlign: "center", paddingTop: 40 }}>Loading your journey...</div>
@@ -266,9 +330,18 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
             </>
           )}
         </div>
+        )}
 
         {/* Footer */}
-        <div style={{ padding: "16px 20px", borderTop: "1px solid #EDEAE3", flexShrink: 0 }}>
+        <div style={{ padding: "16px 20px", borderTop: "1px solid #EDEAE3", flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+          {!editingPrefs && (
+            <button
+              onClick={() => setEditingPrefs(true)}
+              style={{ width: "100%", padding: "11px", border: "1.5px solid #8C1C2E", borderRadius: 10, background: "transparent", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, color: "#8C1C2E", cursor: "pointer" }}
+            >
+              Edit my preferences
+            </button>
+          )}
           <button
             onClick={handleSignOut}
             style={{ width: "100%", padding: "11px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer" }}

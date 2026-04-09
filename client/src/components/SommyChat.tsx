@@ -190,29 +190,46 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       const body: any = { messages: messagesWithContext };
       if (img) body.image = { data: img.data, mediaType: img.mediaType };
 
-      const response = await fetch("/api/chat", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      // 50s client-side timeout (Vercel Pro limit is 60s)
+      const abort = new AbortController();
+      const abortTimer = setTimeout(() => abort.abort(), 50000);
 
-      if (!response.ok) throw new Error("Chat failed");
-      const data = await response.json();
+      let response: Response;
+      try {
+        response = await fetch("/api/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: abort.signal,
+        });
+      } finally {
+        clearTimeout(abortTimer);
+      }
+
+      if (!response!.ok) {
+        const errBody = await response!.json().catch(() => ({}));
+        throw new Error((errBody as any)?.error || `HTTP ${response!.status}`);
+      }
+      const data = await response!.json();
 
       if (data.text) {
         const { card, prose } = parseWineCard(data.text);
         setMessages(prev => [...prev, { role: "assistant", content: prose, wineCard: card || undefined }]);
-        // Fire-and-forget — do NOT await, so a slow/failed Supabase write never blocks the loading state
+        // Fire-and-forget save — do NOT await to avoid blocking the loading state
         if (user) {
           supabase.from("sommy_conversations").insert([
             { user_id: user.id, role: "user", content: userText, has_image: !!img },
-            { user_id: user.id, role: "assistant", content: prose },
-          ]).catch(() => {});
+            { user_id: user.id, role: "assistant", content: prose, has_image: false },
+          ]).then(({ error }) => { if (error) console.error("Sommy save error:", error.message); }).catch(console.error);
         }
       } else if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: data.error }]);
       }
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, having trouble connecting. Try again in a moment." }]);
+    } catch (e: any) {
+      console.error("Sommy error:", e?.message || e);
+      const msg = e?.name === "AbortError"
+        ? "That one took too long — try asking me something more specific."
+        : "Sorry, having trouble connecting. Try again in a moment.";
+      setMessages(prev => [...prev, { role: "assistant", content: msg }]);
     } finally {
       setIsLoading(false);
     }

@@ -83,7 +83,7 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
       console.error("Profile data load error:", e);
       setLoading(false);
     });
-  }, [isOpen, user]);
+  }, [isOpen, user?.id]); // user?.id is a stable string; user object changes reference on every auth update
 
   // Sync level from profile when profile changes
   useEffect(() => {

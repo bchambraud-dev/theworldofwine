@@ -34,8 +34,13 @@ interface Props {
 
 export default function ProfilePanel({ isOpen, onClose }: Props) {
   const { user, profile, signOut } = useAuth();
-  const { stats, preferences, recentTopics, completedGuideIds, goals, dataLoading, savePreferences, refresh } = useUserData();
+  const { stats, preferences, recentTopics, completedGuideIds, goals, dataLoading, savePreferences, refresh, silentRefresh } = useUserData();
   const [, setLocation] = useLocation();
+
+  // Silently re-fetch when panel opens so guide completions and wine logs are current
+  useEffect(() => {
+    if (isOpen) silentRefresh();
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Local edit state only
   const [editingPrefs, setEditingPrefs]   = useState(false);
@@ -363,7 +368,7 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
               </div>
 
               {/* ── Learning Path (Phase 2) ── */}
-              {(() => {
+              {!dataLoading && (() => {
                 const currentLevel = profile?.experience_level || "beginner";
                 const levelGuides = guides.filter(g => g.level === currentLevel);
                 const done = levelGuides.filter(g => completedGuideIds.includes(g.id));
@@ -452,6 +457,17 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                   </div>
                 );
               })()}
+
+              {/* Loading skeleton for Learning Path */}
+              {dataLoading && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>LEARNING PATH</div>
+                  <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ height: 12, background: "#EDEAE3", borderRadius: 6, width: "60%", marginBottom: 8 }} />
+                    <div style={{ height: 3, background: "#EDEAE3", borderRadius: 2 }} />
+                  </div>
+                </div>
+              )}
 
               {/* Active goals */}
               {goals.length > 0 && (

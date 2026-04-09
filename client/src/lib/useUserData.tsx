@@ -44,6 +44,7 @@ interface UserDataContextType {
   // Mutations
   savePreferences: (level: string, types: string[]) => Promise<void>;
   refresh: () => void;
+  silentRefresh: () => void;   // re-fetch without showing loading state
 }
 
 const DEFAULT_STATS: UserStats = { chats: 0, regions: 0, guides: 0, wines: 0 };
@@ -64,8 +65,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   // Prevent re-fetching for the same user
   const loadedForRef = useRef<string | null>(null);
 
-  const load = useCallback(async (uid: string) => {
-    setDataLoading(true);
+  const load = useCallback(async (uid: string, silent = false) => {
+    if (!silent) setDataLoading(true);
     try {
       const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes] =
         await Promise.all([
@@ -160,8 +161,15 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => {
     if (!userId) return;
-    loadedForRef.current = null; // allow re-load
+    loadedForRef.current = null;
     load(userId);
+  }, [userId, load]);
+
+  // Silent refresh: picks up latest data without triggering the loading skeleton
+  const silentRefresh = useCallback(() => {
+    if (!userId) return;
+    loadedForRef.current = null;
+    load(userId, true); // silent = true, no loading spinner
   }, [userId, load]);
 
   const savePreferences = useCallback(async (level: string, types: string[]) => {
@@ -180,7 +188,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   return (
     <UserDataContext.Provider value={{
       stats, preferences, recentTopics, completedGuideIds, goals, journal,
-      dataLoading, savePreferences, refresh,
+      dataLoading, savePreferences, refresh, silentRefresh,
     }}>
       {children}
     </UserDataContext.Provider>

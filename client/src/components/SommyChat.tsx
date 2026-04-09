@@ -114,29 +114,25 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
         return;
       }
 
-      // Step 2: no history — first-ever session, start the relationship
+      // Step 2: no history — first-ever session. Use a reliable personalised
+      // greeting rather than an API call that can fail silently.
       hasGreeted.current = user.id;
-      setIsLoading(true);
-      try {
-        const name = profile?.display_name?.split(" ")[0] || "";
-        const level = profile?.experience_level || "beginner";
-        const levelMap: Record<string, string> = { beginner: "just starting out", intermediate: "knows their way around a wine list", expert: "deep into wine" };
+      const name = profile?.display_name?.split(" ")[0] || "";
+      const level = profile?.experience_level || "beginner";
 
-        const greetingPrompt = `[FIRST SESSION]
-You are meeting ${name || "this person"} for the very first time. They are a wine ${levelMap[level] || "enthusiast"}.
+      const openingQuestion: Record<string, string> = {
+        beginner:     "What draws you to wine right now? Are you exploring something new, looking for a great bottle for tonight, or just curious about where to start?",
+        intermediate: "What are you looking to discover right now — a region you haven't explored, a style you want to get deeper into, or the perfect pairing for something specific?",
+        expert:       "What are you exploring lately? Is there a producer, vintage, or appellation that's caught your attention recently?",
+      };
 
-Introduce yourself as Sommy, their personal wine companion on The World of Wine. Be warm and genuinely curious — not corporate, not scripted. Tell them you\'re starting fresh and excited to learn what they love. Then ask ONE specific, open question about what draws them to wine right now. Make it feel like the start of a real conversation between two people who share a love of wine. Keep it to 3 short paragraphs.`;
+      const greeting = `Hey${name ? ` ${name}` : ""}! I'm Sommy — your personal wine companion here at The World of Wine. I'm starting fresh, which means I get to learn what you love as we go.
 
-        const res = await fetch("/api/chat", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: [{ role: "user", content: greetingPrompt }] }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.text) setMessages([{ role: "assistant", content: data.text }]);
-        }
-      } catch { /* silent */ }
-      setIsLoading(false);
+${openingQuestion[level] || openingQuestion.beginner}
+
+The more you share — what you enjoy, what you've tried, even what you definitely don't like — the better I can point you toward wines that'll genuinely excite you.`;
+
+      setMessages([{ role: "assistant", content: greeting }]);
     };
 
     init();

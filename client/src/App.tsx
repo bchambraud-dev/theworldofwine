@@ -25,6 +25,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Journal from "@/pages/Journal";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import ProfilePanel from "@/components/ProfilePanel";
@@ -289,6 +290,7 @@ function AppRouter() {
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/journal" component={Journal} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -224,6 +224,7 @@ Here's where climate comes in. In a <strong>cool climate</strong> — northern F
     readTimeMinutes: 10,
     icon: "styles",
     heroImage: "/guides/photo-wine-styles.webp",
+    quizId: "wine-styles-quiz",
     sections: [
       {
         heading: "Why Styles Matter More Than Grape Names",
@@ -348,6 +349,7 @@ These wines are expensive, and the reason is simple: <strong>yields are tiny</st
     readTimeMinutes: 10,
     icon: "history",
     heroImage: "/guides/photo-history.webp",
+    quizId: "wine-history-quiz",
     sections: [
       {
         heading: "The Beginning: Georgia and the Ancient World",
@@ -396,6 +398,7 @@ These wines are expensive, and the reason is simple: <strong>yields are tiny</st
     readTimeMinutes: 8,
     icon: "natural",
     heroImage: "/guides/photo-natural-organic.webp",
+    quizId: "natural-wine-quiz",
     sections: [
       {
         heading: "Why This Matters (And Why It's Confusing)",

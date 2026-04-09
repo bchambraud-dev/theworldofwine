@@ -15,9 +15,9 @@ const LEVEL_LABEL: Record<string, string> = {
 };
 
 const LEVEL_COLOR: Record<string, string> = {
-  beginner: "#4A7A52",
-  intermediate: "#B8860B",
-  expert: "#8C1C2E",
+  beginner: "#4A7A52",   // sage green
+  intermediate: "#B8860B", // gold
+  expert: "#4A1A6E",    // plum / purple
 };
 
 const WINE_TYPES = ["red", "white", "sparkling", "rosé", "fortified"];
@@ -44,6 +44,7 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
 
   // Local edit state only
   const [editingPrefs, setEditingPrefs]   = useState(false);
+  const [showAllGuides, setShowAllGuides] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [saving, setSaving]               = useState(false);
@@ -374,11 +375,12 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                 const done = levelGuides.filter(g => completedGuideIds.includes(g.id));
                 const pct = levelGuides.length > 0 ? Math.round((done.length / levelGuides.length) * 100) : 0;
                 const allDone = done.length === levelGuides.length && levelGuides.length > 0;
-                // Show completed first, then next uncompleted, capped at 5
+                // Completed first, then remaining — expandable
                 const ordered = [
                   ...levelGuides.filter(g => completedGuideIds.includes(g.id)),
                   ...levelGuides.filter(g => !completedGuideIds.includes(g.id)),
-                ].slice(0, 5);
+                ];
+                const displayGuides = showAllGuides ? ordered : ordered.slice(0, 5);
                 return (
                   <div style={{ marginBottom: 24 }}>
                     <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>
@@ -403,9 +405,13 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                       <div style={{ height: 3, background: "#EDEAE3" }}>
                         <div style={{ height: "100%", width: `${pct}%`, background: allDone ? "#4A7A52" : "#8C1C2E", transition: "width 0.6s ease" }} />
                       </div>
+                      {/* Quiz requirement note */}
+                      <div style={{ padding: "6px 16px 2px", fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#D4D1CA" }}>
+                        Pass the quiz in each guide to mark it complete
+                      </div>
                       {/* Guide list */}
-                      <div style={{ padding: "8px 0" }}>
-                        {ordered.map(g => {
+                      <div style={{ padding: "4px 0" }}>
+                        {displayGuides.map(g => {
                           const isDone = completedGuideIds.includes(g.id);
                           return (
                             <button
@@ -437,9 +443,12 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                           );
                         })}
                         {levelGuides.length > 5 && (
-                          <div style={{ padding: "4px 16px 8px", fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "#D4D1CA" }}>
-                            + {levelGuides.length - 5} more guides
-                          </div>
+                          <button
+                            onClick={() => setShowAllGuides(s => !s)}
+                            style={{ display: "block", width: "100%", padding: "8px 16px", background: "none", border: "none", cursor: "pointer", fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", color: "#8C1C2E", textAlign: "left", letterSpacing: "0.08em" }}
+                          >
+                            {showAllGuides ? "− Show fewer" : `+ ${levelGuides.length - 5} more guides`}
+                          </button>
                         )}
                       </div>
                       {/* CTA */}

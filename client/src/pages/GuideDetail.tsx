@@ -21,9 +21,8 @@ export default function GuideDetail() {
   const guide = guides.find((g) => g.id === params?.guideId);
   const trackActivity = useActivity();
 
-  useEffect(() => {
-    if (guide) trackActivity("guide_read", guide.id, guide.title);
-  }, [guide?.id]);
+  // Guide completion is now gated by passing the quiz.
+  // trackActivity("guide_read") is called in QuizPage on perfect score.
 
   if (!guide) {
     return (
@@ -31,7 +30,7 @@ export default function GuideDetail() {
         <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
         <div className="lv-empty-title">Guide not found</div>
         <button className="chip" onClick={() => setLocation("/guides")} style={{ marginTop: 16 }}>
-          Back to Academy
+          Back to Guides
         </button>
       </div>
     );
@@ -60,9 +59,9 @@ export default function GuideDetail() {
             cursor: "pointer",
             marginBottom: 20,
           }}
-          data-testid="back-to-academy"
+          data-testid="back-to-guides"
         >
-          ← Academy
+          ← Guides
         </button>
 
         {/* Header */}
@@ -255,42 +254,48 @@ export default function GuideDetail() {
           </div>
         )}
 
-        {/* Quiz CTA */}
+        {/* Quiz CTA — prominent, quiz-gated completion */}
         {guide.quizId && (
           <div
             style={{
-              marginTop: 24,
-              padding: "20px 24px",
-              background: "var(--wine-pale)",
+              marginTop: 40,
+              padding: "32px 28px",
+              background: "var(--wine)",
               borderRadius: "var(--r)",
-              border: "1px solid rgba(140,28,46,0.15)",
               textAlign: "center",
             }}
           >
+            <div style={{ fontSize: "1.5rem", marginBottom: 10 }}>✓</div>
             <p
               style={{
                 fontFamily: "'Fraunces', serif",
-                fontSize: "1rem",
-                color: "var(--text)",
-                marginBottom: 10,
+                fontSize: "1.3rem",
+                fontWeight: 400,
+                color: "white",
+                marginBottom: 6,
+                lineHeight: 1.3,
               }}
             >
-              Think you've got it?
+              Ready to complete this guide?
+            </p>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>
+              Pass the quiz with a perfect score to mark this guide complete.
             </p>
             <button
-              onClick={() => setLocation(`/quiz/${guide.quizId}`)}
+              onClick={() => setLocation(`/quiz/${guide.quizId}?guideId=${guide.id}`)}
               data-testid="take-quiz-cta"
               style={{
                 fontFamily: "'Geist Mono', monospace",
-                fontSize: "0.62rem",
+                fontSize: "0.7rem",
                 textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                padding: "10px 24px",
+                letterSpacing: "0.1em",
+                padding: "14px 32px",
                 borderRadius: 100,
-                border: "none",
-                background: "var(--wine)",
-                color: "white",
+                border: "2px solid white",
+                background: "white",
+                color: "var(--wine)",
                 cursor: "pointer",
+                fontWeight: 600,
               }}
             >
               Take the Quiz

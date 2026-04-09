@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { quizzes } from "@/data/quizzes";
+import { guides } from "@/data/guides";
 import { useTrack } from "@/hooks/use-track";
+import { useActivity } from "@/hooks/use-activity";
 
 export default function QuizPage() {
   const [, params] = useRoute("/quiz/:quizId");
@@ -9,11 +11,26 @@ export default function QuizPage() {
   const track = useTrack();
 
   const quiz = quizzes.find((q) => q.id === params?.quizId);
+  const trackActivity = useActivity();
+
+  // guideId is passed from GuideDetail as ?guideId=... so we know which guide to complete
+  const guideId = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("guideId")
+    : null;
+  const guideData = guides.find((g) => g.id === guideId);
+
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  // When quiz finishes with a perfect score, mark the guide as complete
+  useEffect(() => {
+    if (finished && quiz && score === quiz.questions.length && guideId) {
+      trackActivity("guide_read", guideId, guideData?.title || guideId);
+    }
+  }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!quiz) {
     return (
@@ -21,7 +38,7 @@ export default function QuizPage() {
         <div className="lv-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <div className="lv-empty-title">Quiz not found</div>
         <button className="chip" onClick={() => setLocation("/guides")} style={{ marginTop: 16 }}>
-          Back to Academy
+          Back to Guides
         </button>
       </div>
     );
@@ -148,10 +165,8 @@ export default function QuizPage() {
               }}
             >
               {score === quiz.questions.length
-                ? "Perfect score! You really know your wine."
-                : score >= quiz.questions.length / 2
-                ? "Well done — you're building solid wine knowledge."
-                : "Keep exploring — every glass is a lesson."}
+                ? guideId ? "Perfect score — this guide is now marked complete in your learning path." : "Perfect score! You really know your wine."
+                : `You need a perfect score to complete this guide. Try again — you've got ${quiz.questions.length - score} question${quiz.questions.length - score !== 1 ? "s" : ""} to review.`}
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               <button

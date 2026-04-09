@@ -217,9 +217,9 @@ export default function AcademyHub() {
                     letterSpacing: "0.06em",
                     padding: "3px 8px",
                     borderRadius: 100,
-                    background: g.level === "expert" ? "rgba(74,26,110,0.08)" : g.level === "intermediate" ? "rgba(74,122,82,0.08)" : "rgba(184,134,11,0.08)",
-                    color: g.level === "expert" ? "var(--plum)" : g.level === "intermediate" ? "var(--sage)" : "var(--gold)",
-                    border: `1px solid ${g.level === "expert" ? "rgba(74,26,110,0.2)" : g.level === "intermediate" ? "rgba(74,122,82,0.2)" : "rgba(184,134,11,0.2)"}`,
+                    background: g.level === "expert" ? "rgba(74,26,110,0.08)" : g.level === "intermediate" ? "rgba(184,134,11,0.08)" : "rgba(74,122,82,0.08)",
+                    color: g.level === "expert" ? "var(--plum)" : g.level === "intermediate" ? "var(--gold)" : "var(--sage)",
+                    border: `1px solid ${g.level === "expert" ? "rgba(74,26,110,0.2)" : g.level === "intermediate" ? "rgba(184,134,11,0.2)" : "rgba(74,122,82,0.2)"}`,
                   }}
                 >
                   {g.level}

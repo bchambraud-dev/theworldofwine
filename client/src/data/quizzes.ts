@@ -1078,4 +1078,214 @@ export const quizzes: Quiz[] = [
       },
     ],
   },
+
+  // ── QUIZ: The World's Wine Styles ——————————————————————————──
+  {
+    id: "wine-styles-quiz",
+    title: "The World's Wine Styles",
+    description: "Test your knowledge of the major wine styles — from light reds to rich whites, sparkling, rosé, dessert, and fortified.",
+    guideId: "wine-styles-explained",
+    questions: [
+      {
+        id: "ws-q1",
+        question: "Which of the following best describes a 'full-bodied' red wine?",
+        options: [
+          "Light in colour, high in acidity, low in tannins",
+          "High in alcohol, rich in tannins, with a weighty mouthfeel",
+          "Sweet on the palate with low alcohol",
+          "Pale and delicate, best served chilled",
+        ],
+        correctIndex: 1,
+        explanation: "Full-bodied reds — think Barossa Shiraz or Napa Cabernet — are defined by their weight on the palate, driven by higher alcohol, ripe tannins, and concentrated fruit. They pair beautifully with rich red meats.",
+      },
+      {
+        id: "ws-q2",
+        question: "What is the key characteristic that makes a white wine 'crisp'?",
+        options: [
+          "High residual sugar that balances the fruit",
+          "High natural acidity that creates a mouth-watering freshness",
+          "Extended oak ageing that adds vanilla and cream",
+          "Low alcohol that keeps the wine light and delicate",
+        ],
+        correctIndex: 1,
+        explanation: "'Crisp' refers to high natural acidity — the quality that makes your mouth water and gives wines like Chablis, Albariño, and Sauvignon Blanc their refreshing, zesty character.",
+      },
+      {
+        id: "ws-q3",
+        question: "How does rosé wine get its distinctive pink colour?",
+        options: [
+          "By blending finished red and white wines together",
+          "Through brief skin contact with red grape skins during fermentation",
+          "By using a special pink grape variety found only in Provence",
+          "By adding natural fruit colouring during production",
+        ],
+        correctIndex: 1,
+        explanation: "Rosé gets its colour from brief maceration — the grape skins are left in contact with the juice for hours (not days), extracting just enough pigment for that pink hue. The shorter the contact, the paler the wine.",
+      },
+      {
+        id: "ws-q4",
+        question: "What distinguishes a fortified wine from other wine styles?",
+        options: [
+          "It is made from grapes grown at high altitude",
+          "Grape spirit (brandy) is added during or after fermentation, raising alcohol to 15–22%",
+          "It is always sweet and served as a dessert wine",
+          "It is made from dried grapes to concentrate the sugar",
+        ],
+        correctIndex: 1,
+        explanation: "Fortification means adding neutral grape spirit to wine. In Port, this stops fermentation early, preserving natural sweetness. In Sherry, it is added after fermentation. The result is a wine with higher alcohol and remarkable longevity.",
+      },
+      {
+        id: "ws-q5",
+        question: "Traditional method sparkling wines (like Champagne) develop their bubbles through:",
+        options: [
+          "Carbon dioxide being pumped into the wine before bottling",
+          "A secondary fermentation that takes place inside the sealed bottle",
+          "Fermentation using naturally carbonated spring water",
+          "Freezing the wine rapidly and then releasing the pressure",
+        ],
+        correctIndex: 1,
+        explanation: "The traditional method (méthode champenoise) involves adding a small amount of sugar and yeast to the finished wine in a sealed bottle. The second fermentation produces CO2 that dissolves into the wine, creating those persistent, fine bubbles.",
+      },
+    ],
+  },
+
+  // ── QUIZ: A Brief History of Wine ———————————————————————──
+  {
+    id: "wine-history-quiz",
+    title: "A Brief History of Wine",
+    description: "From ancient Georgia to modern appellations — how well do you know wine's 8,000-year story?",
+    guideId: "brief-history-of-wine",
+    questions: [
+      {
+        id: "wh-q1",
+        question: "Where is the oldest archaeological evidence of wine production, dating to around 6,000 BC?",
+        options: [
+          "Egypt, along the Nile Delta",
+          "Georgia, in the South Caucasus",
+          "Italy, in the Po Valley",
+          "France, in the Rhone Valley",
+        ],
+        correctIndex: 1,
+        explanation: "Georgia is considered the cradle of wine civilisation. Clay vessels (qvevri) found there show evidence of grape fermentation dating back approximately 8,000 years — making it the world's oldest known wine culture.",
+      },
+      {
+        id: "wh-q2",
+        question: "Which civilisation is most responsible for spreading viticulture throughout the Mediterranean world?",
+        options: [
+          "The Romans, through military conquest",
+          "The Greeks and Phoenicians, through trade networks",
+          "The Egyptians, through diplomatic gifts",
+          "The Persians, through agricultural exchange",
+        ],
+        correctIndex: 1,
+        explanation: "Greek and Phoenician traders planted vineyards wherever they established trading posts — southern France, Spain, Sicily, North Africa. The Romans later took these foundations and scaled viticulture across the entire empire.",
+      },
+      {
+        id: "wh-q3",
+        question: "The 1855 Bordeaux Classification ranked châteaux primarily on the basis of:",
+        options: [
+          "A blind tasting by a panel of expert sommeliers",
+          "The price their wines historically commanded in the market",
+          "The age and size of their vineyards",
+          "Their proximity to the Gironde estuary",
+        ],
+        correctIndex: 1,
+        explanation: "Napoleon III commissioned the classification for the Paris Exposition. Brokers ranked estates by the prices their wines consistently fetched — the market's verdict on quality. The classification has barely changed since, with Mouton Rothschild the only estate promoted (to First Growth) in 1973.",
+      },
+      {
+        id: "wh-q4",
+        question: "What was phylloxera, and why did it devastate European vineyards in the 19th century?",
+        options: [
+          "A fungal disease that rotted the grapes on the vine before harvest",
+          "A root louse imported from North America that killed European vines by attacking their roots",
+          "A severe frost event that wiped out most French vineyards",
+          "A bacterial infection spread through infected winemaking equipment",
+        ],
+        correctIndex: 1,
+        explanation: "Phylloxera vastatrix, a tiny aphid from North America, devastated European vineyards from the 1860s. American vines had evolved resistance; European vines had not. The solution: grafting European vines onto American rootstocks — a practice still used universally today.",
+      },
+      {
+        id: "wh-q5",
+        question: "What was the significance of the 1976 'Judgement of Paris' tasting?",
+        options: [
+          "It established the first official classification of Californian wines",
+          "California wines beat top French wines in a blind tasting judged by French experts",
+          "It settled a trade dispute between France and the United States over wine labelling",
+          "It was the first tasting to use the 100-point scoring system",
+        ],
+        correctIndex: 1,
+        explanation: "In Steven Spurrier's famous blind tasting, Californian Chardonnays and Cabernets outscored Burgundy and Bordeaux first growths — judged by French experts. It fundamentally changed the perception of New World wine and proved great wine wasn't exclusively European.",
+      },
+    ],
+  },
+
+  // ── QUIZ: Natural, Organic, Biodynamic ——————————————————──
+  {
+    id: "natural-wine-quiz",
+    title: "Natural, Organic & Biodynamic",
+    description: "Cut through the label confusion — test whether you know what these three terms actually mean in the vineyard and cellar.",
+    guideId: "natural-organic-biodynamic",
+    questions: [
+      {
+        id: "nw-q1",
+        question: "Which of the following wine production terms is officially regulated by law with specific certification standards?",
+        options: [
+          "Natural wine",
+          "Organic wine",
+          "Low-intervention wine",
+          "Minimal-sulphite wine",
+        ],
+        correctIndex: 1,
+        explanation: "Organic certification is legally defined and regulated — in the EU, USDA, and other markets. 'Natural wine' has no legal definition or certification body, which is why the term means different things to different producers.",
+      },
+      {
+        id: "nw-q2",
+        question: "What is the Demeter certification used to identify?",
+        options: [
+          "Wines made without any added sulphites",
+          "Biodynamic farms and products that meet Rudolf Steiner's agricultural principles",
+          "Organic wines produced in the European Union",
+          "Low-alcohol wines with certified reduced calorie content",
+        ],
+        correctIndex: 1,
+        explanation: "Demeter is the international certification body for biodynamic agriculture, based on Rudolf Steiner's principles from the 1920s. It requires farms to be self-sustaining ecosystems, with specific practices around lunar cycles, composting, and biodiversity.",
+      },
+      {
+        id: "nw-q3",
+        question: "Biodynamic farming treats the vineyard as:",
+        options: [
+          "A scientific laboratory where inputs are carefully measured and controlled",
+          "A living, self-sustaining ecosystem guided by natural rhythms",
+          "A commercial operation optimised for maximum yield per hectare",
+          "A neutral environment where only the variety determines wine character",
+        ],
+        correctIndex: 1,
+        explanation: "Biodynamic farming, developed from Rudolf Steiner's philosophy, treats the farm as a single living organism. It emphasises biodiversity, the rejection of synthetic chemicals, and attunement to natural cycles — including lunar calendars for planting and harvesting.",
+      },
+      {
+        id: "nw-q4",
+        question: "Sulphites in wine primarily serve which purpose?",
+        options: [
+          "They add bitterness that balances residual sugar in sweet wines",
+          "They act as preservatives that prevent oxidation and microbial spoilage",
+          "They give wine its colour by binding with anthocyanin pigments",
+          "They replace oak tannins in wines aged without barrels",
+        ],
+        correctIndex: 1,
+        explanation: "Sulphur dioxide (SO2) is wine's most effective preservative — it inhibits oxidation and kills spoilage bacteria and wild yeasts. It occurs naturally during fermentation but is usually also added. Natural wine producers use minimal or no added sulphites, accepting shorter shelf lives.",
+      },
+      {
+        id: "nw-q5",
+        question: "What most accurately describes 'natural wine'?",
+        options: [
+          "Wine certified by an official natural wine organisation with strict legal standards",
+          "Wine made with minimal intervention in vineyard and cellar, typically no additives or filtration",
+          "Wine made exclusively from heirloom grape varieties not commercially cultivated",
+          "Wine produced without any fermentation, preserving the natural grape juice",
+        ],
+        correctIndex: 1,
+        explanation: "Natural wine is a philosophy, not a legal category. It typically means farming without synthetic chemicals, fermenting with wild yeasts only, and making no additions in the cellar — no cultured yeasts, fining agents, or heavy filtration. No SO2, or as little as possible.",
+      },
+    ],
+  },
 ];

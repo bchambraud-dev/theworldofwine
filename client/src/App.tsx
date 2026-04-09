@@ -301,12 +301,9 @@ function GlobalFilterBar() {
   const [location] = useLocation();
   const store = useWineStore();
 
-  // Hide on landing, journey player, guide detail, grape detail, quiz
-  const hideOn = location === "/" || location.startsWith("/journey/") ||
-    (location.startsWith("/guides/") && location !== "/guides") ||
-    location.startsWith("/quiz/");
-
-  if (hideOn) return null;
+  // Only relevant on the map and wine list — hide everywhere else
+  const showFilter = location.startsWith("/explore");
+  if (!showFilter) return null;
 
   return (
     <FilterBar

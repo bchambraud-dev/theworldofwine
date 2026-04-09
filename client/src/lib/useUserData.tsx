@@ -36,9 +36,10 @@ export interface JournalEntry {
 interface UserDataContextType {
   stats: UserStats;
   preferences: UserPreferences;
-  recentTopics: string[];   // last 3 questions asked to Sommy
+  recentTopics: string[];      // last 3 questions asked to Sommy
+  completedGuideIds: string[]; // guide IDs the user has read
   goals: UserGoal[];
-  journal: JournalEntry[];  // last 5 wines logged
+  journal: JournalEntry[];     // last 5 wines logged
   dataLoading: boolean;
   // Mutations
   savePreferences: (level: string, types: string[]) => Promise<void>;
@@ -52,12 +53,13 @@ const UserDataContext = createContext<UserDataContextType | null>(null);
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const { userId, refreshProfile } = useAuth();
-  const [stats, setStats]             = useState<UserStats>(DEFAULT_STATS);
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFS);
-  const [recentTopics, setRecentTopics] = useState<string[]>([]);
-  const [goals, setGoals]             = useState<UserGoal[]>([]);
-  const [journal, setJournal]         = useState<JournalEntry[]>([]);
-  const [dataLoading, setDataLoading] = useState(false);
+  const [stats, setStats]                     = useState<UserStats>(DEFAULT_STATS);
+  const [preferences, setPreferences]         = useState<UserPreferences>(DEFAULT_PREFS);
+  const [recentTopics, setRecentTopics]       = useState<string[]>([]);
+  const [completedGuideIds, setCompletedGuideIds] = useState<string[]>([]);
+  const [goals, setGoals]                     = useState<UserGoal[]>([]);
+  const [journal, setJournal]                 = useState<JournalEntry[]>([]);
+  const [dataLoading, setDataLoading]         = useState(false);
 
   // Prevent re-fetching for the same user
   const loadedForRef = useRef<string | null>(null);
@@ -76,7 +78,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
             .eq("user_id", uid).eq("activity_type", "region_view"),
 
           supabase.from("user_activity")
-            .select("user_id", { count: "exact" })
+            .select("item_id", { count: "exact" })
             .eq("user_id", uid).eq("activity_type", "guide_read"),
 
           supabase.from("wine_journal")
@@ -114,6 +116,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         wines:   wines.count   ?? 0,
       });
 
+      // Extract completed guide IDs for learning path
+      setCompletedGuideIds(
+        (guides.data ?? []).map((r: any) => r.item_id as string).filter(Boolean)
+      );
+
       setRecentTopics(
         (topics.data ?? []).map((t: any) => t.content as string)
       );
@@ -140,6 +147,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setStats(DEFAULT_STATS);
       setPreferences(DEFAULT_PREFS);
       setRecentTopics([]);
+      setCompletedGuideIds([]);
       setGoals([]);
       setJournal([]);
       loadedForRef.current = null;
@@ -171,7 +179,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
   return (
     <UserDataContext.Provider value={{
-      stats, preferences, recentTopics, goals, journal,
+      stats, preferences, recentTopics, completedGuideIds, goals, journal,
       dataLoading, savePreferences, refresh,
     }}>
       {children}

@@ -19,7 +19,14 @@ grapes: [grape variety or varieties]
 style: [e.g. "Red — Bold and Structured" or "White — Crisp and Mineral"]
 WINE_CARD_END
 
-[Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]`;
+[Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]
+
+UPDATING THE USER PROFILE:
+When a user explicitly and clearly states their wine experience level (e.g. "I'm a total beginner", "I've been drinking wine seriously for years", "I'm an expert") OR explicitly states wine type preferences (e.g. "I only drink red wine", "I love sparkling", "I hate white wine"), append a profile update block at the very end of your response — on its own line, nothing after it:
+
+[PROFILE_UPDATE]{"experience_level": "beginner", "preferred_types": ["red", "white"]}[/PROFILE_UPDATE]
+
+Only include fields that were explicitly stated. Valid experience_level values: "beginner", "intermediate", "expert". Valid preferred_types values: "red", "white", "sparkling", "rosé", "fortified". Omit the block entirely when no clear preference was stated — do not guess or infer.`;
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");

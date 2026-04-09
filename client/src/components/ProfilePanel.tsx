@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { useLocation } from "wouter";
+import { guides } from "@/data/guides";
 
 // ProfilePanel — thin view layer.
 // All data comes from useUserData context (no local queries).
@@ -33,7 +34,7 @@ interface Props {
 
 export default function ProfilePanel({ isOpen, onClose }: Props) {
   const { user, profile, signOut } = useAuth();
-  const { stats, preferences, recentTopics, goals, dataLoading, savePreferences, refresh } = useUserData();
+  const { stats, preferences, recentTopics, completedGuideIds, goals, dataLoading, savePreferences, refresh } = useUserData();
   const [, setLocation] = useLocation();
 
   // Local edit state only
@@ -360,6 +361,97 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                   </button>
                 </div>
               </div>
+
+              {/* ── Learning Path (Phase 2) ── */}
+              {(() => {
+                const currentLevel = profile?.experience_level || "beginner";
+                const levelGuides = guides.filter(g => g.level === currentLevel);
+                const done = levelGuides.filter(g => completedGuideIds.includes(g.id));
+                const pct = levelGuides.length > 0 ? Math.round((done.length / levelGuides.length) * 100) : 0;
+                const allDone = done.length === levelGuides.length && levelGuides.length > 0;
+                // Show completed first, then next uncompleted, capped at 5
+                const ordered = [
+                  ...levelGuides.filter(g => completedGuideIds.includes(g.id)),
+                  ...levelGuides.filter(g => !completedGuideIds.includes(g.id)),
+                ].slice(0, 5);
+                return (
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>
+                      LEARNING PATH
+                    </div>
+                    <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                      {/* Header */}
+                      <div style={{ padding: "12px 16px", borderBottom: "1px solid #EDEAE3", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.9rem", fontWeight: 400, color: "#1A1410" }}>
+                            {LEVEL_LABEL[currentLevel]} Journey
+                          </div>
+                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", color: "#D4D1CA", marginTop: 2 }}>
+                            {done.length} of {levelGuides.length} guides
+                          </div>
+                        </div>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", color: allDone ? "#4A7A52" : "#8C1C2E" }}>
+                          {pct}%
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div style={{ height: 3, background: "#EDEAE3" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: allDone ? "#4A7A52" : "#8C1C2E", transition: "width 0.6s ease" }} />
+                      </div>
+                      {/* Guide list */}
+                      <div style={{ padding: "8px 0" }}>
+                        {ordered.map(g => {
+                          const isDone = completedGuideIds.includes(g.id);
+                          return (
+                            <button
+                              key={g.id}
+                              onClick={() => { onClose(); setLocation(`/guides/${g.id}`); }}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                                padding: "8px 16px", background: "none", border: "none", cursor: "pointer",
+                                textAlign: "left",
+                              }}
+                            >
+                              <div style={{
+                                width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                                border: `1.5px solid ${isDone ? "#4A7A52" : "#EDEAE3"}`,
+                                background: isDone ? "#4A7A52" : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                              }}>
+                                {isDone && <span style={{ color: "white", fontSize: "0.55rem", lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <span style={{
+                                fontFamily: "'Jost', sans-serif",
+                                fontSize: "0.82rem", fontWeight: 300,
+                                color: isDone ? "#D4D1CA" : "#1A1410",
+                                textDecoration: isDone ? "none" : "none",
+                              }}>
+                                {g.title}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {levelGuides.length > 5 && (
+                          <div style={{ padding: "4px 16px 8px", fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "#D4D1CA" }}>
+                            + {levelGuides.length - 5} more guides
+                          </div>
+                        )}
+                      </div>
+                      {/* CTA */}
+                      {allDone && (
+                        <div style={{ padding: "12px 16px", borderTop: "1px solid #EDEAE3", background: "rgba(74,122,82,0.04)" }}>
+                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#4A7A52", marginBottom: 8 }}>
+                            All guides complete — you're ready for the test.
+                          </div>
+                          <button style={{ background: "#4A7A52", border: "none", borderRadius: 8, padding: "8px 14px", color: "white", fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", cursor: "pointer" }}>
+                            TAKE THE TEST (coming soon)
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Active goals */}
               {goals.length > 0 && (

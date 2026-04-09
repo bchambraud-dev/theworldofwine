@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useUserData } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 
 interface Message {
@@ -80,7 +81,8 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const { refresh: refreshUserData } = useUserData();
   const hasGreeted = useRef<string | null>(null);
   const historyLoaded = useRef<string | null>(null);
 
@@ -112,24 +114,22 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
         return;
       }
 
-      // Step 2: no history — send proactive greeting
+      // Step 2: no history — first-ever session, start the relationship
       hasGreeted.current = user.id;
       setIsLoading(true);
       try {
-        const [journalRes, goalsRes] = await Promise.all([
-          supabase.from("wine_journal").select("wine_name, region, personal_rating").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
-          supabase.from("user_goals").select("title, current_count, target_count").eq("user_id", user.id).eq("completed", false).limit(2),
-        ]);
-        const journal = journalRes.data || [];
-        const goals = goalsRes.data || [];
         const name = profile?.display_name?.split(" ")[0] || "";
-        let parts = [`The user's name is ${name || "there"}.`];
-        if (journal.length > 0) parts.push(`Recent wines: ${journal.map(j => `${j.wine_name}${j.region ? ` from ${j.region}` : ""}${j.personal_rating ? ` (${j.personal_rating}/10)` : ""}`).join(", ")}.`);
-        if (goals.length > 0) parts.push(`Active goals: ${goals.map(g => `"${g.title}" (${g.current_count}/${g.target_count})`).join(", ")}.`);
-        if (journal.length === 0 && goals.length === 0) parts.push("They just completed onboarding.");
+        const level = profile?.experience_level || "beginner";
+        const levelMap: Record<string, string> = { beginner: "just starting out", intermediate: "knows their way around a wine list", expert: "deep into wine" };
+
+        const greetingPrompt = `[FIRST SESSION]
+You are meeting ${name || "this person"} for the very first time. They are a wine ${levelMap[level] || "enthusiast"}.
+
+Introduce yourself as Sommy, their personal wine companion on The World of Wine. Be warm and genuinely curious — not corporate, not scripted. Tell them you\'re starting fresh and excited to learn what they love. Then ask ONE specific, open question about what draws them to wine right now. Make it feel like the start of a real conversation between two people who share a love of wine. Keep it to 3 short paragraphs.`;
+
         const res = await fetch("/api/chat", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: [{ role: "user", content: `[Context: ${parts.join(" ")}]\n\nSend a warm, short, personalised greeting. 2-3 sentences max.` }] }),
+          body: JSON.stringify({ messages: [{ role: "user", content: greetingPrompt }] }),
         });
         if (res.ok) {
           const data = await res.json();
@@ -212,8 +212,35 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       const data = await response!.json();
 
       if (data.text) {
-        const { card, prose } = parseWineCard(data.text);
+        // Strip PROFILE_UPDATE block before displaying, then apply it
+        const profileUpdateMatch = data.text.match(/\[PROFILE_UPDATE\]([\s\S]*?)\[\/PROFILE_UPDATE\]/);
+        const cleanText = data.text.replace(/\[PROFILE_UPDATE\][\s\S]*?\[\/PROFILE_UPDATE\]/, "").trim();
+
+        const { card, prose } = parseWineCard(cleanText);
         setMessages(prev => [...prev, { role: "assistant", content: prose, wineCard: card || undefined }]);
+
+        // Apply profile update if Sommy detected clear user preferences
+        if (profileUpdateMatch && user) {
+          try {
+            const updates = JSON.parse(profileUpdateMatch[1]);
+            const ops: Promise<any>[] = [];
+            if (updates.experience_level) {
+              ops.push(supabase.from("user_profiles").update({ experience_level: updates.experience_level }).eq("id", user.id));
+            }
+            if (updates.preferred_types?.length) {
+              ops.push(supabase.from("user_preferences").upsert({ user_id: user.id, preferred_types: updates.preferred_types }));
+            }
+            if (ops.length) {
+              Promise.all(ops).then(() => {
+                refreshProfile();   // update profile badge
+                refreshUserData();  // update stats + preferences in panel
+              }).catch(console.error);
+            }
+          } catch (e) {
+            console.error("PROFILE_UPDATE parse error:", e);
+          }
+        }
+
         // Fire-and-forget save — do NOT await to avoid blocking the loading state
         if (user) {
           supabase.from("sommy_conversations").insert([

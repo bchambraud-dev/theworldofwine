@@ -28,6 +28,7 @@ import Terms from "@/pages/Terms";
 import Journal from "@/pages/Journal";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
 
 type NavTab = "map" | "journeys" | "academy" | "list" | "news";
@@ -337,13 +338,15 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router>
-          <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-            <NavBar onProfileOpen={() => setProfileOpen(true)} />
-            <GlobalFilterBar />
-            <AppRouter />
-            <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
-            <ProfilePanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
-          </div>
+          <UserDataProvider>
+            <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
+              <NavBar onProfileOpen={() => setProfileOpen(true)} />
+              <GlobalFilterBar />
+              <AppRouter />
+              <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
+              <ProfilePanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
+            </div>
+          </UserDataProvider>
         </Router>
       </TooltipProvider>
       </AuthProvider>

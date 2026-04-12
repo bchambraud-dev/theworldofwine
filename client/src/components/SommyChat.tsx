@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
+import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
 
 interface Message {
@@ -82,7 +83,7 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
   const { user, profile, refreshProfile } = useAuth();
-  const { refresh: refreshUserData } = useUserData();
+  const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData } = useUserData();
   const hasGreeted = useRef<string | null>(null);
   const historyLoaded = useRef<string | null>(null);
 
@@ -170,7 +171,35 @@ The more you share — what you enjoy, what you've tried, even what you definite
     setIsLoading(true);
 
     try {
-      const contextualText = context ? `[Context: ${context}]\n\n${userText}` : userText;
+      // Build rich user profile context so Sommy knows who it's talking to
+      const profileParts: string[] = [];
+      const name = profile?.display_name?.split(" ")[0];
+      if (name) profileParts.push(`Name: ${name}`);
+      if (profile?.experience_level) profileParts.push(`Level: ${profile.experience_level}`);
+      if (preferences.preferred_types?.length) profileParts.push(`Prefers: ${preferences.preferred_types.join(", ")} wines`);
+      if (completedGuideIds.length > 0) {
+        const guideNames = completedGuideIds.map(id => guides.find(g => g.id === id)?.title).filter(Boolean);
+        const total = guides.filter(g => g.level === (profile?.experience_level || "beginner")).length;
+        profileParts.push(`Guides completed (${guideNames.length}/${total} ${profile?.experience_level || "beginner"}): ${guideNames.join(", ")}`);
+      }
+      if (journal.length > 0) {
+        const wineLines = journal.slice(0, 5).map(w => {
+          const parts = [w.wine_name];
+          if (w.vintage) parts[0] += ` ${w.vintage}`;
+          if (w.region) parts.push(w.region);
+          if (w.grapes) parts.push(w.grapes);
+          if (w.personal_rating) parts.push(`rated ${w.personal_rating}/5`);
+          if (w.notes) parts.push(`notes: "${w.notes}"`);
+          return `- ${parts.join(" · ")}`;
+        });
+        profileParts.push(`Recent wines logged:\n${wineLines.join("\n")}`);
+      }
+      if (stats.wines > 0 || stats.regions > 0) {
+        profileParts.push(`Stats: ${stats.wines} wines logged, ${stats.regions} regions explored, ${stats.guides} guides read`);
+      }
+      const userProfile = profileParts.length > 0 ? `[User Profile]\n${profileParts.join("\n")}` : "";
+      const fullContext = [userProfile, context].filter(Boolean).join("\n\n");
+      const contextualText = fullContext ? `${fullContext}\n\n${userText}` : userText;
       // Build history: drop leading assistant turns, then cap at last 6 messages
       // to keep context tight and avoid Vercel function timeouts
       const rawHistory = newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
@@ -256,7 +285,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, context, pendingImage]);
+  }, [messages, isLoading, context, pendingImage, profile, preferences, completedGuideIds, journal, stats]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 

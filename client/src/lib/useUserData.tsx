@@ -28,8 +28,14 @@ export interface UserGoal {
 export interface JournalEntry {
   id: string;
   wine_name: string;
+  producer: string | null;
+  vintage: string | null;
   region: string | null;
+  grapes: string | null;
+  style: string | null;
+  notes: string | null;
   personal_rating: number | null;
+  price_estimate: string | null;
   date_tasted: string | null;
 }
 
@@ -104,10 +110,10 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
             .limit(3),
 
           supabase.from("wine_journal")
-            .select("id, wine_name, region, personal_rating, date_tasted")
+            .select("id, wine_name, producer, vintage, region, grapes, style, notes, personal_rating, price_estimate, date_tasted")
             .eq("user_id", uid)
             .order("date_tasted", { ascending: false, nullsFirst: false })
-            .limit(5),
+            .limit(8),
         ]);
 
       setStats({

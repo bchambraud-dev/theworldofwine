@@ -17,12 +17,12 @@ export interface Quiz {
 }
 
 export const quizzes: Quiz[] = [
-  // ── QUIZ 1: Wine Basics ───────────────────────────────────────────────────────
+  // ── QUIZ 1: Terroir ─────────────────────────────────────────────────────────
   {
-    id: "wine-basics",
-    title: "Wine Basics",
+    id: "terroir-quiz",
+    title: "What is Terroir?",
     description:
-      "Think you've got the fundamentals covered? Test your knowledge of terroir, winemaking, and the core concepts behind every great bottle.",
+      "Soil, climate, aspect, altitude — how well do you understand the invisible forces that shape every great wine?",
     guideId: "what-is-terroir",
     questions: [
       {
@@ -490,12 +490,12 @@ export const quizzes: Quiz[] = [
     ],
   },
 
-  // ── QUIZ 8: Tasting Terms ─────────────────────────────────────────────────────
+  // ── QUIZ 8: How to Taste Wine ────────────────────────────────────────────────
   {
-    id: "tasting-terms",
-    title: "Tasting Terms",
+    id: "how-to-taste-quiz",
+    title: "How to Taste Wine Like You Mean It",
     description:
-      "From 'finish' to 'phenolic ripeness' to 'reduction' — tasting vocabulary can be a maze. This quiz tests the terms that actually matter when evaluating a glass of wine.",
+      "Finish, body, tannin, primary aromas — this quiz tests the sensory vocabulary and systematic approach you need to evaluate any wine with confidence.",
     guideId: "how-to-taste-wine",
     questions: [
       {
@@ -568,69 +568,230 @@ export const quizzes: Quiz[] = [
     ],
   },
 
-  // ── QUIZ 9: Wine Labels & Scores ─────────────────────────────────────────────
+  // ── QUIZ 9a: Reading a Wine Label ────────────────────────────────────────────
   {
-    id: "wine-labels-scores",
-    title: "Wine Labels & Scores",
+    id: "reading-labels-quiz",
+    title: "Reading a Wine Label",
     description:
-      "Can you decode the information on a wine label? Do you know what wine scores mean — and what they don't? Let's find out.",
+      "From Old World appellations to New World varietal labelling — this quiz tests whether you can decode what a label actually tells you (and what it doesn't).",
     guideId: "reading-wine-labels",
     questions: [
       {
-        id: "ls-q1",
-        question: "A French wine labeled 'Gevrey-Chambertin' tells you primarily:",
+        id: "rl-q1",
+        question: "What is the fundamental difference between how most French or Italian wines are labelled compared to most Australian or American wines?",
         options: [
-          "The grape variety (Gevrey Chambertin is a French red grape)",
-          "That the wine comes from the village of Gevrey-Chambertin in Burgundy and is made from Pinot Noir",
-          "That the wine was awarded a gold medal at a regional competition",
-          "That it's a blend of multiple grape varieties from different regions",
+          "French and Italian labels always show the alcohol percentage in larger type",
+          "Australian and American labels lead with the grape variety; French and Italian labels lead with the region or appellation",
+          "Australian and American wines don't need to include a vintage year",
+          "French and Italian labels are required by law to display a quality medal",
         ],
         correctIndex: 1,
         explanation:
-          "Old World labels prioritize place over grape — Gevrey-Chambertin is a village in Burgundy where only Pinot Noir is permitted. Knowing the appellation tells you the grape, the style, and the quality standards.",
+          "Old World labelling assumes you know that 'Gevrey-Chambertin' means Pinot Noir from Burgundy. New World labelling assumes you don't — so it tells you the grape variety upfront. Two different philosophies for two different audiences.",
       },
       {
-        id: "ls-q2",
-        question: "In the United States, if a wine label states a grape variety (e.g., 'Merlot'), what is the minimum percentage of that grape the wine must contain?",
-        options: ["51%", "75%", "85%", "100%"],
-        correctIndex: 1,
-        explanation:
-          "US regulations require at least 75% of the stated variety (Oregon raises this to 90%). This means a California 'Merlot' could legally contain up to 25% of other grapes — worth keeping in mind.",
-      },
-      {
-        id: "ls-q3",
-        question: "What does 'NV' (Non-Vintage) on a Champagne label mean?",
+        id: "rl-q2",
+        question: "A Bordeaux label reads 'Mis en bouteille au château.' What does this phrase tell you?",
         options: [
-          "The wine is of lower quality and not suitable for aging",
-          "The wine was made without any added sulfites",
-          "The wine is a blend of multiple years, creating a consistent house style",
-          "The vintage was too poor to be declared, so no date is shown",
+          "The château grew the grapes, made the wine, and bottled it on site — an indication of full producer control",
+          "The wine was aged for the maximum permitted time in the château's cellars",
+          "The wine was blended from the château's oldest vines, planted before 1945",
+          "The label was officially approved by the château's owner before printing",
+        ],
+        correctIndex: 0,
+        explanation:
+          "'Estate bottled' (mis en bouteille au château) means the château controlled the entire process — from growing to bottling. This is significant because it signals full traceability and quality commitment, as opposed to wines bottled by a négociant elsewhere.",
+      },
+      {
+        id: "rl-q3",
+        question: "What does the vintage year printed on a wine label actually tell you?",
+        options: [
+          "The year the wine was commercially released for sale",
+          "The year the winery was founded or first produced wine",
+          "The year barrel ageing began",
+          "The year the grapes were grown and harvested",
+        ],
+        correctIndex: 3,
+        explanation:
+          "The vintage is always the harvest year — the year the grapes were picked. Since grape ripeness varies dramatically year to year (especially in variable climates like Bordeaux or Burgundy), the vintage is one of the most important pieces of information on the label.",
+      },
+      {
+        id: "rl-q4",
+        question: "'Reserve' appears on a California Chardonnay label. In most New World wine countries, what does this term legally guarantee?",
+        options: [
+          "Nothing specific — 'Reserve' is unregulated in most New World countries and means different things to different producers",
+          "The wine was aged for a minimum of 24 months in American oak barrels",
+          "The wine was produced from the winery's oldest estate-grown vines only",
+          "The wine received a gold medal at an officially recognised wine competition",
+        ],
+        correctIndex: 0,
+        explanation:
+          "In countries like the US, Australia, and New Zealand, 'Reserve' has no legal definition. A producer can put it on any wine they choose. Some use it meaningfully; others use it as marketing. Compare this to Spain's Reserva, which IS legally defined.",
+      },
+      {
+        id: "rl-q5",
+        question: "An Italian wine label reads 'Brunello di Montalcino DOCG.' What does the DOCG designation indicate?",
+        options: [
+          "The wine was aged in oak barrels for a minimum of ten years before release",
+          "It is a blended wine from multiple approved regions across central Italy",
+          "The wine received a gold medal at Italy's national competition",
+          "Italy's highest quality classification tier, with specific production rules and mandatory government tasting approval before sale",
+        ],
+        correctIndex: 3,
+        explanation:
+          "DOCG (Denominazione di Origine Controllata e Garantita) is Italy's highest classification — stricter than DOC, with compulsory tasting by an official government panel before every wine can be released. Brunello di Montalcino was one of the first to receive this status.",
+      },
+    ],
+  },
+
+  // ── QUIZ 9b: Understanding Wine Scores ───────────────────────────────────────
+  {
+    id: "wine-scores-quiz",
+    title: "Understanding Wine Scores",
+    description:
+      "Parker, Jancis, Wine Spectator — who invented what, what the numbers really mean, and why a 92 and a 93 might not be as different as they sound.",
+    guideId: "understanding-wine-scores",
+    questions: [
+      {
+        id: "sc-q1",
+        question: "The 100-point wine scoring system was popularised by which American critic, whose palate and publications transformed the global wine market from the 1980s?",
+        options: [
+          "Hugh Johnson — the British author of the World Atlas of Wine",
+          "Michael Broadbent — Christie's head of wine and legendary blind taster",
+          "Robert Parker — the Maryland lawyer turned independent critic who founded The Wine Advocate",
+          "James Suckling — longtime Wine Spectator editor based in Italy",
         ],
         correctIndex: 2,
         explanation:
-          "NV Champagne is intentionally blended across multiple years to achieve a consistent 'house style' — this is a deliberate art form, not a compromise. The blending process itself is extraordinarily skilled.",
+          "Robert Parker applied the 100-point system (borrowed from the American school grading scale) to wine in his newsletter The Wine Advocate. His outsized influence meant wineries began making wines to please his palate — for better and worse.",
       },
       {
-        id: "ls-q4",
-        question: "Robert Parker's 100-point wine scale considers scores above which threshold as 'outstanding'?",
-        options: ["80 points", "85 points", "90 points", "95 points"],
-        correctIndex: 2,
-        explanation:
-          "On Parker's (and most major critics') 100-point scale, 90+ indicates outstanding quality, 85-89 is very good, 80-84 is good. Scores below 80 rarely appear in major publications.",
-      },
-      {
-        id: "ls-q5",
-        question:
-          "In Spain, what does 'Gran Reserva' on a Rioja label guarantee about the wine?",
+        id: "sc-q2",
+        question: "On the Parker / Wine Spectator 100-point scale, why do scores below 80 almost never appear in publications?",
         options: [
-          "The wine was made from a single grand cru vineyard plot",
-          "The wine has aged for a minimum of 5 years (at least 18 months in oak, the rest in bottle)",
-          "The wine contains the highest legally permitted concentration of Tempranillo",
-          "The wine was awarded a gold medal at the national wine competition",
+          "Most publications focus on recommendable wines — reviewing and scoring poor wines provides no useful guidance to readers",
+          "Critics consider 80 the legal minimum score a wine must achieve to be exported internationally",
+          "Wines below 80 are automatically disqualified from importation in major markets",
+          "The scale runs from 80-100 by design — lower numbers are not used",
+        ],
+        correctIndex: 0,
+        explanation:
+          "Publications exist to guide readers toward wines worth buying. Spending column inches on mediocre wines serves no one. The effective floor of 80 means what looks like a narrow 80-100 scale actually covers the full range of commercially serious wines.",
+      },
+      {
+        id: "sc-q3",
+        question: "Jancis Robinson MW, one of Britain's most respected wine authorities, uses a different scoring system. What is it?",
+        options: [
+          "A five-star system adapted from restaurant and hotel reviews",
+          "A 20-point scale inherited from the academic Oxford tasting tradition",
+          "A buy/hold/sell recommendation system with no numerical scores at all",
+          "A 50-point scale designed to give her more nuance than the 100-point version",
         ],
         correctIndex: 1,
         explanation:
-          "Rioja Gran Reserva has strict legal aging requirements — minimum 5 years total (at least 18 months in oak barrel plus 36 months in bottle) — ensuring substantial complexity and development before release.",
+          "Robinson uses the 20-point Oxford scale — her scores run from 12 (faulty) to 20 (perfect), with 17+ indicating an outstanding wine. It's a more compressed, academic system that resists the false precision of the 100-point scale.",
+      },
+      {
+        id: "sc-q4",
+        question: "Which of the following is the most widely cited criticism of numerical wine scores?",
+        options: [
+          "They unfairly advantage European wines over New World wines in international competition",
+          "They make wine so expensive that ordinary consumers can no longer afford good bottles",
+          "They discourage producers from experimenting with unusual or unconventional wine styles",
+          "They imply a false objectivity — a single number suggests precision in something that is inherently subjective and context-dependent",
+        ],
+        correctIndex: 3,
+        explanation:
+          "Scoring wine to the point (e.g. 92 vs 93) implies a level of scientific precision that doesn't exist. Wine tasted cold vs. warm, with or without food, in different moods — will score differently. Critics themselves can score the same wine 5+ points apart.",
+      },
+      {
+        id: "sc-q5",
+        question: "When a major wine publication awards a wine 92 points, this generally indicates:",
+        options: [
+          "A technically correct but unremarkable wine suitable for everyday occasions",
+          "A wine with some interesting qualities but with noticeable flaws that reduce its score",
+          "An outstanding wine of distinct character, well worth seeking out and likely to reward cellaring",
+          "A wine that should be drunk immediately and will not improve with further ageing",
+        ],
+        correctIndex: 2,
+        explanation:
+          "On the 100-point scale, 90-94 indicates an outstanding wine — complex, characterful, and highly recommended. 95-100 is reserved for extraordinary or historic wines. 85-89 is very good; 80-84 is sound and pleasant. 92 points is a serious endorsement.",
+      },
+    ],
+  },
+
+  // ── QUIZ 9c: Wine and Food Pairing ───────────────────────────────────────────
+  {
+    id: "wine-pairing-quiz",
+    title: "Wine and Food: The Art of Pairing",
+    description:
+      "More than rules — pairing is about balance, contrast, and the magic that happens when wine and food make each other taste better.",
+    guideId: "wine-and-food-pairing",
+    questions: [
+      {
+        id: "wp-q1",
+        question: "The classic pairing principle 'what grows together goes together' means:",
+        options: [
+          "Wines and food should only be paired if they were produced in the same calendar year",
+          "Wines should be matched only with food that shares the same primary ingredient",
+          "Regional wines and regional cuisines make natural partners because they evolved alongside each other over centuries",
+          "Only wines grown in warm climates should be paired with warm food, and vice versa",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Centuries of culinary tradition are on your side here. Tuscan Sangiovese's high acidity was shaped to cut through the olive oil-rich food of the region. Alsatian Riesling's sweetness and spice echoes the region's Germanic-French cuisine. Trust the geography.",
+      },
+      {
+        id: "wp-q2",
+        question: "Why does a full-bodied tannic red like Cabernet Sauvignon pair so successfully with a fatty ribeye steak?",
+        options: [
+          "The fat in the meat softens the wine's tannins, while the tannins cut through the richness — the two elements balance each other perfectly",
+          "The wine's fruit sweetness balances the salt added to the steak's seasoning",
+          "Red wines contain enzymes that help the digestive system process red meat",
+          "The alcohol in the wine raises the steak's temperature slightly, improving the eating experience",
+        ],
+        correctIndex: 0,
+        explanation:
+          "This is a classic contrast pairing: tannins grip proteins and fat, making the wine taste smoother and the meat taste less heavy. The fat dissolves the tannin structure; the tannin cuts the fat. It's a two-way street of balance.",
+      },
+      {
+        id: "wp-q3",
+        question: "A crisp, high-acid white wine would be the most natural partner for which dish?",
+        options: [
+          "A slow-braised short rib with rich red wine reduction sauce",
+          "A chocolate fondant with salted caramel",
+          "A grilled sea bass with lemon and herbs, or freshly shucked oysters",
+          "A creamy mushroom risotto finished with aged Parmesan and truffle oil",
+        ],
+        correctIndex: 2,
+        explanation:
+          "Acid in wine mirrors the acidity and brightness in seafood — lemon, brine, freshness. The pairing doesn't fight; it amplifies. A crisp Muscadet, Chablis, or Picpoul de Pinet with oysters is one of wine's simplest and most satisfying pleasures.",
+      },
+      {
+        id: "wp-q4",
+        question: "Why is it generally a mistake to serve a dry, austere red wine alongside a sweet dessert?",
+        options: [
+          "The wine's colour clashes visually with most desserts",
+          "The alcohol content of red wines is always too high to serve alongside sugar",
+          "The sweetness of the dessert makes the dry wine taste harsh, bitter, and sour by stark comparison",
+          "Dry red wines are always served at the wrong temperature to complement sweet dishes",
+        ],
+        correctIndex: 2,
+        explanation:
+          "A dessert should never be sweeter than the wine served with it. If the food is sweeter, the wine tastes thin, acidic, and aggressive. This is why the classic pairing for dessert is a wine that is at least as sweet as the dish — Sauternes with tarte tatin, Port with chocolate.",
+      },
+      {
+        id: "wp-q5",
+        question: "Why does a glass of dry Champagne or sparkling wine work so beautifully with fried food like tempura, fish and chips, or fried chicken?",
+        options: [
+          "Both the bubbles in the wine and the crunch of the fried coating share a textural similarity",
+          "The high acidity and persistent bubbles cut through fat and cleanse the palate between each bite, keeping the food tasting fresh",
+          "Sparkling wines have a lower calorie count that nutritionally balances the richness of fried food",
+          "Champagne's sweetness masks the greasiness that fried food often leaves on the palate",
+        ],
+        correctIndex: 1,
+        explanation:
+          "Acid and bubbles are natural palate cleansers. After a bite of battered, fried fish, a sip of Champagne scrubs your palate clean — the CO2 physically lifts fat from your taste receptors. It's why this unlikely pairing tastes so right.",
       },
     ],
   },
@@ -1091,56 +1252,56 @@ export const quizzes: Quiz[] = [
         question: "Which of the following best describes a 'full-bodied' red wine?",
         options: [
           "Light in colour, high in acidity, low in tannins",
-          "High in alcohol, rich in tannins, with a weighty mouthfeel",
           "Sweet on the palate with low alcohol",
+          "High in alcohol, rich in tannins, with a weighty mouthfeel",
           "Pale and delicate, best served chilled",
         ],
-        correctIndex: 1,
+        correctIndex: 2,
         explanation: "Full-bodied reds — think Barossa Shiraz or Napa Cabernet — are defined by their weight on the palate, driven by higher alcohol, ripe tannins, and concentrated fruit. They pair beautifully with rich red meats.",
       },
       {
         id: "ws-q2",
         question: "What is the key characteristic that makes a white wine 'crisp'?",
         options: [
-          "High residual sugar that balances the fruit",
-          "High natural acidity that creates a mouth-watering freshness",
           "Extended oak ageing that adds vanilla and cream",
+          "High residual sugar that balances the fruit",
           "Low alcohol that keeps the wine light and delicate",
+          "High natural acidity that creates a mouth-watering freshness",
         ],
-        correctIndex: 1,
+        correctIndex: 3,
         explanation: "'Crisp' refers to high natural acidity — the quality that makes your mouth water and gives wines like Chablis, Albariño, and Sauvignon Blanc their refreshing, zesty character.",
       },
       {
         id: "ws-q3",
         question: "How does rosé wine get its distinctive pink colour?",
         options: [
-          "By blending finished red and white wines together",
           "Through brief skin contact with red grape skins during fermentation",
-          "By using a special pink grape variety found only in Provence",
+          "By blending finished red and white wines together",
           "By adding natural fruit colouring during production",
+          "By using a special pink grape variety found only in Provence",
         ],
-        correctIndex: 1,
+        correctIndex: 0,
         explanation: "Rosé gets its colour from brief maceration — the grape skins are left in contact with the juice for hours (not days), extracting just enough pigment for that pink hue. The shorter the contact, the paler the wine.",
       },
       {
         id: "ws-q4",
         question: "What distinguishes a fortified wine from other wine styles?",
         options: [
-          "It is made from grapes grown at high altitude",
-          "Grape spirit (brandy) is added during or after fermentation, raising alcohol to 15–22%",
           "It is always sweet and served as a dessert wine",
+          "It is made from grapes grown at high altitude",
           "It is made from dried grapes to concentrate the sugar",
+          "Grape spirit (brandy) is added during or after fermentation, raising alcohol to 15–22%",
         ],
-        correctIndex: 1,
+        correctIndex: 3,
         explanation: "Fortification means adding neutral grape spirit to wine. In Port, this stops fermentation early, preserving natural sweetness. In Sherry, it is added after fermentation. The result is a wine with higher alcohol and remarkable longevity.",
       },
       {
         id: "ws-q5",
         question: "Traditional method sparkling wines (like Champagne) develop their bubbles through:",
         options: [
-          "Carbon dioxide being pumped into the wine before bottling",
-          "A secondary fermentation that takes place inside the sealed bottle",
           "Fermentation using naturally carbonated spring water",
+          "A secondary fermentation that takes place inside the sealed bottle",
+          "Carbon dioxide being pumped into the wine before bottling",
           "Freezing the wine rapidly and then releasing the pressure",
         ],
         correctIndex: 1,
@@ -1160,12 +1321,12 @@ export const quizzes: Quiz[] = [
         id: "wh-q1",
         question: "Where is the oldest archaeological evidence of wine production, dating to around 6,000 BC?",
         options: [
-          "Egypt, along the Nile Delta",
           "Georgia, in the South Caucasus",
+          "Egypt, along the Nile Delta",
           "Italy, in the Po Valley",
           "France, in the Rhone Valley",
         ],
-        correctIndex: 1,
+        correctIndex: 0,
         explanation: "Georgia is considered the cradle of wine civilisation. Clay vessels (qvevri) found there show evidence of grape fermentation dating back approximately 8,000 years — making it the world's oldest known wine culture.",
       },
       {
@@ -1173,11 +1334,11 @@ export const quizzes: Quiz[] = [
         question: "Which civilisation is most responsible for spreading viticulture throughout the Mediterranean world?",
         options: [
           "The Romans, through military conquest",
-          "The Greeks and Phoenicians, through trade networks",
           "The Egyptians, through diplomatic gifts",
           "The Persians, through agricultural exchange",
+          "The Greeks and Phoenicians, through trade networks",
         ],
-        correctIndex: 1,
+        correctIndex: 3,
         explanation: "Greek and Phoenician traders planted vineyards wherever they established trading posts — southern France, Spain, Sicily, North Africa. The Romans later took these foundations and scaled viticulture across the entire empire.",
       },
       {
@@ -1185,23 +1346,23 @@ export const quizzes: Quiz[] = [
         question: "The 1855 Bordeaux Classification ranked châteaux primarily on the basis of:",
         options: [
           "A blind tasting by a panel of expert sommeliers",
-          "The price their wines historically commanded in the market",
           "The age and size of their vineyards",
+          "The price their wines historically commanded in the market",
           "Their proximity to the Gironde estuary",
         ],
-        correctIndex: 1,
+        correctIndex: 2,
         explanation: "Napoleon III commissioned the classification for the Paris Exposition. Brokers ranked estates by the prices their wines consistently fetched — the market's verdict on quality. The classification has barely changed since, with Mouton Rothschild the only estate promoted (to First Growth) in 1973.",
       },
       {
         id: "wh-q4",
         question: "What was phylloxera, and why did it devastate European vineyards in the 19th century?",
         options: [
-          "A fungal disease that rotted the grapes on the vine before harvest",
           "A root louse imported from North America that killed European vines by attacking their roots",
+          "A fungal disease that rotted the grapes on the vine before harvest",
           "A severe frost event that wiped out most French vineyards",
           "A bacterial infection spread through infected winemaking equipment",
         ],
-        correctIndex: 1,
+        correctIndex: 0,
         explanation: "Phylloxera vastatrix, a tiny aphid from North America, devastated European vineyards from the 1860s. American vines had evolved resistance; European vines had not. The solution: grafting European vines onto American rootstocks — a practice still used universally today.",
       },
       {
@@ -1209,11 +1370,11 @@ export const quizzes: Quiz[] = [
         question: "What was the significance of the 1976 'Judgement of Paris' tasting?",
         options: [
           "It established the first official classification of Californian wines",
-          "California wines beat top French wines in a blind tasting judged by French experts",
           "It settled a trade dispute between France and the United States over wine labelling",
+          "California wines beat top French wines in a blind tasting judged by French experts",
           "It was the first tasting to use the 100-point scoring system",
         ],
-        correctIndex: 1,
+        correctIndex: 2,
         explanation: "In Steven Spurrier's famous blind tasting, Californian Chardonnays and Cabernets outscored Burgundy and Bordeaux first growths — judged by French experts. It fundamentally changed the perception of New World wine and proved great wine wasn't exclusively European.",
       },
     ],
@@ -1231,23 +1392,23 @@ export const quizzes: Quiz[] = [
         question: "Which of the following wine production terms is officially regulated by law with specific certification standards?",
         options: [
           "Natural wine",
-          "Organic wine",
           "Low-intervention wine",
+          "Organic wine",
           "Minimal-sulphite wine",
         ],
-        correctIndex: 1,
+        correctIndex: 2,
         explanation: "Organic certification is legally defined and regulated — in the EU, USDA, and other markets. 'Natural wine' has no legal definition or certification body, which is why the term means different things to different producers.",
       },
       {
         id: "nw-q2",
         question: "What is the Demeter certification used to identify?",
         options: [
-          "Wines made without any added sulphites",
           "Biodynamic farms and products that meet Rudolf Steiner's agricultural principles",
+          "Wines made without any added sulphites",
           "Organic wines produced in the European Union",
           "Low-alcohol wines with certified reduced calorie content",
         ],
-        correctIndex: 1,
+        correctIndex: 0,
         explanation: "Demeter is the international certification body for biodynamic agriculture, based on Rudolf Steiner's principles from the 1920s. It requires farms to be self-sustaining ecosystems, with specific practices around lunar cycles, composting, and biodiversity.",
       },
       {
@@ -1255,11 +1416,11 @@ export const quizzes: Quiz[] = [
         question: "Biodynamic farming treats the vineyard as:",
         options: [
           "A scientific laboratory where inputs are carefully measured and controlled",
-          "A living, self-sustaining ecosystem guided by natural rhythms",
           "A commercial operation optimised for maximum yield per hectare",
           "A neutral environment where only the variety determines wine character",
+          "A living, self-sustaining ecosystem guided by natural rhythms",
         ],
-        correctIndex: 1,
+        correctIndex: 3,
         explanation: "Biodynamic farming, developed from Rudolf Steiner's philosophy, treats the farm as a single living organism. It emphasises biodiversity, the rejection of synthetic chemicals, and attunement to natural cycles — including lunar calendars for planting and harvesting.",
       },
       {
@@ -1267,23 +1428,23 @@ export const quizzes: Quiz[] = [
         question: "Sulphites in wine primarily serve which purpose?",
         options: [
           "They add bitterness that balances residual sugar in sweet wines",
-          "They act as preservatives that prevent oxidation and microbial spoilage",
           "They give wine its colour by binding with anthocyanin pigments",
+          "They act as preservatives that prevent oxidation and microbial spoilage",
           "They replace oak tannins in wines aged without barrels",
         ],
-        correctIndex: 1,
+        correctIndex: 2,
         explanation: "Sulphur dioxide (SO2) is wine's most effective preservative — it inhibits oxidation and kills spoilage bacteria and wild yeasts. It occurs naturally during fermentation but is usually also added. Natural wine producers use minimal or no added sulphites, accepting shorter shelf lives.",
       },
       {
         id: "nw-q5",
         question: "What most accurately describes 'natural wine'?",
         options: [
-          "Wine certified by an official natural wine organisation with strict legal standards",
           "Wine made with minimal intervention in vineyard and cellar, typically no additives or filtration",
+          "Wine certified by an official natural wine organisation with strict legal standards",
           "Wine made exclusively from heirloom grape varieties not commercially cultivated",
           "Wine produced without any fermentation, preserving the natural grape juice",
         ],
-        correctIndex: 1,
+        correctIndex: 0,
         explanation: "Natural wine is a philosophy, not a legal category. It typically means farming without synthetic chemicals, fermenting with wild yeasts only, and making no additions in the cellar — no cultured yeasts, fining agents, or heavy filtration. No SO2, or as little as possible.",
       },
     ],

@@ -17,6 +17,7 @@ vintage: [year, or "NV" if non-vintage]
 region: [region/appellation]
 grapes: [grape variety or varieties]
 style: [e.g. "Red — Bold and Structured" or "White — Crisp and Mineral"]
+price: [approximate market price range, e.g. "$25–40" or "~$65"]
 WINE_CARD_END
 
 [Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]

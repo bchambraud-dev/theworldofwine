@@ -72,7 +72,7 @@ Here's where climate comes in. In a <strong>cool climate</strong> — northern F
     ],
     relatedJourneyIds: ["how-terroir-works", "france-in-five-regions"],
     relatedGrapeIds: ["pinot-noir", "riesling", "chardonnay", "assyrtiko"],
-    quizId: "wine-basics",
+    quizId: "terroir-quiz",
   },
 
   // ── GUIDE 2 ───────────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ Here's where climate comes in. In a <strong>cool climate</strong> — northern F
       "chardonnay",
       "riesling",
     ],
-    quizId: "tasting-terms",
+    quizId: "how-to-taste-quiz",
   },
 
   // ── GUIDE 3 ───────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ Here's where climate comes in. In a <strong>cool climate</strong> — northern F
     ],
     relatedJourneyIds: ["old-world-vs-new-world", "france-in-five-regions"],
     relatedGrapeIds: ["chardonnay", "sauvignon-blanc", "cabernet-sauvignon"],
-    quizId: "wine-labels-scores",
+    quizId: "reading-labels-quiz",
   },
 
   // ── GUIDE 4 ───────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ Here's where climate comes in. In a <strong>cool climate</strong> — northern F
     ],
     relatedJourneyIds: ["france-in-five-regions", "big-reds-world-tour"],
     relatedGrapeIds: ["cabernet-sauvignon", "nebbiolo", "pinot-noir"],
-    quizId: "wine-labels-scores",
+    quizId: "wine-scores-quiz",
   },
 
   // ── GUIDE 5 ───────────────────────────────────────────────────────────────────
@@ -334,7 +334,7 @@ These wines are expensive, and the reason is simple: <strong>yields are tiny</st
       "pinot-noir",
       "nebbiolo",
     ],
-    quizId: "tasting-terms",
+    quizId: "wine-pairing-quiz",
   },
 
   // ── GUIDE 7 ───────────────────────────────────────────────────────────────────

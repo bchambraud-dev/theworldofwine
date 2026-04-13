@@ -39,6 +39,19 @@ export interface JournalEntry {
   date_tasted: string | null;
 }
 
+export interface WishlistEntry {
+  id: string;
+  wine_name: string;
+  producer: string | null;
+  region: string | null;
+  grapes: string | null;
+  style: string | null;
+  price_estimate: string | null;
+  why: string | null;
+  source: string | null;
+  created_at: string;
+}
+
 interface UserDataContextType {
   stats: UserStats;
   preferences: UserPreferences;
@@ -46,6 +59,7 @@ interface UserDataContextType {
   completedGuideIds: string[]; // guide IDs the user has read
   goals: UserGoal[];
   journal: JournalEntry[];     // last 5 wines logged
+  wishlist: WishlistEntry[];
   dataLoading: boolean;
   // Mutations
   savePreferences: (level: string, types: string[]) => Promise<void>;
@@ -66,6 +80,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const [completedGuideIds, setCompletedGuideIds] = useState<string[]>([]);
   const [goals, setGoals]                     = useState<UserGoal[]>([]);
   const [journal, setJournal]                 = useState<JournalEntry[]>([]);
+  const [wishlist, setWishlist]               = useState<WishlistEntry[]>([]);
   const [dataLoading, setDataLoading]         = useState(false);
 
   // Prevent re-fetching for the same user
@@ -74,7 +89,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async (uid: string, silent = false) => {
     if (!silent) setDataLoading(true);
     try {
-      const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes] =
+      const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes, wishlistRes] =
         await Promise.all([
           supabase.from("sommy_conversations")
             .select("user_id", { count: "exact" })
@@ -114,6 +129,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
             .eq("user_id", uid)
             .order("date_tasted", { ascending: false, nullsFirst: false })
             .limit(8),
+
+          supabase.from("wine_wishlist")
+            .select("id, wine_name, producer, region, grapes, style, price_estimate, why, source, created_at")
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false }),
         ]);
 
       setStats({
@@ -138,6 +158,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
       setGoals((goalsRes.data ?? []) as UserGoal[]);
       setJournal((journalRes.data ?? []) as JournalEntry[]);
+      setWishlist((wishlistRes.data ?? []) as WishlistEntry[]);
 
     } catch (e) {
       console.error("UserData load error:", e);
@@ -157,6 +178,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setCompletedGuideIds([]);
       setGoals([]);
       setJournal([]);
+      setWishlist([]);
       loadedForRef.current = null;
       return;
     }
@@ -193,7 +215,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
   return (
     <UserDataContext.Provider value={{
-      stats, preferences, recentTopics, completedGuideIds, goals, journal,
+      stats, preferences, recentTopics, completedGuideIds, goals, journal, wishlist,
       dataLoading, savePreferences, refresh, silentRefresh,
     }}>
       {children}

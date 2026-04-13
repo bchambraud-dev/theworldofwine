@@ -4,12 +4,14 @@ import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
+import { directInsert } from "@/lib/supabaseDirectFetch";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   imagePreview?: string; // data URL for display
   wineCard?: WineCard;
+  wishlistAdded?: string[]; // wine names added to wishlist from this message
 }
 
 interface WineCard {
@@ -19,6 +21,20 @@ interface WineCard {
   region: string;
   grapes: string;
   style: string;
+  primary: string;
+  secondary: string;
+  nose: string;
+  texture: string;
+}
+
+interface WishlistBlock {
+  name: string;
+  producer: string;
+  region: string;
+  grapes: string;
+  style: string;
+  price: string;
+  why: string;
 }
 
 function parseWineCard(text: string): { card: WineCard | null; prose: string } {
@@ -36,12 +52,40 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     producer: get("producer"),
     vintage: get("vintage"),
     region: get("region"),
+    primary: get("primary"),
+    secondary: get("secondary"),
+    nose: get("nose"),
+    texture: get("texture"),
     grapes: get("grapes"),
     style: get("style"),
   };
 
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
   return { card, prose };
+}
+
+function parseWishlistBlocks(text: string): { blocks: WishlistBlock[]; cleanText: string } {
+  const blocks: WishlistBlock[] = [];
+  const regex = /WISHLIST_ADD_START\n([\s\S]*?)\nWISHLIST_ADD_END/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const section = match[1];
+    const get = (key: string) => {
+      const m = section.match(new RegExp(`${key}:\\s*(.+)`));
+      return m ? m[1].trim() : "";
+    };
+    blocks.push({
+      name: get("name"),
+      producer: get("producer"),
+      region: get("region"),
+      grapes: get("grapes"),
+      style: get("style"),
+      price: get("price"),
+      why: get("why"),
+    });
+  }
+  const cleanText = text.replace(/WISHLIST_ADD_START[\s\S]*?WISHLIST_ADD_END\n?/g, "").trim();
+  return { blocks, cleanText };
 }
 
 function usePageContext() {
@@ -78,12 +122,14 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<{ data: string; mediaType: string; preview: string } | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [savedWineCards, setSavedWineCards] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
   const { user, profile, refreshProfile } = useAuth();
-  const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData } = useUserData();
+  const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData, silentRefresh } = useUserData();
   const hasGreeted = useRef<string | null>(null);
   const historyLoaded = useRef<string | null>(null);
 
@@ -94,6 +140,13 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(null), 3000);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
 
   // Single sequential effect: load history first, then greet if no history
   useEffect(() => {
@@ -154,6 +207,27 @@ The more you share — what you enjoy, what you've tried, even what you definite
     // Reset so same file can be re-selected
     e.target.value = "";
   }, []);
+
+  // Save a wine card to wishlist
+  const saveWineCardToWishlist = useCallback(async (card: WineCard, msgIdx: number) => {
+    if (!user) return;
+    try {
+      await directInsert("wine_wishlist", {
+        user_id: user.id,
+        wine_name: card.name,
+        producer: card.producer || null,
+        region: card.region || null,
+        grapes: card.grapes || null,
+        style: card.style || null,
+        source: "sommy",
+      });
+      setSavedWineCards(prev => new Set(prev).add(msgIdx));
+      setToastMsg(`Added ${card.name} to your wishlist`);
+      silentRefresh();
+    } catch (e) {
+      console.error("Wishlist save error:", e);
+    }
+  }, [user, silentRefresh]);
 
   const sendMessage = useCallback(async (text: string, imageOverride?: typeof pendingImage) => {
     if ((!text.trim() && !imageOverride && !pendingImage) || isLoading) return;
@@ -239,10 +313,47 @@ The more you share — what you enjoy, what you've tried, even what you definite
       if (data.text) {
         // Strip PROFILE_UPDATE block before displaying, then apply it
         const profileUpdateMatch = data.text.match(/\[PROFILE_UPDATE\]([\s\S]*?)\[\/PROFILE_UPDATE\]/);
-        const cleanText = data.text.replace(/\[PROFILE_UPDATE\][\s\S]*?\[\/PROFILE_UPDATE\]/, "").trim();
+        let cleanText = data.text.replace(/\[PROFILE_UPDATE\][\s\S]*?\[\/PROFILE_UPDATE\]/, "").trim();
+
+        // Parse and process WISHLIST_ADD blocks
+        const { blocks: wishlistBlocks, cleanText: afterWishlist } = parseWishlistBlocks(cleanText);
+        cleanText = afterWishlist;
+
+        // Insert wishlist items
+        const addedNames: string[] = [];
+        if (wishlistBlocks.length > 0 && user) {
+          for (const wb of wishlistBlocks) {
+            if (!wb.name) continue;
+            try {
+              await directInsert("wine_wishlist", {
+                user_id: user.id,
+                wine_name: wb.name,
+                producer: wb.producer || null,
+                region: wb.region || null,
+                grapes: wb.grapes || null,
+                style: wb.style || null,
+                price_estimate: wb.price || null,
+                why: wb.why || null,
+                source: "sommy",
+              });
+              addedNames.push(wb.name);
+            } catch (e) {
+              console.error("Wishlist insert error:", e);
+            }
+          }
+          if (addedNames.length > 0) {
+            silentRefresh();
+            setToastMsg(`Added ${addedNames.join(", ")} to your wishlist`);
+          }
+        }
 
         const { card, prose } = parseWineCard(cleanText);
-        setMessages(prev => [...prev, { role: "assistant", content: prose, wineCard: card || undefined }]);
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: prose,
+          wineCard: card || undefined,
+          wishlistAdded: addedNames.length > 0 ? addedNames : undefined,
+        }]);
 
         // Apply profile update if Sommy detected clear user preferences
         if (profileUpdateMatch && user) {
@@ -285,7 +396,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, context, pendingImage, profile, preferences, completedGuideIds, journal, stats]);
+  }, [messages, isLoading, context, pendingImage, profile, preferences, completedGuideIds, journal, stats, user, silentRefresh]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 
@@ -317,6 +428,18 @@ The more you share — what you enjoy, what you've tried, even what you definite
             </div>
             <button onClick={onToggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#5A5248", fontSize: 18, lineHeight: 1 }} aria-label="Close">&#x2715;</button>
           </div>
+
+          {/* Toast notification */}
+          {toastMsg && (
+            <div style={{
+              position: "absolute", top: 64, left: 16, right: 16, zIndex: 10,
+              background: "#4A7A52", color: "#F7F4EF", borderRadius: 10, padding: "8px 14px",
+              fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 400,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)", textAlign: "center",
+            }}>
+              {toastMsg}
+            </div>
+          )}
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -351,10 +474,32 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
                 {/* Wine card */}
                 {msg.wineCard && (
-                  <div style={{ maxWidth: "92%", background: "white", border: "1px solid #EDEAE3", borderRadius: 14, overflow: "hidden" }}>
-                    <div style={{ background: "#8C1C2E", padding: "10px 14px" }}>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#F7F4EF", lineHeight: 1.2 }}>{msg.wineCard.name}</div>
-                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "rgba(247,244,239,0.75)", marginTop: 2 }}>{msg.wineCard.producer}</div>
+                  <div style={{ maxWidth: "92%", background: "white", border: "1px solid #EDEAE3", borderRadius: 14, overflow: "hidden", position: "relative" }}>
+                    <div style={{ background: "#8C1C2E", padding: "10px 14px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#F7F4EF", lineHeight: 1.2 }}>{msg.wineCard.name}</div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "rgba(247,244,239,0.75)", marginTop: 2 }}>{msg.wineCard.producer}</div>
+                      </div>
+                      {/* Bookmark/save button */}
+                      {user && (
+                        <button
+                          onClick={() => saveWineCardToWishlist(msg.wineCard!, i)}
+                          disabled={savedWineCards.has(i)}
+                          title={savedWineCards.has(i) ? "Saved to wishlist" : "Save to wishlist"}
+                          style={{
+                            background: "none", border: "none", cursor: savedWineCards.has(i) ? "default" : "pointer",
+                            padding: 4, flexShrink: 0, marginLeft: 8, marginTop: -2,
+                            opacity: savedWineCards.has(i) ? 1 : 0.75,
+                            transition: "opacity 0.15s",
+                          }}
+                          onMouseEnter={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "1"; }}
+                          onMouseLeave={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "0.75"; }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill={savedWineCards.has(i) ? "#F7F4EF" : "none"} stroke="#F7F4EF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                     <div style={{ padding: "10px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
                       {[
@@ -364,11 +509,37 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         ["Style", msg.wineCard.style],
                       ].map(([label, value]) => value && (
                         <div key={label}>
-                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#D4D1CA" }}>{label.toUpperCase()}</div>
+                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#D4D1CA" }}>{(label as string).toUpperCase()}</div>
                           <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>{value}</div>
                         </div>
                       ))}
                     </div>
+                    {/* Tasting characteristics */}
+                    {(msg.wineCard.primary || msg.wineCard.secondary || msg.wineCard.nose || msg.wineCard.texture) && (
+                      <div style={{ padding: "8px 14px 12px", borderTop: "1px solid #EDEAE3", display: "flex", flexDirection: "column", gap: 5 }}>
+                        {[{label: "PRIMARY", val: msg.wineCard.primary}, {label: "SECONDARY", val: msg.wineCard.secondary}, {label: "NOSE", val: msg.wineCard.nose}, {label: "TEXTURE", val: msg.wineCard.texture}]
+                          .filter(c => c.val)
+                          .map(c => (
+                            <div key={c.label} style={{ display: "flex", alignItems: "flex-start", gap: 5, flexWrap: "wrap" }}>
+                              <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase", paddingTop: 2, flexShrink: 0 }}>{c.label}</span>
+                              {c.val!.split(",").map(s => s.trim()).filter(Boolean).map((item, j) => (
+                                <span key={j} style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", padding: "2px 7px", background: "#F7F4EF", borderRadius: 5, color: "#5A5248", textTransform: "uppercase", whiteSpace: "nowrap" }}>{item}</span>
+                              ))}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Wishlist confirmation inline */}
+                {msg.wishlistAdded && msg.wishlistAdded.length > 0 && (
+                  <div style={{
+                    background: "rgba(74,122,82,0.08)", borderRadius: 10, padding: "6px 12px",
+                    fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 400, color: "#4A7A52",
+                    maxWidth: "88%",
+                  }}>
+                    Added {msg.wishlistAdded.join(", ")} to your wishlist
                   </div>
                 )}
 

@@ -18,6 +18,10 @@ region: [region/appellation]
 grapes: [grape variety or varieties]
 style: [e.g. "Red — Bold and Structured" or "White — Crisp and Mineral"]
 price: [approximate market price range, e.g. "$25–40" or "~$65"]
+primary: [comma-separated primary tasting notes — fruit, floral, herbal flavours you'd taste, e.g. "Blackberry, Cherry, Plum, Violet"]
+secondary: [comma-separated secondary notes from winemaking, e.g. "Vanilla, Toast, Smoke, Brioche"]
+nose: [comma-separated aromas/smell, e.g. "Dark fruit, Cedar, Leather, Earth"]
+texture: [comma-separated mouthfeel descriptors, e.g. "Silky tannins, Full body, Bright acidity, Long finish"]
 WINE_CARD_END
 
 [Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]
@@ -27,7 +31,22 @@ When a user explicitly and clearly states their wine experience level (e.g. "I'm
 
 [PROFILE_UPDATE]{"experience_level": "beginner", "preferred_types": ["red", "white"]}[/PROFILE_UPDATE]
 
-Only include fields that were explicitly stated. Valid experience_level values: "beginner", "intermediate", "expert". Valid preferred_types values: "red", "white", "sparkling", "rosé", "fortified". Omit the block entirely when no clear preference was stated — do not guess or infer.`;
+Only include fields that were explicitly stated. Valid experience_level values: "beginner", "intermediate", "expert". Valid preferred_types values: "red", "white", "sparkling", "rosé", "fortified". Omit the block entirely when no clear preference was stated — do not guess or infer.
+
+ADDING TO WISHLIST:
+When the user asks you to recommend wines to try later, save a wine for them, or add to their wishlist/shortlist, append a WISHLIST block at the end of your response:
+
+WISHLIST_ADD_START
+name: [wine name]
+producer: [producer]
+region: [region]
+grapes: [grape varieties]
+style: [style description]
+price: [price range]
+why: [your 1-sentence reason for recommending this]
+WISHLIST_ADD_END
+
+You can include multiple WISHLIST blocks if recommending several wines. Only add this block when the user explicitly asks to save/shortlist/remember a wine — not for every recommendation.`;
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");

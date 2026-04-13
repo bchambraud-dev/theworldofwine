@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
-import { useUserData } from "@/lib/useUserData";
+import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
+import { directInsert, directUpdate, directDelete, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,10 @@ interface Wine {
   price_estimate: string | null;
   sommy_description: string | null;
   achievement: string | null;
+  primary_notes: string | null;
+  secondary_notes: string | null;
+  nose: string | null;
+  texture: string | null;
   created_at: string;
 }
 
@@ -33,10 +38,15 @@ interface ParsedCard {
   grapes: string;
   style: string;
   price: string;
+  primary: string;
+  secondary: string;
+  nose: string;
+  texture: string;
 }
 
 type SortField = "date" | "rating" | "price";
 type LogStep = "idle" | "choose" | "manual" | "scanning" | "review" | "achievement";
+type JournalTab = "journal" | "wishlist";
 
 // Compress phone camera images (3-5MB) down to ~150KB before upload/API call
 function compressImage(dataUrl: string, maxDim = 800, quality = 0.75): Promise<string> {
@@ -88,6 +98,10 @@ function parseWineCard(text: string): { card: ParsedCard | null; prose: string }
     grapes: obj.grapes || "",
     style: obj.style || "",
     price: obj.price || "",
+    primary: obj.primary || "",
+    secondary: obj.secondary || "",
+    nose: obj.nose || "",
+    texture: obj.texture || "",
   };
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
   return { card: card.name ? card : null, prose };
@@ -102,6 +116,16 @@ function priceToNumber(p: string | null): number {
   if (!p) return 0;
   const m = p.match(/\d+/);
   return m ? parseInt(m[0]) : 0;
+}
+
+// ── Bookmark icon SVG ────────────────────────────────────────────────────────────
+
+function BookmarkIcon({ filled = false, size = 16, color = "#8C1C2E" }: { filled?: boolean; size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
 }
 
 // ── Subcomponents ───────────────────────────────────────────────────────────────
@@ -131,6 +155,45 @@ function SortChip({ label, active, onClick }: { label: string; active: boolean; 
     }}>
       {label}
     </button>
+  );
+}
+
+// ── Tasting characteristic pills ─────────────────────────────────────────────
+
+const pillStyle: React.CSSProperties = {
+  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+  letterSpacing: "0.08em", padding: "3px 8px",
+  background: "#F7F4EF", borderRadius: 6, color: "#5A5248",
+  textTransform: "uppercase", whiteSpace: "nowrap",
+};
+
+const categoryLabelStyle: React.CSSProperties = {
+  fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
+  letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+  flexShrink: 0, paddingTop: 2,
+};
+
+function TastingPills({ primary, secondary, nose, texture }: {
+  primary?: string | null; secondary?: string | null;
+  nose?: string | null; texture?: string | null;
+}) {
+  const cats: { label: string; items: string[] }[] = [];
+  if (primary) cats.push({ label: "PRIMARY", items: primary.split(",").map(s => s.trim()).filter(Boolean) });
+  if (secondary) cats.push({ label: "SECONDARY", items: secondary.split(",").map(s => s.trim()).filter(Boolean) });
+  if (nose) cats.push({ label: "NOSE", items: nose.split(",").map(s => s.trim()).filter(Boolean) });
+  if (texture) cats.push({ label: "TEXTURE", items: texture.split(",").map(s => s.trim()).filter(Boolean) });
+  if (cats.length === 0) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {cats.map(cat => (
+        <div key={cat.label} style={{ display: "flex", alignItems: "flex-start", gap: 6, flexWrap: "wrap" }}>
+          <span style={categoryLabelStyle}>{cat.label}</span>
+          {cat.items.map((item, i) => (
+            <span key={i} style={pillStyle}>{item}</span>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -189,15 +252,27 @@ function computeAchievement(
   return `Wine number ${count}. Keep exploring — every bottle teaches you something.`;
 }
 
+// ── Source label ─────────────────────────────────────────────────────────────────
+
+function sourceLabel(source: string | null): string {
+  if (source === "sommy") return "Sommy recommended";
+  if (source === "explore") return "Saved from explore";
+  if (source === "manual") return "Added manually";
+  return "Added manually";
+}
+
 // ── Main component ──────────────────────────────────────────────────────────────
 
 const OFFSET = "calc(52px + 4px)"; // topbar only (filter bar hidden on this page)
 
 export default function Journal() {
   const { user } = useAuth();
-  const { silentRefresh } = useUserData();
+  const { silentRefresh, wishlist: wishlistData } = useUserData();
   const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<JournalTab>("journal");
 
   // Wine list
   const [wines, setWines] = useState<Wine[]>([]);
@@ -205,6 +280,35 @@ export default function Journal() {
   const [loadError, setLoadError] = useState(false);
   const [sortBy, setSortBy] = useState<SortField>("date");
   const [saveError, setSaveError] = useState("");
+
+  // Wishlist local state (mirrors useUserData but allows local mutations)
+  const [wishlist, setWishlist] = useState<WishlistEntry[]>([]);
+  useEffect(() => { setWishlist(wishlistData); }, [wishlistData]);
+
+  // Wishlist manual add form
+  const [showWishlistForm, setShowWishlistForm] = useState(false);
+  const [wishlistName, setWishlistName] = useState("");
+  const [wishlistWhy, setWishlistWhy] = useState("");
+  const [wishlistSaving, setWishlistSaving] = useState(false);
+
+  // Delete confirmation
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteWishlistId, setConfirmDeleteWishlistId] = useState<string | null>(null);
+
+  // Edit mode
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState<{
+    wine_name: string;
+    date_tasted: string;
+    personal_rating: number;
+    notes: string;
+    region: string;
+    grapes: string;
+    style: string;
+    price_estimate: string;
+    producer: string;
+  }>({ wine_name: "", date_tasted: "", personal_rating: 0, notes: "", region: "", grapes: "", style: "", price_estimate: "", producer: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
   // Logging flow state machine
   const [step, setStep] = useState<LogStep>("idle");
@@ -319,51 +423,7 @@ export default function Journal() {
     }
   };
 
-  // ── Upload image to Supabase Storage ────────────────────────────────────────
-
-  const uploadImage = async (): Promise<string | null> => {
-    if (!imageBase64 || !user) return null;
-    try {
-      // Convert base64 to blob
-      const byteChars = atob(imageBase64);
-      const byteArray = new Uint8Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
-      const blob = new Blob([byteArray], { type: imageMediaType });
-
-      const ext = imageMediaType.includes("png") ? "png" : "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("wine-labels").upload(path, blob, { contentType: imageMediaType });
-      if (error) { console.error("Upload error:", error); return null; }
-
-      const { data } = supabase.storage.from("wine-labels").getPublicUrl(path);
-      return data?.publicUrl || null;
-    } catch (e) {
-      console.error("Image upload failed:", e);
-      return null;
-    }
-  };
-
   // ── Save wine ───────────────────────────────────────────────────────────────
-  //
-  // The Supabase JS client gates EVERY operation behind an internal auth lock
-  // (navigator.locks + initializePromise). If the auth state is in limbo
-  // (e.g. token refresh in progress, or initialize never resolved after an
-  // OAuth callback error), supabase.from().insert() silently hangs forever.
-  //
-  // To avoid this, the insert uses raw fetch() with the access token read
-  // directly from the Supabase session in localStorage. This bypasses the
-  // auth lock entirely.
-
-  const getAccessToken = (): string | null => {
-    try {
-      const raw = localStorage.getItem("sb-ycgxczvsxiilqzvyzpso-auth-token");
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      return parsed?.access_token || null;
-    } catch {
-      return null;
-    }
-  };
 
   const saveWine = async () => {
     if (!user) return;
@@ -373,12 +433,8 @@ export default function Journal() {
     setSaving(true);
     setSaveError("");
     try {
-      // Read access token directly from localStorage — bypasses Supabase's
-      // internal auth lock which can hang indefinitely.
       const token = getAccessToken();
-      if (!token) {
-        throw new Error("Session expired. Please sign in again.");
-      }
+      if (!token) throw new Error("Session expired. Please sign in again.");
 
       // Upload label image (10s timeout — save the wine even if upload is slow)
       let imgUrl: string | null = null;
@@ -392,11 +448,11 @@ export default function Journal() {
           const path = `${user.id}/${Date.now()}.${ext}`;
 
           const uploadRes = await Promise.race([
-            fetch(`https://ycgxczvsxiilqzvyzpso.supabase.co/storage/v1/object/wine-labels/${path}`, {
+            fetch(`${SUPABASE_URL}/storage/v1/object/wine-labels/${path}`, {
               method: "POST",
               headers: {
                 "Authorization": `Bearer ${token}`,
-                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4",
+                "apikey": ANON_KEY,
                 "Content-Type": imageMediaType,
               },
               body: blob,
@@ -404,7 +460,7 @@ export default function Journal() {
             new Promise<Response>((_, reject) => setTimeout(() => reject(new Error("Upload timeout")), 10000)),
           ]);
           if (uploadRes.ok) {
-            imgUrl = `https://ycgxczvsxiilqzvyzpso.supabase.co/storage/v1/object/public/wine-labels/${path}`;
+            imgUrl = `${SUPABASE_URL}/storage/v1/object/public/wine-labels/${path}`;
           }
         } catch (uploadErr) {
           console.warn("Image upload failed, continuing without image:", uploadErr);
@@ -435,33 +491,14 @@ export default function Journal() {
         image_url: imgUrl,
         price_estimate: cleanField(cardData?.price) || null,
         sommy_description: sommyProse || null,
+        primary_notes: cleanField(cardData?.primary) || null,
+        secondary_notes: cleanField(cardData?.secondary) || null,
+        nose: cleanField(cardData?.nose) || null,
+        texture: cleanField(cardData?.texture) || null,
         achievement,
       };
 
-      // Insert via raw fetch — bypasses supabase-js auth lock entirely.
-      // The supabase client's .insert() calls getSession() internally,
-      // which acquires a navigator.locks lock. If the auth state is in
-      // limbo (common after OAuth callback errors), this hangs forever.
-      const insertRes = await Promise.race([
-        fetch("https://ycgxczvsxiilqzvyzpso.supabase.co/rest/v1/wine_journal", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4",
-            "Prefer": "return=minimal",
-          },
-          body: JSON.stringify(row),
-        }),
-        new Promise<Response>((_, reject) =>
-          setTimeout(() => reject(new Error("Save timed out. Please try again.")), 15000)
-        ),
-      ]);
-
-      if (!insertRes.ok) {
-        const errBody = await insertRes.text().catch(() => "");
-        throw new Error(errBody || `Save failed (${insertRes.status})`);
-      }
+      await directInsert("wine_journal", row);
 
       setAchievementMsg(achievement);
       setStep("achievement");
@@ -491,12 +528,126 @@ export default function Journal() {
     setAchievementMsg("");
   };
 
-  // ── Delete wine ─────────────────────────────────────────────────────────────
+  // ── Delete wine (with confirmation) ───────────────────────────────────────
 
   const del = async (id: string) => {
-    await supabase.from("wine_journal").delete().eq("id", id);
-    setWines(prev => prev.filter(w => w.id !== id));
-    silentRefresh();
+    try {
+      await directDelete("wine_journal", id);
+      setWines(prev => prev.filter(w => w.id !== id));
+      setConfirmDeleteId(null);
+      setExpandedId(null);
+      silentRefresh();
+    } catch (e) {
+      console.error("Delete error:", e);
+    }
+  };
+
+  // ── Edit wine ──────────────────────────────────────────────────────────────
+
+  const startEdit = (wine: Wine) => {
+    setEditingId(wine.id);
+    setEditFields({
+      wine_name: wine.wine_name,
+      date_tasted: wine.date_tasted || "",
+      personal_rating: wine.personal_rating || 0,
+      notes: wine.notes || "",
+      region: wine.region || "",
+      grapes: wine.grapes || "",
+      style: wine.style || "",
+      price_estimate: wine.price_estimate || "",
+      producer: wine.producer || "",
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    setEditSaving(true);
+    try {
+      const updates: Record<string, unknown> = {
+        wine_name: editFields.wine_name,
+        date_tasted: editFields.date_tasted || null,
+        personal_rating: editFields.personal_rating || null,
+        notes: editFields.notes.trim() || null,
+        region: editFields.region.trim() || null,
+        grapes: editFields.grapes.trim() || null,
+        style: editFields.style.trim() || null,
+        price_estimate: editFields.price_estimate.trim() || null,
+        producer: editFields.producer.trim() || null,
+      };
+      await directUpdate("wine_journal", editingId, updates);
+      // Update local state
+      setWines(prev => prev.map(w => w.id === editingId ? { ...w, ...updates } as Wine : w));
+      setEditingId(null);
+      silentRefresh();
+    } catch (e: any) {
+      console.error("Edit error:", e);
+      setSaveError(e?.message || "Failed to update.");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // ── Wishlist: manual add ──────────────────────────────────────────────────
+
+  const addToWishlist = async () => {
+    if (!user || !wishlistName.trim()) return;
+    setWishlistSaving(true);
+    try {
+      await directInsert("wine_wishlist", {
+        user_id: user.id,
+        wine_name: wishlistName.trim(),
+        why: wishlistWhy.trim() || null,
+        source: "manual",
+      });
+      setWishlistName("");
+      setWishlistWhy("");
+      setShowWishlistForm(false);
+      silentRefresh();
+      // Optimistically add to local state
+      const newEntry: WishlistEntry = {
+        id: crypto.randomUUID(),
+        wine_name: wishlistName.trim(),
+        producer: null,
+        region: null,
+        grapes: null,
+        style: null,
+        price_estimate: null,
+        why: wishlistWhy.trim() || null,
+        source: "manual",
+        created_at: new Date().toISOString(),
+      };
+      setWishlist(prev => [newEntry, ...prev]);
+    } catch (e: any) {
+      console.error("Wishlist add error:", e);
+    } finally {
+      setWishlistSaving(false);
+    }
+  };
+
+  // ── Wishlist: delete ──────────────────────────────────────────────────────
+
+  const deleteWishlistItem = async (id: string) => {
+    try {
+      await directDelete("wine_wishlist", id);
+      setWishlist(prev => prev.filter(w => w.id !== id));
+      setConfirmDeleteWishlistId(null);
+      silentRefresh();
+    } catch (e) {
+      console.error("Wishlist delete error:", e);
+    }
+  };
+
+  // ── Wishlist: "Tried it" → pre-fill journal log ──────────────────────────
+
+  const triedIt = (entry: WishlistEntry) => {
+    setActiveTab("journal");
+    setStep("manual");
+    setManualName(entry.wine_name);
+    setManualRegion(entry.region || "");
   };
 
   // ── Detail expand ───────────────────────────────────────────────────────────
@@ -532,7 +683,7 @@ export default function Journal() {
               Wine Journal
             </h1>
           </div>
-          {step === "idle" && user && (
+          {step === "idle" && user && activeTab === "journal" && (
             <button onClick={() => setStep("choose")} style={{
               padding: "9px 18px", border: "none", borderRadius: 20,
               background: "#8C1C2E", color: "#F7F4EF",
@@ -542,6 +693,47 @@ export default function Journal() {
             </button>
           )}
         </div>
+
+        {/* ── Tabs ── */}
+        {user && step === "idle" && (
+          <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "1.5px solid #EDEAE3" }}>
+            <button
+              onClick={() => setActiveTab("journal")}
+              style={{
+                padding: "10px 20px", background: "none", border: "none", cursor: "pointer",
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.1em", textTransform: "uppercase",
+                color: activeTab === "journal" ? "#8C1C2E" : "#D4D1CA",
+                borderBottom: activeTab === "journal" ? "2px solid #8C1C2E" : "2px solid transparent",
+                marginBottom: -1.5,
+              }}
+            >
+              Journal
+            </button>
+            <button
+              onClick={() => setActiveTab("wishlist")}
+              style={{
+                padding: "10px 20px", background: "none", border: "none", cursor: "pointer",
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.1em", textTransform: "uppercase",
+                color: activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA",
+                borderBottom: activeTab === "wishlist" ? "2px solid #8C1C2E" : "2px solid transparent",
+                marginBottom: -1.5,
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <BookmarkIcon size={12} filled={activeTab === "wishlist"} color={activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA"} />
+              Wishlist
+              {wishlist.length > 0 && (
+                <span style={{
+                  background: activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA",
+                  color: "#F7F4EF", borderRadius: 8, padding: "1px 6px",
+                  fontSize: "0.52rem", fontWeight: 400, lineHeight: 1.4,
+                }}>
+                  {wishlist.length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Hidden file input */}
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
@@ -646,6 +838,13 @@ export default function Journal() {
                   {cardData.style && <span style={{ ...mono("0.55rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{cardData.style.toUpperCase()}</span>}
                   {cardData.price && <span style={{ ...mono("0.55rem"), padding: "3px 8px", background: "rgba(140,28,46,0.06)", borderRadius: 6, color: "#8C1C2E" }}>{cardData.price}</span>}
                 </div>
+              </div>
+            )}
+
+            {/* Tasting characteristics */}
+            {cardData && (cardData.primary || cardData.secondary || cardData.nose || cardData.texture) && (
+              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
+                <TastingPills primary={cardData.primary} secondary={cardData.secondary} nose={cardData.nose} texture={cardData.texture} />
               </div>
             )}
 
@@ -759,137 +958,351 @@ export default function Journal() {
           </div>
         )}
 
-        {/* ── Sort chips ── */}
-        {step === "idle" && !loading && wines.length > 1 && (
-          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-            <SortChip label="Date" active={sortBy === "date"} onClick={() => setSortBy("date")} />
-            <SortChip label="Rating" active={sortBy === "rating"} onClick={() => setSortBy("rating")} />
-            <SortChip label="Price" active={sortBy === "price"} onClick={() => setSortBy("price")} />
-          </div>
-        )}
+        {/* ═══════════════ JOURNAL TAB ═══════════════ */}
+        {activeTab === "journal" && (
+          <>
+            {/* ── Sort chips ── */}
+            {step === "idle" && !loading && wines.length > 1 && (
+              <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                <SortChip label="Date" active={sortBy === "date"} onClick={() => setSortBy("date")} />
+                <SortChip label="Rating" active={sortBy === "rating"} onClick={() => setSortBy("rating")} />
+                <SortChip label="Price" active={sortBy === "price"} onClick={() => setSortBy("price")} />
+              </div>
+            )}
 
-        {/* ── Loading ── */}
-        {loading && user && step === "idle" && (
-          <div style={{ textAlign: "center", padding: 40, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#D4D1CA" }}>Loading...</div>
-        )}
+            {/* ── Loading ── */}
+            {loading && user && step === "idle" && (
+              <div style={{ textAlign: "center", padding: 40, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#D4D1CA" }}>Loading...</div>
+            )}
 
-        {/* ── Load error ── */}
-        {loadError && !loading && step === "idle" && (
-          <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", color: "#1A1410", marginBottom: 8 }}>Couldn't load your wines</div>
-            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6, marginBottom: 16 }}>This usually means your session needs refreshing.</p>
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-              <button onClick={() => load()} style={{ padding: "8px 18px", borderRadius: 20, border: "1px solid #EDEAE3", background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer", color: "#5A5248" }}>Retry</button>
-              <button onClick={() => setLocation("/sign-in")} style={{ padding: "8px 18px", borderRadius: 20, border: "none", background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer" }}>Sign in again</button>
-            </div>
-          </div>
-        )}
+            {/* ── Load error ── */}
+            {loadError && !loading && step === "idle" && (
+              <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", color: "#1A1410", marginBottom: 8 }}>Couldn't load your wines</div>
+                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6, marginBottom: 16 }}>This usually means your session needs refreshing.</p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  <button onClick={() => load()} style={{ padding: "8px 18px", borderRadius: 20, border: "1px solid #EDEAE3", background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer", color: "#5A5248" }}>Retry</button>
+                  <button onClick={() => setLocation("/sign-in")} style={{ padding: "8px 18px", borderRadius: 20, border: "none", background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer" }}>Sign in again</button>
+                </div>
+              </div>
+            )}
 
-        {/* ── Empty state ── */}
-        {!loading && user && wines.length === 0 && step === "idle" && (
-          <div style={{ textAlign: "center", padding: "48px 20px" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410", marginBottom: 8 }}>
-              Your cellar is empty
-            </div>
-            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6 }}>
-              Snap a photo of a wine label and Sommy will identify it, tell you what to expect, and log it here — building your personal wine memory over time.
-            </p>
-          </div>
-        )}
+            {/* ── Empty state ── */}
+            {!loading && user && wines.length === 0 && step === "idle" && (
+              <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410", marginBottom: 8 }}>
+                  Your cellar is empty
+                </div>
+                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6 }}>
+                  Snap a photo of a wine label and Sommy will identify it, tell you what to expect, and log it here — building your personal wine memory over time.
+                </p>
+              </div>
+            )}
 
-        {/* ── Wine list ── */}
-        {step === "idle" && !loading && sorted.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {sorted.map(wine => {
-              const isExpanded = expandedId === wine.id;
-              return (
-                <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
-                  {/* Main row */}
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : wine.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12, width: "100%",
-                      padding: "12px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left",
-                    }}
-                  >
-                    {/* Thumbnail */}
-                    {wine.image_url ? (
-                      <img src={wine.image_url} alt="" style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 48, height: 48, borderRadius: 8, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", ...mono("0.5rem"), color: "#D4D1CA" }}>
-                        No img
-                      </div>
-                    )}
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 400,
-                        color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                      }}>
-                        {wine.wine_name}
-                        {cleanField(wine.vintage) && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {cleanField(wine.vintage)}</span>}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-                        {wine.region && (
-                          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>
-                            {wine.region}
+            {/* ── Wine list ── */}
+            {step === "idle" && !loading && sorted.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {sorted.map(wine => {
+                  const isExpanded = expandedId === wine.id;
+                  const isEditing = editingId === wine.id;
+                  return (
+                    <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                      {/* Main row */}
+                      <button
+                        onClick={() => { setExpandedId(isExpanded ? null : wine.id); if (isEditing) cancelEdit(); }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12, width: "100%",
+                          padding: "12px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left",
+                        }}
+                      >
+                        {/* Thumbnail */}
+                        {wine.image_url ? (
+                          <img src={wine.image_url} alt="" style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 48, height: 48, borderRadius: 8, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", ...mono("0.5rem"), color: "#D4D1CA" }}>
+                            No img
+                          </div>
+                        )}
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 400,
+                            color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}>
+                            {wine.wine_name}
+                            {cleanField(wine.vintage) && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {cleanField(wine.vintage)}</span>}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+                            {wine.region && (
+                              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>
+                                {wine.region}
+                              </span>
+                            )}
+                            {wine.personal_rating !== null && <Stars value={wine.personal_rating} size="0.65rem" />}
+                            {wine.date_tasted && (
+                              <span style={{ ...mono("0.55rem"), color: "#D4D1CA" }}>{formatDate(wine.date_tasted)}</span>
+                            )}
+                          </div>
+                        </div>
+                        {/* Price badge */}
+                        {wine.price_estimate && (
+                          <span style={{ ...mono("0.55rem"), color: "#8C1C2E", flexShrink: 0 }}>
+                            {wine.price_estimate}
                           </span>
                         )}
-                        {wine.personal_rating !== null && <Stars value={wine.personal_rating} size="0.65rem" />}
-                        {wine.date_tasted && (
-                          <span style={{ ...mono("0.55rem"), color: "#D4D1CA" }}>{formatDate(wine.date_tasted)}</span>
-                        )}
-                      </div>
-                    </div>
-                    {/* Price badge */}
-                    {wine.price_estimate && (
-                      <span style={{ ...mono("0.55rem"), color: "#8C1C2E", flexShrink: 0 }}>
-                        {wine.price_estimate}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* Expanded detail */}
-                  {isExpanded && (
-                    <div style={{ padding: "0 14px 14px", borderTop: "1px solid #EDEAE3" }}>
-                      {/* Tags */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, marginBottom: 10 }}>
-                        {wine.grapes && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.grapes.toUpperCase()}</span>}
-                        {wine.style && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.style.toUpperCase()}</span>}
-                      </div>
-                      {/* Sommy's description */}
-                      {wine.sommy_description && (
-                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: "0 0 10px" }}>
-                          {wine.sommy_description}
-                        </p>
-                      )}
-                      {/* User notes */}
-                      {wine.notes && (
-                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5, margin: "0 0 10px", fontStyle: "italic" }}>
-                          "{wine.notes}"
-                        </p>
-                      )}
-                      {/* Achievement */}
-                      {wine.achievement && (
-                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#4A7A52", margin: "0 0 10px" }}>
-                          {wine.achievement}
-                        </p>
-                      )}
-                      {/* Delete */}
-                      <button onClick={() => del(wine.id)} style={{
-                        background: "none", border: "none", cursor: "pointer",
-                        fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
-                        letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
-                      }}>
-                        REMOVE FROM JOURNAL
                       </button>
+
+                      {/* Expanded detail */}
+                      {isExpanded && !isEditing && (
+                        <div style={{ padding: "0 14px 14px", borderTop: "1px solid #EDEAE3" }}>
+                          {/* Tags */}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, marginBottom: 10 }}>
+                            {wine.grapes && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.grapes.toUpperCase()}</span>}
+                            {wine.style && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.style.toUpperCase()}</span>}
+                          </div>
+                          {/* Tasting characteristics */}
+                          {(wine.primary_notes || wine.secondary_notes || wine.nose || wine.texture) && (
+                            <div style={{ marginBottom: 10 }}>
+                              <TastingPills primary={wine.primary_notes} secondary={wine.secondary_notes} nose={wine.nose} texture={wine.texture} />
+                            </div>
+                          )}
+                          {/* Sommy's description */}
+                          {wine.sommy_description && (
+                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: "0 0 10px" }}>
+                              {wine.sommy_description}
+                            </p>
+                          )}
+                          {/* User notes */}
+                          {wine.notes && (
+                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5, margin: "0 0 10px", fontStyle: "italic" }}>
+                              "{wine.notes}"
+                            </p>
+                          )}
+                          {/* Achievement */}
+                          {wine.achievement && (
+                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#4A7A52", margin: "0 0 10px" }}>
+                              {wine.achievement}
+                            </p>
+                          )}
+                          {/* Action buttons */}
+                          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                            <button onClick={() => startEdit(wine)} style={{
+                              background: "none", border: "none", cursor: "pointer",
+                              fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                              letterSpacing: "0.08em", color: "#8C1C2E", padding: 0,
+                            }}>
+                              EDIT
+                            </button>
+                            {confirmDeleteId === wine.id ? (
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>Remove this wine?</span>
+                                <button onClick={() => setConfirmDeleteId(null)} style={{
+                                  background: "none", border: "1px solid #EDEAE3", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em", color: "#5A5248",
+                                }}>CANCEL</button>
+                                <button onClick={() => del(wine.id)} style={{
+                                  background: "#8C1C2E", border: "none", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em", color: "#F7F4EF",
+                                }}>REMOVE</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setConfirmDeleteId(wine.id)} style={{
+                                background: "none", border: "none", cursor: "pointer",
+                                fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                                letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
+                              }}>
+                                REMOVE FROM JOURNAL
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Edit mode */}
+                      {isExpanded && isEditing && (
+                        <div style={{ padding: "14px", borderTop: "1px solid #EDEAE3" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>WINE NAME</div>
+                              <input value={editFields.wine_name} onChange={e => setEditFields(f => ({ ...f, wine_name: e.target.value }))} style={inputStyle} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>DATE TASTED</div>
+                              <input type="date" value={editFields.date_tasted} onChange={e => setEditFields(f => ({ ...f, date_tasted: e.target.value }))} style={inputStyle} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>RATING</div>
+                              <Stars value={editFields.personal_rating} onChange={n => setEditFields(f => ({ ...f, personal_rating: n }))} size="1.2rem" />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>NOTES</div>
+                              <textarea value={editFields.notes} onChange={e => setEditFields(f => ({ ...f, notes: e.target.value }))} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>PRODUCER</div>
+                              <input value={editFields.producer} onChange={e => setEditFields(f => ({ ...f, producer: e.target.value }))} style={{ ...inputStyle, color: "#5A5248" }} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>REGION</div>
+                              <input value={editFields.region} onChange={e => setEditFields(f => ({ ...f, region: e.target.value }))} style={{ ...inputStyle, color: "#5A5248" }} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>GRAPES</div>
+                              <input value={editFields.grapes} onChange={e => setEditFields(f => ({ ...f, grapes: e.target.value }))} style={{ ...inputStyle, color: "#5A5248" }} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>STYLE</div>
+                              <input value={editFields.style} onChange={e => setEditFields(f => ({ ...f, style: e.target.value }))} style={{ ...inputStyle, color: "#5A5248" }} />
+                            </div>
+                            <div>
+                              <div style={{ ...mono("0.5rem"), marginBottom: 4 }}>PRICE</div>
+                              <input value={editFields.price_estimate} onChange={e => setEditFields(f => ({ ...f, price_estimate: e.target.value }))} style={{ ...inputStyle, color: "#5A5248" }} />
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button onClick={cancelEdit} style={{
+                              flex: 1, padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+                            }}>Cancel</button>
+                            <button onClick={saveEdit} disabled={editSaving || !editFields.wine_name.trim()} style={{
+                              flex: 1, padding: "10px", border: "none", borderRadius: 10,
+                              background: editSaving ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                              cursor: editSaving ? "default" : "pointer",
+                            }}>{editSaving ? "Saving..." : "Save changes"}</button>
+                          </div>
+                          {saveError && (
+                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", color: "#8C1C2E", marginTop: 8, textAlign: "center" }}>{saveError}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
+
+        {/* ═══════════════ WISHLIST TAB ═══════════════ */}
+        {activeTab === "wishlist" && step === "idle" && user && (
+          <>
+            {/* Add button / form */}
+            {showWishlistForm ? (
+              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
+                <div style={{ ...mono(), marginBottom: 12 }}>ADD TO WISHLIST</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                  <input placeholder="Wine name *" value={wishlistName} onChange={e => setWishlistName(e.target.value)} style={inputStyle} />
+                  <textarea placeholder="Notes — why do you want to try this? (optional)" value={wishlistWhy} onChange={e => setWishlistWhy(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => { setShowWishlistForm(false); setWishlistName(""); setWishlistWhy(""); }} style={{
+                    flex: 1, padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                    fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+                  }}>Cancel</button>
+                  <button onClick={addToWishlist} disabled={wishlistSaving || !wishlistName.trim()} style={{
+                    flex: 1, padding: "10px", border: "none", borderRadius: 10,
+                    background: wishlistSaving || !wishlistName.trim() ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
+                    fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                    cursor: wishlistSaving || !wishlistName.trim() ? "default" : "pointer",
+                  }}>{wishlistSaving ? "Adding..." : "Add to wishlist"}</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowWishlistForm(true)} style={{
+                width: "100%", padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
+                background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                color: "#8C1C2E", cursor: "pointer", marginBottom: 16,
+              }}>
+                + Add to wishlist
+              </button>
+            )}
+
+            {/* Empty state */}
+            {wishlist.length === 0 && (
+              <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                <BookmarkIcon size={28} color="#D4D1CA" />
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410", marginTop: 12, marginBottom: 8 }}>
+                  Nothing here yet
+                </div>
+                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6 }}>
+                  Save wines you want to try from Sommy's recommendations, or add them manually above.
+                </p>
+              </div>
+            )}
+
+            {/* Wishlist cards */}
+            {wishlist.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {wishlist.map(entry => (
+                  <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "14px 16px" }}>
+                    {/* Wine name + producer */}
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
+                      {entry.wine_name}
+                    </div>
+                    {(entry.producer || entry.region) && (
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginBottom: 8 }}>
+                        {[entry.producer, entry.region].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+
+                    {/* Tags */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
+                      {entry.grapes && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
+                      {entry.style && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
+                      {entry.price_estimate && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
+                    </div>
+
+                    {/* Why text */}
+                    {entry.why && (
+                      <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 8px", fontStyle: "italic" }}>
+                        "{entry.why}"
+                      </p>
+                    )}
+
+                    {/* Source badge */}
+                    <div style={{ ...mono("0.48rem"), color: "#D4D1CA", marginBottom: 10 }}>
+                      {sourceLabel(entry.source).toUpperCase()}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <button onClick={() => triedIt(entry)} style={{
+                        padding: "6px 14px", border: "1.5px solid #8C1C2E", borderRadius: 8, background: "white",
+                        fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em",
+                        color: "#8C1C2E", cursor: "pointer",
+                      }}>
+                        TRIED IT
+                      </button>
+                      {confirmDeleteWishlistId === entry.id ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#5A5248" }}>Remove?</span>
+                          <button onClick={() => setConfirmDeleteWishlistId(null)} style={{
+                            background: "none", border: "1px solid #EDEAE3", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#5A5248",
+                          }}>CANCEL</button>
+                          <button onClick={() => deleteWishlistItem(entry.id)} style={{
+                            background: "#8C1C2E", border: "none", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#F7F4EF",
+                          }}>REMOVE</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setConfirmDeleteWishlistId(entry.id)} style={{
+                          background: "none", border: "none", cursor: "pointer",
+                          fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                          letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
+                        }}>
+                          REMOVE
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
       </div>
     </div>
   );

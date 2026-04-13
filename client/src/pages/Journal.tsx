@@ -226,13 +226,18 @@ export default function Journal() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("wine_journal")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-    setWines((data || []) as Wine[]);
-    setLoading(false);
+    try {
+      const { data } = await supabase
+        .from("wine_journal")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      setWines((data || []) as Wine[]);
+    } catch (e) {
+      console.error("Journal load error:", e);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { load(); }, [load]);

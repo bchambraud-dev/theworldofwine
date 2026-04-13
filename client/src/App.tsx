@@ -168,8 +168,8 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
                 title="Your journey"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.display_name || ""} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid var(--border-c, #D4D1CA)" }} />
+                {(profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)) ? (
+                  <img src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)} alt={profile?.display_name || ""} style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid var(--border-c, #D4D1CA)" }} />
                 ) : (
                   <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "0.75rem", fontFamily: "'Jost', sans-serif", fontWeight: 500 }}>
                     {(profile?.display_name || user.email || "?")[0].toUpperCase()}
@@ -272,8 +272,8 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
                 data-testid="mobile-nav-profile"
                 style={{ display: "flex", alignItems: "center", gap: 10 }}
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }} />
+                {(profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)) ? (
+                  <img src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }} />
                 ) : (
                   <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "0.6rem", fontWeight: 500 }}>
                     {(profile?.display_name || user.email || "?")[0].toUpperCase()}

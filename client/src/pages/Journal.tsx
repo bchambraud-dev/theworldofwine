@@ -1092,6 +1092,15 @@ export default function Journal() {
                             {wine.wine_name}
                             {cleanField(wine.vintage) && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {cleanField(wine.vintage)}</span>}
                           </div>
+                          {wine.producer && (
+                            <div style={{
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300,
+                              color: "#8C1C2E", marginTop: 1,
+                              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                            }}>
+                              {wine.producer}
+                            </div>
+                          )}
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                             {wine.region && (
                               <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

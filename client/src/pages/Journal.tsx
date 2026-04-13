@@ -59,11 +59,13 @@ function compressImage(dataUrl: string, maxDim = 800, quality = 0.75): Promise<s
   });
 }
 
-// Filter out AI placeholder text from wine card fields
-function cleanField(val: string | null | undefined): string | null {
-  if (!val) return null;
-  const v = val.trim();
-  if (v.includes("[not") || v.includes("[Not") || v.includes("not visible") || v.includes("Not visible") || v === "NV" || v === "N/A" || v === "Unknown") return null;
+// Filter out AI placeholder text from wine card fields.
+// Handles numbers (vintage can be integer from DB) and strings.
+function cleanField(val: unknown): string | null {
+  if (val == null) return null;
+  const v = String(val).trim();
+  if (!v || v === "NV" || v === "N/A" || v === "Unknown") return null;
+  if (v.includes("[not") || v.includes("[Not") || v.includes("not visible") || v.includes("Not visible")) return null;
   return v;
 }
 
@@ -232,7 +234,12 @@ export default function Journal() {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setWines((data || []) as Wine[]);
+      // Normalise types: Postgres returns decimal as string, vintage as int
+      setWines((data || []).map((w: any) => ({
+        ...w,
+        vintage: w.vintage != null ? String(w.vintage) : null,
+        personal_rating: w.personal_rating != null ? Number(w.personal_rating) : null,
+      })) as Wine[]);
     } catch (e) {
       console.error("Journal load error:", e);
     } finally {

@@ -101,7 +101,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           supabase.from("user_preferences")
             .select("preferred_types")
             .eq("user_id", uid)
-            .single(),
+            .maybeSingle(),
 
           supabase.from("user_goals")
             .select("id, title, target_count, current_count, completed")

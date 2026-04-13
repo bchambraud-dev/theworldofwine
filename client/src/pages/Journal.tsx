@@ -353,11 +353,32 @@ export default function Journal() {
     setSaving(true);
     setSaveError("");
     try {
+      // Ensure we have a valid auth session before any Supabase call.
+      // If the token expired during the scan step, this forces a refresh.
+      let { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr || !sessionData.session) {
+        // Try a forced refresh before giving up
+        const { error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshErr) {
+          throw new Error("Session expired. Please sign in again.");
+        }
+        // Re-read after refresh
+        const recheck = await supabase.auth.getSession();
+        if (!recheck.data.session) {
+          throw new Error("Session expired. Please sign in again.");
+        }
+      }
+
       // Upload label image (10s timeout — save the wine even if upload is slow)
-      const imgUrl = await Promise.race([
-        uploadImage(),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 10000)),
-      ]);
+      let imgUrl: string | null = null;
+      try {
+        imgUrl = await Promise.race([
+          uploadImage(),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 10000)),
+        ]);
+      } catch (uploadErr) {
+        console.warn("Image upload failed, continuing without image:", uploadErr);
+      }
 
       // Compute achievement
       const achievement = computeAchievement(
@@ -369,24 +390,32 @@ export default function Journal() {
       const vintageStr = cleanField(cardData?.vintage);
       const vintageNum = vintageStr ? parseInt(vintageStr) : null;
 
-      const { error } = await supabase.from("wine_journal").insert({
+      const row = {
         user_id: user.id,
         wine_name: wineName,
         producer: cleanField(cardData?.producer) || null,
         vintage: (vintageNum && !isNaN(vintageNum)) ? vintageNum : null,
         region: cleanField(cardData?.region) || manualRegion.trim() || null,
-        grapes: cardData?.grapes || null,
-        style: cardData?.style || null,
+        grapes: cleanField(cardData?.grapes) || null,
+        style: cleanField(cardData?.style) || null,
         personal_rating: rating || null,
         date_tasted: date || null,
         notes: notes.trim() || null,
         image_url: imgUrl,
-        price_estimate: cardData?.price || null,
+        price_estimate: cleanField(cardData?.price) || null,
         sommy_description: sommyProse || null,
         achievement,
-      });
+      };
 
-      if (error) throw error;
+      // Insert with a 15s timeout — Supabase calls can hang if auth is in limbo
+      const insertResult = await Promise.race([
+        supabase.from("wine_journal").insert(row),
+        new Promise<{ error: { message: string } }>(
+          (_, reject) => setTimeout(() => reject(new Error("Save timed out. Please try again.")), 15000)
+        ),
+      ]);
+
+      if (insertResult.error) throw new Error(insertResult.error.message);
 
       setAchievementMsg(achievement);
       setStep("achievement");

@@ -1909,16 +1909,20 @@ export default function Journal() {
                             </div>
                           )}
                           {/* Sommy's tasting (for tasting mode entries) */}
-                          {wine.tasting_data && ((wine.tasting_data as any).sommy_nose || (wine.tasting_data as any).sommy_palate) && (
-                            <div style={{ marginBottom: 10 }}>
-                              <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
-                              <TastingPills
-                                nose={(wine.tasting_data as any).sommy_nose}
-                                palate={(wine.tasting_data as any).sommy_palate}
-                                texture={(wine.tasting_data as any).sommy_texture}
-                              />
-                            </div>
-                          )}
+                          {wine.tasting_data && (() => {
+                            const td = wine.tasting_data as any;
+                            // Handle both old (sommy_primary/sommy_secondary) and new (sommy_nose/sommy_palate) keys
+                            const sNose = td.sommy_nose || [td.sommy_primary, td.sommy_secondary, td.sommy_nose_old].filter(Boolean).join(", ") || null;
+                            const sPalate = td.sommy_palate || null;
+                            const sTexture = td.sommy_texture || null;
+                            if (!sNose && !sPalate && !sTexture) return null;
+                            return (
+                              <div style={{ marginBottom: 10 }}>
+                                <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
+                                <TastingPills nose={sNose} palate={sPalate} texture={sTexture} />
+                              </div>
+                            );
+                          })()}
                           {/* Tasting characteristics (for non-tasting-mode entries) */}
                           {!wine.tasting_data && (wine.nose_notes || wine.palate_notes || wine.texture) && (
                             <div style={{ marginBottom: 10 }}>

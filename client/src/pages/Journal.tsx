@@ -38,6 +38,35 @@ interface ParsedCard {
 type SortField = "date" | "rating" | "price";
 type LogStep = "idle" | "choose" | "manual" | "scanning" | "review" | "achievement";
 
+// Compress phone camera images (3-5MB) down to ~150KB before upload/API call
+function compressImage(dataUrl: string, maxDim = 800, quality = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+// Filter out AI placeholder text from wine card fields
+function cleanField(val: string | null | undefined): string | null {
+  if (!val) return null;
+  const v = val.trim();
+  if (v.includes("[not") || v.includes("[Not") || v.includes("not visible") || v.includes("Not visible") || v === "NV" || v === "N/A" || v === "Unknown") return null;
+  return v;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
 function parseWineCard(text: string): { card: ParsedCard | null; prose: string } {
@@ -218,20 +247,22 @@ export default function Journal() {
 
   // ── Image handling ──────────────────────────────────────────────────────────
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      setImagePreview(dataUrl);
-      setImageBase64(dataUrl.split(",")[1]);
-      setImageMediaType(file.type || "image/jpeg");
+    reader.onload = async () => {
+      const rawUrl = reader.result as string;
+      // Compress before anything else — phone photos are 3-5MB, we need ~150KB
+      const compressed = await compressImage(rawUrl, 800, 0.75);
+      setImagePreview(compressed);
+      setImageBase64(compressed.split(",")[1]);
+      setImageMediaType("image/jpeg");
       setStep("scanning");
-      scanWithSommy(dataUrl.split(",")[1], file.type || "image/jpeg");
+      scanWithSommy(compressed.split(",")[1], "image/jpeg");
     };
     reader.readAsDataURL(file);
-    e.target.value = ""; // reset so same file can be re-selected
   };
 
   // ── Sommy label recognition ─────────────────────────────────────────────────
@@ -304,8 +335,11 @@ export default function Journal() {
 
     setSaving(true);
     try {
-      // Upload label image
-      const imgUrl = await uploadImage();
+      // Upload label image (10s timeout — save the wine even if upload is slow)
+      const imgUrl = await Promise.race([
+        uploadImage(),
+        new Promise<null>(resolve => setTimeout(() => resolve(null), 10000)),
+      ]);
 
       // Compute achievement
       const achievement = computeAchievement(
@@ -316,9 +350,9 @@ export default function Journal() {
       await supabase.from("wine_journal").insert({
         user_id: user.id,
         wine_name: wineName,
-        producer: cardData?.producer || null,
-        vintage: cardData?.vintage || null,
-        region: cardData?.region || manualRegion.trim() || null,
+        producer: cleanField(cardData?.producer) || null,
+        vintage: cleanField(cardData?.vintage) || null,
+        region: cleanField(cardData?.region) || manualRegion.trim() || null,
         grapes: cardData?.grapes || null,
         style: cardData?.style || null,
         personal_rating: rating || null,
@@ -502,7 +536,7 @@ export default function Journal() {
               <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.15rem", fontWeight: 400, color: "#1A1410", marginBottom: 4, lineHeight: 1.3 }}>
                   {cardData.name}
-                  {cardData.vintage && cardData.vintage !== "NV" && <span style={{ fontWeight: 300 }}> {cardData.vintage}</span>}
+                  {cleanField(cardData.vintage) && <span style={{ fontWeight: 300 }}> {cleanField(cardData.vintage)}</span>}
                 </div>
                 <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300, color: "#5A5248", marginBottom: 10 }}>
                   {[cardData.producer, cardData.region].filter(Boolean).join(" · ")}
@@ -676,7 +710,7 @@ export default function Journal() {
                         color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>
                         {wine.wine_name}
-                        {wine.vintage && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {wine.vintage}</span>}
+                        {cleanField(wine.vintage) && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {cleanField(wine.vintage)}</span>}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (

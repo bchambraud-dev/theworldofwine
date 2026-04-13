@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, useMemo, type ReactNode } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "./auth";
+import { regionToCountry } from "./countryFlags";
 
 // useUserData — owns ALL behavioural user data.
 // Loads once when userId is available, caches, exposes refresh + mutations.
@@ -60,6 +61,7 @@ interface UserDataContextType {
   goals: UserGoal[];
   journal: JournalEntry[];     // last 5 wines logged
   wishlist: WishlistEntry[];
+  countriesExplored: string[];  // unique country names from journal regions
   dataLoading: boolean;
   // Mutations
   savePreferences: (level: string, types: string[]) => Promise<void>;
@@ -81,6 +83,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const [goals, setGoals]                     = useState<UserGoal[]>([]);
   const [journal, setJournal]                 = useState<JournalEntry[]>([]);
   const [wishlist, setWishlist]               = useState<WishlistEntry[]>([]);
+  const [allRegions, setAllRegions]           = useState<string[]>([]);
   const [dataLoading, setDataLoading]         = useState(false);
 
   // Prevent re-fetching for the same user
@@ -89,7 +92,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async (uid: string, silent = false) => {
     if (!silent) setDataLoading(true);
     try {
-      const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes, wishlistRes] =
+      const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes, wishlistRes, allRegionsRes] =
         await Promise.all([
           supabase.from("sommy_conversations")
             .select("user_id", { count: "exact" })
@@ -134,6 +137,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
             .select("id, wine_name, producer, region, grapes, style, price_estimate, why, source, created_at")
             .eq("user_id", uid)
             .order("created_at", { ascending: false }),
+
+          // All journal regions for country passport (lightweight: only region column)
+          supabase.from("wine_journal")
+            .select("region")
+            .eq("user_id", uid),
         ]);
 
       setStats({
@@ -159,6 +167,9 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setGoals((goalsRes.data ?? []) as UserGoal[]);
       setJournal((journalRes.data ?? []) as JournalEntry[]);
       setWishlist((wishlistRes.data ?? []) as WishlistEntry[]);
+      setAllRegions(
+        (allRegionsRes.data ?? []).map((r: any) => r.region as string).filter(Boolean)
+      );
 
     } catch (e) {
       console.error("UserData load error:", e);
@@ -179,6 +190,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setGoals([]);
       setJournal([]);
       setWishlist([]);
+      setAllRegions([]);
       loadedForRef.current = null;
       return;
     }
@@ -213,10 +225,19 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     setPreferences({ preferred_types: types });
   }, [userId, refreshProfile]);
 
+  const countriesExplored = useMemo(() => {
+    const countrySet = new Set<string>();
+    allRegions.forEach(region => {
+      const country = regionToCountry(region);
+      if (country) countrySet.add(country);
+    });
+    return Array.from(countrySet).sort();
+  }, [allRegions]);
+
   return (
     <UserDataContext.Provider value={{
       stats, preferences, recentTopics, completedGuideIds, goals, journal, wishlist,
-      dataLoading, savePreferences, refresh, silentRefresh,
+      countriesExplored, dataLoading, savePreferences, refresh, silentRefresh,
     }}>
       {children}
     </UserDataContext.Provider>

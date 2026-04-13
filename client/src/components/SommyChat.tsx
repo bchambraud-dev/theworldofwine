@@ -5,6 +5,7 @@ import { useUserData } from "@/lib/useUserData";
 import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
 import { directInsert } from "@/lib/supabaseDirectFetch";
+import { regionToCountry, countryCode } from "@/lib/countryFlags";
 
 // Colour-coded tasting pills — matches the ftag system on producer pages
 const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -549,7 +550,15 @@ The more you share — what you enjoy, what you've tried, even what you definite
                       ].map(([label, value]) => value && (
                         <div key={label}>
                           <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#D4D1CA" }}>{(label as string).toUpperCase()}</div>
-                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>{value}</div>
+                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410", display: "flex", alignItems: "center", gap: 4 }}>
+                            {label === "Region" && (() => {
+                              const country = regionToCountry(value as string);
+                              const code = countryCode(country);
+                              if (!code) return null;
+                              return <img src={`https://flagcdn.com/32x24/${code.toLowerCase()}.png`} alt={country || ""} title={country || ""} width={16} height={12} style={{ borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />;
+                            })()}
+                            {value}
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { useLocation } from "wouter";
 import { guides } from "@/data/guides";
+import { WINE_COUNTRIES, countryCode, COUNTRY_SUGGESTIONS } from "@/lib/countryFlags";
 
 // ProfilePanel — thin view layer.
 // All data comes from useUserData context (no local queries).
@@ -34,7 +35,7 @@ interface Props {
 
 export default function ProfilePanel({ isOpen, onClose }: Props) {
   const { user, profile, signOut } = useAuth();
-  const { stats, preferences, recentTopics, completedGuideIds, goals, dataLoading, savePreferences, refresh, silentRefresh } = useUserData();
+  const { stats, preferences, recentTopics, completedGuideIds, goals, countriesExplored, dataLoading, savePreferences, refresh, silentRefresh } = useUserData();
   const [, setLocation] = useLocation();
 
   // Silently re-fetch when panel opens so guide completions and wine logs are current
@@ -198,10 +199,10 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
           borderBottom: "1px solid #EDEAE3", flexShrink: 0,
         }}>
           {[
-            { label: "CHATS",   value: stats.chats },
-            { label: "REGIONS", value: stats.regions },
-            { label: "GUIDES",  value: stats.guides },
-            { label: "WINES",   value: stats.wines },
+            { label: "WINES",     value: stats.wines },
+            { label: "COUNTRIES", value: countriesExplored.length },
+            { label: "REGIONS",   value: stats.regions },
+            { label: "GUIDES",    value: stats.guides },
           ].map(({ label, value }) => (
             <div key={label} style={{
               padding: "14px 8px", textAlign: "center",
@@ -367,6 +368,97 @@ export default function ProfilePanel({ isOpen, onClose }: Props) {
                   </button>
                 </div>
               </div>
+
+              {/* ── Wine Passport ── */}
+              {!dataLoading && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    marginBottom: 12,
+                  }}>
+                    <div style={{
+                      fontFamily: "'Geist Mono', monospace",
+                      fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248",
+                    }}>
+                      YOUR WINE PASSPORT
+                    </div>
+                    <div style={{
+                      fontFamily: "'Geist Mono', monospace",
+                      fontSize: "0.58rem", letterSpacing: "0.08em", color: "#D4D1CA",
+                    }}>
+                      {countriesExplored.length} of {WINE_COUNTRIES.length}
+                    </div>
+                  </div>
+                  <div style={{
+                    background: "white", border: "1px solid #EDEAE3",
+                    borderRadius: 12, padding: "14px 12px", overflow: "hidden",
+                  }}>
+                    {/* Flag grid */}
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(6, 1fr)",
+                      gap: "10px 6px",
+                    }}>
+                      {WINE_COUNTRIES.map(c => {
+                        const explored = countriesExplored.includes(c.name);
+                        return (
+                          <div key={c.code} style={{ textAlign: "center" }}>
+                            <div style={{
+                              width: 32, height: 24, margin: "0 auto",
+                              borderRadius: 3, overflow: "hidden",
+                              background: explored ? "white" : "transparent",
+                              filter: explored ? "none" : "grayscale(1) opacity(0.3)",
+                              transition: "filter 0.3s",
+                            }}>
+                              <img
+                                src={`https://flagcdn.com/64x48/${c.code.toLowerCase()}.png`}
+                                alt={c.name}
+                                title={c.name}
+                                width={32}
+                                height={24}
+                                style={{ display: "block", objectFit: "cover", borderRadius: 3 }}
+                                loading="lazy"
+                              />
+                            </div>
+                            <div style={{
+                              fontFamily: "'Geist Mono', monospace",
+                              fontSize: "0.44rem", letterSpacing: "0.1em",
+                              color: explored ? "#5A5248" : "#D4D1CA",
+                              marginTop: 3,
+                            }}>
+                              {c.code}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* Footer text */}
+                    <div style={{ marginTop: 14, borderTop: "1px solid #EDEAE3", paddingTop: 12 }}>
+                      <div style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.78rem", fontWeight: 300, color: "#5A5248",
+                      }}>
+                        {countriesExplored.length} {countriesExplored.length === 1 ? "country" : "countries"} explored
+                      </div>
+                      {(() => {
+                        const nextCountry = WINE_COUNTRIES.find(c => !countriesExplored.includes(c.name));
+                        if (!nextCountry) return null;
+                        const suggestion = COUNTRY_SUGGESTIONS[nextCountry.name];
+                        if (!suggestion) return null;
+                        return (
+                          <div style={{
+                            fontFamily: "'Jost', sans-serif",
+                            fontSize: "0.75rem", fontWeight: 300, color: "#8C1C2E",
+                            marginTop: 6, lineHeight: 1.4, fontStyle: "italic",
+                          }}>
+                            Sommy says: Try something from {nextCountry.name} — {suggestion.toLowerCase()}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* ── Learning Path (Phase 2) ── */}
               {!dataLoading && (() => {

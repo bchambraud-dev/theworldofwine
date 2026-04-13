@@ -4,6 +4,7 @@ import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
 import { directInsert, directUpdate, directDelete, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -255,6 +256,18 @@ function computeAchievement(
   // First wine ever
   if (count === 1) {
     return "Your journal has officially started. Every great palate begins somewhere.";
+  }
+
+  // New country in your passport
+  const newCountry = regionToCountry(newWine.region);
+  if (newCountry) {
+    const existingCountries = new Set(
+      existingWines.map(w => regionToCountry(w.region)).filter(Boolean) as string[]
+    );
+    if (!existingCountries.has(newCountry)) {
+      const fact = COUNTRY_FACTS[newCountry] || "";
+      return `New country in your passport: ${newCountry}.${fact ? ` ${fact}` : ""}`;
+    }
   }
 
   // First from this region
@@ -1081,7 +1094,12 @@ export default function Journal() {
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                             {wine.region && (
-                              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>
+                              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                {(() => {
+                                  const c = countryCode(regionToCountry(wine.region));
+                                  if (!c) return null;
+                                  return <img src={`https://flagcdn.com/28x21/${c.toLowerCase()}.png`} alt="" width={14} height={10} style={{ borderRadius: 1.5, objectFit: "cover", flexShrink: 0 }} />;
+                                })()}
                                 {wine.region}
                               </span>
                             )}

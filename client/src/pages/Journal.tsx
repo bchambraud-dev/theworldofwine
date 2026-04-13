@@ -202,7 +202,9 @@ export default function Journal() {
   // Wine list
   const [wines, setWines] = useState<Wine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [sortBy, setSortBy] = useState<SortField>("date");
+  const [saveError, setSaveError] = useState("");
 
   // Logging flow state machine
   const [step, setStep] = useState<LogStep>("idle");
@@ -228,12 +230,14 @@ export default function Journal() {
 
   const load = useCallback(async () => {
     if (!user) return;
+    setLoadError(false);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("wine_journal")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       // Normalise types: Postgres returns decimal as string, vintage as int
       setWines((data || []).map((w: any) => ({
         ...w,
@@ -242,6 +246,7 @@ export default function Journal() {
       })) as Wine[]);
     } catch (e) {
       console.error("Journal load error:", e);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -346,6 +351,7 @@ export default function Journal() {
     if (!wineName) return;
 
     setSaving(true);
+    setSaveError("");
     try {
       // Upload label image (10s timeout — save the wine even if upload is slow)
       const imgUrl = await Promise.race([
@@ -359,11 +365,15 @@ export default function Journal() {
         wines,
       );
 
-      await supabase.from("wine_journal").insert({
+      // Vintage is integer in the DB — convert to number or null
+      const vintageStr = cleanField(cardData?.vintage);
+      const vintageNum = vintageStr ? parseInt(vintageStr) : null;
+
+      const { error } = await supabase.from("wine_journal").insert({
         user_id: user.id,
         wine_name: wineName,
         producer: cleanField(cardData?.producer) || null,
-        vintage: cleanField(cardData?.vintage) || null,
+        vintage: (vintageNum && !isNaN(vintageNum)) ? vintageNum : null,
         region: cleanField(cardData?.region) || manualRegion.trim() || null,
         grapes: cardData?.grapes || null,
         style: cardData?.style || null,
@@ -376,12 +386,15 @@ export default function Journal() {
         achievement,
       });
 
+      if (error) throw error;
+
       setAchievementMsg(achievement);
       setStep("achievement");
       await load();
-      silentRefresh(); // Update profile stats
-    } catch (e) {
+      silentRefresh();
+    } catch (e: any) {
       console.error("Save wine error:", e);
+      setSaveError(e?.message || "Failed to save. Try signing out and back in.");
     } finally {
       setSaving(false);
     }
@@ -606,6 +619,11 @@ export default function Journal() {
                 {saving ? "Saving..." : "Save to journal"}
               </button>
             </div>
+            {saveError && (
+              <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", color: "#8C1C2E", marginTop: 10, textAlign: "center" }}>
+                {saveError}
+              </p>
+            )}
           </div>
         )}
 
@@ -678,6 +696,18 @@ export default function Journal() {
         {/* ── Loading ── */}
         {loading && user && step === "idle" && (
           <div style={{ textAlign: "center", padding: 40, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#D4D1CA" }}>Loading...</div>
+        )}
+
+        {/* ── Load error ── */}
+        {loadError && !loading && step === "idle" && (
+          <div style={{ textAlign: "center", padding: "40px 20px" }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", color: "#1A1410", marginBottom: 8 }}>Couldn't load your wines</div>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6, marginBottom: 16 }}>This usually means your session needs refreshing.</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button onClick={() => load()} style={{ padding: "8px 18px", borderRadius: 20, border: "1px solid #EDEAE3", background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer", color: "#5A5248" }}>Retry</button>
+              <button onClick={() => setLocation("/sign-in")} style={{ padding: "8px 18px", borderRadius: 20, border: "none", background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", cursor: "pointer" }}>Sign in again</button>
+            </div>
+          </div>
         )}
 
         {/* ── Empty state ── */}

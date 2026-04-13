@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
-import { directInsert, directUpdate, directDelete, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { directInsert, directUpdate, directDelete, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
@@ -548,12 +548,11 @@ export default function Journal() {
     if (!user) return;
     setLoadError(false);
     try {
-      const { data, error } = await supabase
-        .from("wine_journal")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
+      // Use raw fetch to bypass supabase-js auth lock which can hang reads too
+      const data = await directSelect<any>(
+        "wine_journal",
+        `select=*&user_id=eq.${user.id}&order=created_at.desc`,
+      );
       // Normalise types: Postgres returns decimal as string, vintage as int
       setWines((data || []).map((w: any) => ({
         ...w,

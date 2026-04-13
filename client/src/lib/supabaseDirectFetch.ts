@@ -1,6 +1,7 @@
-// Shared raw-fetch helpers for Supabase write operations.
-// The Supabase JS client's internal auth lock hangs indefinitely on write
-// operations, so all inserts/updates/deletes go through raw fetch().
+// Shared raw-fetch helpers for ALL Supabase operations.
+// The Supabase JS client's internal auth lock (navigator.locks + initializePromise)
+// can hang indefinitely on ANY operation — reads AND writes. All Supabase calls
+// should go through raw fetch() to bypass the auth lock entirely.
 
 export const SUPABASE_URL = "https://ycgxczvsxiilqzvyzpso.supabase.co";
 export const ANON_KEY =
@@ -74,6 +75,36 @@ export async function directUpdate(
     const body = await res.text().catch(() => "");
     throw new Error(body || `Update failed (${res.status})`);
   }
+}
+
+/**
+ * SELECT rows from a table via raw fetch. Returns parsed JSON array.
+ * queryParams: PostgREST query string, e.g. "select=*&user_id=eq.abc&order=created_at.desc"
+ */
+export async function directSelect<T = any>(
+  table: string,
+  queryParams: string,
+  timeoutMs = 15000,
+): Promise<T[]> {
+  const token = getAccessToken();
+  if (!token) throw new Error("Session expired. Please sign in again.");
+
+  const res = await Promise.race([
+    fetch(`${SUPABASE_URL}/rest/v1/${table}?${queryParams}`, {
+      method: "GET",
+      headers: authHeaders(token, false),
+    }),
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error("Load timed out. Please try again.")), timeoutMs),
+    ),
+  ]);
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(body || `Query failed (${res.status})`);
+  }
+
+  return res.json();
 }
 
 export async function directDelete(

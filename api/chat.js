@@ -21,6 +21,7 @@ price: [approximate market price range, e.g. "$25–40" or "~$65"]
 nose: [comma-separated aromas — everything you'd smell: fruit, floral, earth, oak, spice, e.g. "Cherry, Violet, Cedar, Vanilla, Leather"]
 palate: [comma-separated flavours you'd taste on the palate, e.g. "Blackberry, Plum, Dark chocolate, Espresso, Black pepper"]
 texture: [comma-separated mouthfeel descriptors, e.g. "Silky tannins, Full body, Bright acidity, Long finish"]
+breathing: [concise decanting/breathing recommendation with brief reason, e.g. "Decant 1-2 hours — young tannins need time to soften and dark fruit to emerge" or "Drink now — light and aromatic, best enjoyed fresh" or "30 minutes in a wide glass — let the oak integrate"]
 WINE_CARD_END
 
 [Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]

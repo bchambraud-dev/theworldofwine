@@ -64,6 +64,7 @@ interface WineCard {
   nose: string;
   palate: string;
   texture: string;
+  breathing: string;
 }
 
 interface WishlistBlock {
@@ -94,6 +95,7 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     nose: get("nose"),
     palate: get("palate"),
     texture: get("texture"),
+    breathing: get("breathing"),
     grapes: get("grapes"),
     style: get("style"),
   };
@@ -576,6 +578,18 @@ The more you share — what you enjoy, what you've tried, even what you definite
                               })}
                             </div>
                           ))}
+                      </div>
+                    )}
+                    {/* Breathing / decanting guidance */}
+                    {msg.wineCard.breathing && (
+                      <div style={{ padding: "8px 14px 10px", borderTop: "1px solid #EDEAE3", display: "flex", alignItems: "flex-start", gap: 7 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+                          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <div>
+                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
+                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.4 }}>{msg.wineCard.breathing}</div>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -27,6 +27,7 @@ interface Wine {
   nose_notes: string | null;
   palate_notes: string | null;
   texture: string | null;
+  breathing: string | null;
   tasting_data: Record<string, unknown> | null;
   sommy_comparison: string | null;
   created_at: string;
@@ -43,6 +44,7 @@ interface ParsedCard {
   nose: string;
   palate: string;
   texture: string;
+  breathing: string;
 }
 
 type SortField = "date" | "rating" | "price";
@@ -103,6 +105,7 @@ function parseWineCard(text: string): { card: ParsedCard | null; prose: string }
     nose: obj.nose || "",
     palate: obj.palate || "",
     texture: obj.texture || "",
+    breathing: obj.breathing || "",
   };
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
   return { card: card.name ? card : null, prose };
@@ -1006,6 +1009,7 @@ export default function Journal() {
           tastingData.tannin && `${tastingData.tannin} tannin`,
           tastingData.finish && `${tastingData.finish} finish`,
         ].filter(Boolean).join(", ") || null,
+        breathing: cleanField(cardData?.breathing) || null,
         tasting_data: tastingJson,
         sommy_comparison: sommyComparison || null,
         achievement,
@@ -1382,6 +1386,24 @@ export default function Journal() {
             {cardData && (cardData.nose || cardData.palate || cardData.texture) && (
               <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
                 <TastingPills nose={cardData.nose} palate={cardData.palate} texture={cardData.texture} />
+              </div>
+            )}
+
+            {/* Breathing / decanting guidance */}
+            {cardData?.breathing && (
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: 8,
+                padding: "10px 14px", marginBottom: 16,
+                background: "rgba(140,28,46,0.03)", border: "1px solid rgba(140,28,46,0.12)",
+                borderRadius: 10,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                <div>
+                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 3 }}>BREATHING</div>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5 }}>{cardData.breathing}</div>
+                </div>
               </div>
             )}
 
@@ -2091,6 +2113,23 @@ export default function Journal() {
                           {!wine.tasting_data && (wine.nose_notes || wine.palate_notes || wine.texture) && (
                             <div style={{ marginBottom: 10 }}>
                               <TastingPills nose={wine.nose_notes} palate={wine.palate_notes} texture={wine.texture} />
+                            </div>
+                          )}
+                          {/* Breathing guidance */}
+                          {wine.breathing && (
+                            <div style={{
+                              display: "flex", alignItems: "flex-start", gap: 8,
+                              padding: "8px 12px", marginBottom: 10,
+                              background: "rgba(140,28,46,0.03)", border: "1px solid rgba(140,28,46,0.12)",
+                              borderRadius: 8,
+                            }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+                                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                              </svg>
+                              <div>
+                                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
+                                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.4 }}>{wine.breathing}</div>
+                              </div>
                             </div>
                           )}
                           {/* Sommy's comparison (tasting mode) */}

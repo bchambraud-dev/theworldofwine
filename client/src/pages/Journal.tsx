@@ -587,6 +587,16 @@ export default function Journal() {
   // Tab state
   const [activeTab, setActiveTab] = useState<JournalTab>("journal");
 
+  // Auto-open log flow when arriving from nav with ?log=1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("log") === "1" && user) {
+      setStep("choose");
+      // Clean the URL param so refreshing doesn't re-trigger
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [user]);
+
   // Wine list
   const [wines, setWines] = useState<Wine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -603,6 +613,9 @@ export default function Journal() {
   const [wishlistName, setWishlistName] = useState("");
   const [wishlistWhy, setWishlistWhy] = useState("");
   const [wishlistSaving, setWishlistSaving] = useState(false);
+
+  // Wishlist scan state
+  const [wishlistScanning, setWishlistScanning] = useState(false);
 
   // Delete confirmation
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -728,6 +741,31 @@ export default function Journal() {
         const { card, prose } = parseWineCard(clean);
         setCardData(card);
         setSommyProse(prose);
+
+        // If scanning for wishlist, save directly and stay on wishlist tab
+        if (wishlistScanning && card) {
+          try {
+            await directInsert("wine_wishlist", {
+              user_id: user!.id,
+              wine_name: card.name,
+              producer: card.producer || null,
+              region: card.region || null,
+              grapes: card.grapes || null,
+              style: card.style || null,
+              price_estimate: card.price || null,
+              why: prose ? prose.slice(0, 200) : null,
+              source: "scan",
+            });
+            silentRefresh();
+            await load();
+          } catch (err) {
+            console.error("Wishlist scan save error:", err);
+          }
+          setWishlistScanning(false);
+          setStep("idle");
+          return;
+        }
+
         if (tastingMode) {
           setStep("tasting_look");
         } else {
@@ -737,10 +775,12 @@ export default function Journal() {
         // Fallback to manual
         setStep("manual");
         setTastingMode(false);
+        setWishlistScanning(false);
       }
     } catch (e) {
       console.error("Scan error:", e);
       setStep("manual");
+      setWishlistScanning(false);
     } finally {
       setScanning(false);
     }
@@ -2207,14 +2247,38 @@ export default function Journal() {
                   }}>{wishlistSaving ? "Adding..." : "Add to wishlist"}</button>
                 </div>
               </div>
-            ) : (
-              <button onClick={() => setShowWishlistForm(true)} style={{
-                width: "100%", padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
-                background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-                color: "#8C1C2E", cursor: "pointer", marginBottom: 16,
+            ) : (scanning && wishlistScanning) ? (
+              <div style={{
+                width: "100%", padding: "20px", border: "1.5px solid #EDEAE3", borderRadius: 12,
+                background: "white", textAlign: "center", marginBottom: 16,
               }}>
-                + Add to wishlist
-              </button>
+                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, color: "#8C1C2E", marginBottom: 6 }}>
+                  Sommy is reading the label...
+                </div>
+                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>
+                  This will be saved to your wishlist
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <button onClick={() => {
+                  setWishlistScanning(true);
+                  fileInputRef.current?.click();
+                }} style={{
+                  flex: 1, padding: "12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                  color: "#8C1C2E", cursor: "pointer",
+                }}>
+                  Scan a label
+                </button>
+                <button onClick={() => setShowWishlistForm(true)} style={{
+                  flex: 1, padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                  color: "#5A5248", cursor: "pointer",
+                }}>
+                  Add manually
+                </button>
+              </div>
             )}
 
             {/* Empty state */}

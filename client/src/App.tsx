@@ -61,7 +61,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
 
-type NavTab = "map" | "journeys" | "academy" | "list" | "news";
+type NavTab = "map" | "journeys" | "academy" | "list" | "news" | "journal";
 
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
@@ -76,6 +76,7 @@ function getActiveTab(path: string): NavTab | null {
   if (path.startsWith("/explore")) return "map";
   if (path.startsWith("/journey")) return "journeys";
   if (path.startsWith("/journeys")) return "journeys";
+  if (path.startsWith("/journal")) return "journal";
   if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
   if (path.startsWith("/news")) return "news";
   return null;
@@ -149,6 +150,20 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
 
         {/* Desktop nav tabs */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {user && (
+            <Link href="/journal?log=1" style={{ textDecoration: "none", marginRight: 4 }}>
+              <button
+                className={`nav-btn ${activeTab === "journal" ? "active" : ""}`}
+                data-testid="nav-log-wine"
+                style={{
+                  background: "#8C1C2E", color: "#F7F4EF",
+                  borderRadius: 20, padding: "6px 14px",
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                  letterSpacing: "0.08em", border: "none", cursor: "pointer",
+                }}
+              >+ LOG A WINE</button>
+            </Link>
+          )}
           {navTabs.map((tab) => (
             <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
               <button
@@ -252,6 +267,20 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
 
         {/* Nav links */}
         <nav className="mobile-menu-nav">
+          {user && (
+            <button
+              className="mobile-menu-link"
+              onClick={() => handleNavLink("/journal?log=1")}
+              data-testid="mobile-nav-log-wine"
+              style={{
+                background: "#8C1C2E", color: "#F7F4EF",
+                borderRadius: 12, padding: "12px 16px", marginBottom: 8,
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.65rem",
+                letterSpacing: "0.1em", border: "none", cursor: "pointer",
+                textAlign: "center", width: "100%",
+              }}
+            >+ LOG A WINE</button>
+          )}
           {navTabs.map((tab) => (
             <button
               key={tab.key}

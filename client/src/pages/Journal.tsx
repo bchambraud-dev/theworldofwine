@@ -181,21 +181,28 @@ const flavorKeywords: Record<string, string> = {
   blackberry: "fruit", blueberry: "fruit", apricot: "fruit", melon: "fruit",
   tropical: "fruit", grapefruit: "fruit", lime: "fruit", orange: "fruit",
   cranberry: "fruit", pomegranate: "fruit", dark: "fruit", red: "fruit",
+  cassis: "fruit", lychee: "fruit", mango: "fruit", strawberry: "fruit",
   // earth
   earth: "earth", mushroom: "earth", truffle: "earth", soil: "earth",
   tobacco: "earth", leather: "earth", mineral: "mineral", wet: "earth",
   forest: "earth", undergrowth: "earth", slate: "mineral", chalk: "mineral",
+  graphite: "mineral", tar: "earth", clay: "earth", "wet stone": "mineral",
   // oak / winemaking
   cedar: "oak", oak: "oak", vanilla: "oak", butter: "oak",
   toast: "oak", smoke: "oak", brioche: "oak", caramel: "oak",
   chocolate: "oak", coffee: "oak", mocha: "oak", charred: "oak",
+  "dark chocolate": "oak", espresso: "oak",
+  butterscotch: "oak", coconut: "oak",
   // floral
   violet: "floral", rose: "floral", floral: "floral", lavender: "floral",
   jasmine: "floral", blossom: "floral", petal: "floral", acacia: "floral",
+  "dried flowers": "floral", "orange blossom": "floral",
   // spice / herbal
   pepper: "spice", spice: "spice", cinnamon: "spice", clove: "spice",
   thyme: "spice", sage: "spice", herb: "spice", anise: "spice",
   licorice: "spice", nutmeg: "spice", dried: "spice",
+  "dried herbs": "spice", rosemary: "spice", ginger: "spice",
+  "black pepper": "spice", "white pepper": "spice",
 };
 
 function classifyNote(note: string): string {
@@ -255,6 +262,7 @@ interface TastingState {
   body: string;
   finish: string;
   palate_flavours: string[];
+  customAromas: string[];
 }
 
 const INITIAL_TASTING: TastingState = {
@@ -267,6 +275,7 @@ const INITIAL_TASTING: TastingState = {
   body: "",
   finish: "",
   palate_flavours: [],
+  customAromas: [],
 };
 
 const COLOUR_INTENSITY = ["Pale", "Medium", "Deep"];
@@ -277,11 +286,27 @@ const ROSE_HUES = ["Pink", "Salmon", "Copper"];
 const AROMA_INTENSITY = ["Light", "Medium", "Pronounced"];
 
 const AROMA_CATEGORIES: { label: string; items: string[] }[] = [
-  { label: "FRUIT", items: ["Cherry", "Blackberry", "Plum", "Raspberry", "Citrus", "Apple", "Pear", "Peach", "Tropical", "Fig", "Berry"] },
-  { label: "FLORAL", items: ["Violet", "Rose", "Lavender", "Blossom"] },
-  { label: "EARTH", items: ["Leather", "Tobacco", "Mushroom", "Forest", "Earth"] },
-  { label: "OAK", items: ["Vanilla", "Cedar", "Toast", "Smoke", "Coffee", "Chocolate"] },
-  { label: "SPICE", items: ["Pepper", "Cinnamon", "Clove", "Thyme", "Herbs"] },
+  { label: "FRUIT", items: [
+    "Cherry", "Blackberry", "Plum", "Raspberry", "Citrus", "Apple", "Pear",
+    "Peach", "Tropical", "Fig", "Berry", "Cassis", "Strawberry", "Blueberry",
+    "Apricot", "Lychee", "Mango", "Grapefruit", "Lime", "Cranberry", "Pomegranate",
+    "Dark fruit", "Red fruit",
+  ]},
+  { label: "FLORAL", items: ["Violet", "Rose", "Lavender", "Blossom", "Jasmine", "Acacia", "Orange blossom", "Dried flowers"] },
+  { label: "EARTH", items: [
+    "Leather", "Tobacco", "Mushroom", "Forest", "Earth", "Truffle",
+    "Wet stone", "Graphite", "Tar", "Clay", "Slate", "Mineral",
+  ]},
+  { label: "OAK", items: [
+    "Vanilla", "Cedar", "Toast", "Smoke", "Coffee", "Chocolate",
+    "Dark chocolate", "Espresso", "Caramel", "Brioche", "Butterscotch",
+    "Coconut", "Charred oak", "Mocha",
+  ]},
+  { label: "SPICE", items: [
+    "Pepper", "Black pepper", "White pepper", "Cinnamon", "Clove", "Thyme",
+    "Herbs", "Dried herbs", "Anise", "Licorice", "Nutmeg", "Sage",
+    "Rosemary", "Ginger",
+  ]},
 ];
 
 const SWEETNESS_OPTIONS = ["Dry", "Off-dry", "Medium", "Sweet", "Luscious"];
@@ -347,11 +372,30 @@ function TastingProgressBar({ currentStep }: { currentStep: number }) {
   );
 }
 
-function AromaPillGrid({ selected, onToggle, colorize = true }: {
+function AromaPillGrid({ selected, onToggle, customItems, onAddCustom, colorize = true }: {
   selected: string[];
   onToggle: (item: string) => void;
+  customItems?: string[];
+  onAddCustom?: (item: string) => void;
   colorize?: boolean;
 }) {
+  const [addingTo, setAddingTo] = React.useState<string | null>(null);
+  const [customInput, setCustomInput] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAddCustom = (catLabel: string) => {
+    const trimmed = customInput.trim();
+    if (trimmed && onAddCustom) {
+      onAddCustom(trimmed);
+      onToggle(trimmed);
+    }
+    setCustomInput("");
+    setAddingTo(null);
+  };
+
+  // Merge custom items into all categories as extra pills
+  const extras = (customItems || []).filter(ci => !AROMA_CATEGORIES.some(cat => cat.items.includes(ci)));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {AROMA_CATEGORIES.map(cat => (
@@ -382,6 +426,74 @@ function AromaPillGrid({ selected, onToggle, colorize = true }: {
           </div>
         </div>
       ))}
+      {/* Custom notes added by user */}
+      {extras.length > 0 && (
+        <div>
+          <div style={{
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
+            letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+            marginBottom: 6,
+          }}>YOUR NOTES</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {extras.map(item => {
+              const isSelected = selected.includes(item);
+              const c = colorize && isSelected ? (flavorColors[classifyNote(item)] || flavorColors.neutral) : flavorColors.neutral;
+              return (
+                <button key={item} onClick={() => onToggle(item)} style={{
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                  letterSpacing: "0.08em", padding: "5px 10px",
+                  background: isSelected ? c.bg : "transparent",
+                  color: isSelected ? c.color : "#5A5248",
+                  border: isSelected ? `1.5px solid ${c.border}` : "1px solid #EDEAE3",
+                  borderRadius: 8, textTransform: "uppercase", whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}>
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {/* Add custom note */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+        {addingTo === "custom" ? (
+          <form onSubmit={(e) => { e.preventDefault(); handleAddCustom("custom"); }} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input
+              ref={inputRef}
+              value={customInput}
+              onChange={e => setCustomInput(e.target.value)}
+              placeholder="Type a note..."
+              autoFocus
+              style={{
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                letterSpacing: "0.06em", padding: "5px 10px",
+                border: "1px solid #8C1C2E", borderRadius: 8,
+                background: "#F7F4EF", color: "#1A1410",
+                outline: "none", width: 130, textTransform: "uppercase",
+              }}
+            />
+            <button type="submit" style={{
+              fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+              padding: "5px 10px", background: "#8C1C2E", color: "#F7F4EF",
+              border: "none", borderRadius: 8, cursor: "pointer",
+            }}>ADD</button>
+            <button type="button" onClick={() => { setAddingTo(null); setCustomInput(""); }} style={{
+              fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+              padding: "5px 10px", background: "transparent", color: "#5A5248",
+              border: "1px solid #EDEAE3", borderRadius: 8, cursor: "pointer",
+            }}>CANCEL</button>
+          </form>
+        ) : (
+          <button onClick={() => setAddingTo("custom")} style={{
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+            letterSpacing: "0.08em", padding: "5px 10px",
+            background: "transparent", color: "#8C1C2E",
+            border: "1px dashed #8C1C2E", borderRadius: 8,
+            cursor: "pointer", textTransform: "uppercase",
+          }}>+ ADD YOUR OWN</button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1397,7 +1509,10 @@ export default function Journal() {
 
             <div style={{ marginBottom: 24 }}>
               <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>WHAT DO YOU SMELL?</div>
-              <AromaPillGrid selected={tastingData.nose_aromas} onToggle={item =>
+              <AromaPillGrid selected={tastingData.nose_aromas}
+                customItems={tastingData.customAromas}
+                onAddCustom={item => setTastingData(d => ({ ...d, customAromas: [...new Set([...d.customAromas, item])] }))}
+                onToggle={item =>
                 setTastingData(d => ({
                   ...d,
                   nose_aromas: d.nose_aromas.includes(item)
@@ -1463,7 +1578,10 @@ export default function Journal() {
 
             <div style={{ marginBottom: 24 }}>
               <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>WHAT FLAVOURS DO YOU TASTE?</div>
-              <AromaPillGrid selected={tastingData.palate_flavours} onToggle={item =>
+              <AromaPillGrid selected={tastingData.palate_flavours}
+                customItems={tastingData.customAromas}
+                onAddCustom={item => setTastingData(d => ({ ...d, customAromas: [...new Set([...d.customAromas, item])] }))}
+                onToggle={item =>
                 setTastingData(d => ({
                   ...d,
                   palate_flavours: d.palate_flavours.includes(item)
@@ -1637,7 +1755,10 @@ export default function Journal() {
             </div>
             <div style={{ marginBottom: 18 }}>
               <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>NOSE AROMAS</div>
-              <AromaPillGrid selected={tastingData.nose_aromas} onToggle={item =>
+              <AromaPillGrid selected={tastingData.nose_aromas}
+                customItems={tastingData.customAromas}
+                onAddCustom={item => setTastingData(d => ({ ...d, customAromas: [...new Set([...d.customAromas, item])] }))}
+                onToggle={item =>
                 setTastingData(d => ({
                   ...d,
                   nose_aromas: d.nose_aromas.includes(item) ? d.nose_aromas.filter(a => a !== item) : [...d.nose_aromas, item],
@@ -1679,7 +1800,10 @@ export default function Journal() {
             {/* Palate flavours */}
             <div style={{ marginBottom: 18 }}>
               <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>PALATE FLAVOURS</div>
-              <AromaPillGrid selected={tastingData.palate_flavours} onToggle={item =>
+              <AromaPillGrid selected={tastingData.palate_flavours}
+                customItems={tastingData.customAromas}
+                onAddCustom={item => setTastingData(d => ({ ...d, customAromas: [...new Set([...d.customAromas, item])] }))}
+                onToggle={item =>
                 setTastingData(d => ({
                   ...d,
                   palate_flavours: d.palate_flavours.includes(item) ? d.palate_flavours.filter(a => a !== item) : [...d.palate_flavours, item],

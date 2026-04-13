@@ -379,9 +379,9 @@ function AromaPillGrid({ selected, onToggle, customItems, onAddCustom, colorize 
   onAddCustom?: (item: string) => void;
   colorize?: boolean;
 }) {
-  const [addingTo, setAddingTo] = React.useState<string | null>(null);
-  const [customInput, setCustomInput] = React.useState("");
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [addingTo, setAddingTo] = useState<string | null>(null);
+  const [customInput, setCustomInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleAddCustom = (catLabel: string) => {
     const trimmed = customInput.trim();

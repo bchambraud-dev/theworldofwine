@@ -28,6 +28,8 @@ interface Wine {
   secondary_notes: string | null;
   nose: string | null;
   texture: string | null;
+  tasting_data: Record<string, unknown> | null;
+  sommy_comparison: string | null;
   created_at: string;
 }
 
@@ -46,7 +48,8 @@ interface ParsedCard {
 }
 
 type SortField = "date" | "rating" | "price";
-type LogStep = "idle" | "choose" | "manual" | "scanning" | "review" | "achievement";
+type LogStep = "idle" | "choose" | "manual" | "scanning" | "review" | "achievement"
+  | "tasting_look" | "tasting_smell" | "tasting_taste" | "tasting_take" | "tasting_reveal" | "tasting_edit";
 type JournalTab = "journal" | "wishlist";
 
 // Compress phone camera images (3-5MB) down to ~150KB before upload/API call
@@ -245,6 +248,149 @@ function TastingPills({ primary, secondary, nose, texture }: {
   );
 }
 
+// ── Tasting mode data ────────────────────────────────────────────────────────
+
+interface TastingState {
+  appearance: { intensity: string; hue: string };
+  nose_intensity: string;
+  nose_aromas: string[];
+  sweetness: string;
+  acidity: string;
+  tannin: string;
+  body: string;
+  finish: string;
+  palate_flavours: string[];
+}
+
+const INITIAL_TASTING: TastingState = {
+  appearance: { intensity: "", hue: "" },
+  nose_intensity: "",
+  nose_aromas: [],
+  sweetness: "",
+  acidity: "",
+  tannin: "",
+  body: "",
+  finish: "",
+  palate_flavours: [],
+};
+
+const COLOUR_INTENSITY = ["Pale", "Medium", "Deep"];
+const RED_HUES = ["Ruby", "Garnet", "Purple", "Tawny"];
+const WHITE_HUES = ["Lemon", "Gold", "Amber"];
+const ROSE_HUES = ["Pink", "Salmon", "Copper"];
+
+const AROMA_INTENSITY = ["Light", "Medium", "Pronounced"];
+
+const AROMA_CATEGORIES: { label: string; items: string[] }[] = [
+  { label: "FRUIT", items: ["Cherry", "Blackberry", "Plum", "Raspberry", "Citrus", "Apple", "Pear", "Peach", "Tropical", "Fig", "Berry"] },
+  { label: "FLORAL", items: ["Violet", "Rose", "Lavender", "Blossom"] },
+  { label: "EARTH", items: ["Leather", "Tobacco", "Mushroom", "Forest", "Earth"] },
+  { label: "OAK", items: ["Vanilla", "Cedar", "Toast", "Smoke", "Coffee", "Chocolate"] },
+  { label: "SPICE", items: ["Pepper", "Cinnamon", "Clove", "Thyme", "Herbs"] },
+];
+
+const SWEETNESS_OPTIONS = ["Dry", "Off-dry", "Medium", "Sweet", "Luscious"];
+const ACIDITY_OPTIONS = ["Low", "Medium-", "Medium", "Medium+", "High"];
+const TANNIN_OPTIONS = ["Low", "Medium-", "Medium", "Medium+", "High"];
+const BODY_OPTIONS = ["Light", "Medium-", "Medium", "Medium+", "Full"];
+const FINISH_OPTIONS = ["Short", "Medium-", "Medium", "Medium+", "Long"];
+
+const TASTING_STEPS = ["LOOK", "SMELL", "TASTE", "YOUR TAKE"];
+
+function isRedWine(style: string | undefined): boolean {
+  if (!style) return true; // default to showing tannin
+  const s = style.toLowerCase();
+  return s.includes("red") || s.includes("bold") || s.includes("structured") || s.includes("tannin");
+}
+
+function isRoseWine(style: string | undefined): boolean {
+  if (!style) return false;
+  return style.toLowerCase().includes("ros");
+}
+
+function getHueOptions(style: string | undefined): string[] {
+  if (isRoseWine(style)) return ROSE_HUES;
+  if (isRedWine(style)) return RED_HUES;
+  return WHITE_HUES;
+}
+
+function SegmentedControl({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: "flex", gap: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #EDEAE3" }}>
+      {options.map(opt => (
+        <button key={opt} onClick={() => onChange(opt)} style={{
+          flex: 1, padding: "9px 6px", border: "none", cursor: "pointer",
+          background: value === opt ? "#8C1C2E" : "#F7F4EF",
+          color: value === opt ? "#F7F4EF" : "#5A5248",
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+          letterSpacing: "0.06em", textTransform: "uppercase",
+          borderRight: "1px solid #EDEAE3",
+        }}>
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TastingProgressBar({ currentStep }: { currentStep: number }) {
+  return (
+    <div style={{ display: "flex", gap: 3, marginBottom: 20 }}>
+      {TASTING_STEPS.map((label, i) => (
+        <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <div style={{
+            height: 3, width: "100%", borderRadius: 2,
+            background: i <= currentStep ? "#8C1C2E" : "#EDEAE3",
+          }} />
+          <span style={{
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem",
+            letterSpacing: "0.1em", color: i <= currentStep ? "#8C1C2E" : "#D4D1CA",
+          }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AromaPillGrid({ selected, onToggle, colorize = true }: {
+  selected: string[];
+  onToggle: (item: string) => void;
+  colorize?: boolean;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {AROMA_CATEGORIES.map(cat => (
+        <div key={cat.label}>
+          <div style={{
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
+            letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+            marginBottom: 6,
+          }}>{cat.label}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {cat.items.map(item => {
+              const isSelected = selected.includes(item);
+              const c = colorize && isSelected ? (flavorColors[classifyNote(item)] || flavorColors.neutral) : flavorColors.neutral;
+              return (
+                <button key={item} onClick={() => onToggle(item)} style={{
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                  letterSpacing: "0.08em", padding: "5px 10px",
+                  background: isSelected ? c.bg : "transparent",
+                  color: isSelected ? c.color : "#5A5248",
+                  border: isSelected ? `1.5px solid ${c.border}` : "1px solid #EDEAE3",
+                  borderRadius: 8, textTransform: "uppercase", whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}>
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Achievement engine ──────────────────────────────────────────────────────────
 
 function computeAchievement(
@@ -390,6 +536,12 @@ export default function Journal() {
   const [manualName, setManualName] = useState("");
   const [manualRegion, setManualRegion] = useState("");
 
+  // Tasting mode state
+  const [tastingData, setTastingData] = useState<TastingState>(INITIAL_TASTING);
+  const [sommyComparison, setSommyComparison] = useState("");
+  const [comparingWithSommy, setComparingWithSommy] = useState(false);
+  const [tastingMode, setTastingMode] = useState(false); // tracks if current scan is tasting mode
+
   // ── Load wines ──────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -470,10 +622,15 @@ export default function Journal() {
         const { card, prose } = parseWineCard(clean);
         setCardData(card);
         setSommyProse(prose);
-        setStep("review");
+        if (tastingMode) {
+          setStep("tasting_look");
+        } else {
+          setStep("review");
+        }
       } else {
         // Fallback to manual
         setStep("manual");
+        setTastingMode(false);
       }
     } catch (e) {
       console.error("Scan error:", e);
@@ -572,6 +729,160 @@ export default function Journal() {
     }
   };
 
+  // ── Tasting compare API call ────────────────────────────────────────────────
+
+  const fetchSommyComparison = async () => {
+    if (!cardData) return;
+    setComparingWithSommy(true);
+    try {
+      const res = await fetch("/api/tasting-compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wine_card: {
+            name: cardData.name,
+            producer: cardData.producer,
+            region: cardData.region,
+            grapes: cardData.grapes,
+            style: cardData.style,
+            primary: cardData.primary,
+            secondary: cardData.secondary,
+            nose: cardData.nose,
+            texture: cardData.texture,
+          },
+          user_tasting: {
+            appearance: tastingData.appearance,
+            nose_intensity: tastingData.nose_intensity,
+            nose_aromas: tastingData.nose_aromas,
+            sweetness: tastingData.sweetness,
+            acidity: tastingData.acidity,
+            tannin: tastingData.tannin,
+            body: tastingData.body,
+            finish: tastingData.finish,
+            palate_flavours: tastingData.palate_flavours,
+            rating,
+            user_notes: notes,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setSommyComparison(data.text || "");
+      setStep("tasting_reveal");
+    } catch (e) {
+      console.error("Tasting compare error:", e);
+      // Still go to reveal even if comparison fails
+      setSommyComparison("I wasn't able to generate my comparison this time, but your tasting notes are saved. Let's compare next time.");
+      setStep("tasting_reveal");
+    } finally {
+      setComparingWithSommy(false);
+    }
+  };
+
+  // ── Save tasting wine ─────────────────────────────────────────────────────
+
+  const saveTastingWine = async () => {
+    if (!user || !cardData) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const token = getAccessToken();
+      if (!token) throw new Error("Session expired. Please sign in again.");
+
+      // Upload label image
+      let imgUrl: string | null = null;
+      if (imageBase64) {
+        try {
+          const byteChars = atob(imageBase64);
+          const byteArray = new Uint8Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+          const blob = new Blob([byteArray], { type: imageMediaType });
+          const ext = imageMediaType.includes("png") ? "png" : "jpg";
+          const path = `${user.id}/${Date.now()}.${ext}`;
+          const uploadRes = await Promise.race([
+            fetch(`${SUPABASE_URL}/storage/v1/object/wine-labels/${path}`, {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${token}`, "apikey": ANON_KEY, "Content-Type": imageMediaType },
+              body: blob,
+            }),
+            new Promise<Response>((_, reject) => setTimeout(() => reject(new Error("Upload timeout")), 10000)),
+          ]);
+          if (uploadRes.ok) {
+            imgUrl = `${SUPABASE_URL}/storage/v1/object/public/wine-labels/${path}`;
+          }
+        } catch (uploadErr) {
+          console.warn("Image upload failed, continuing without image:", uploadErr);
+        }
+      }
+
+      const achievement = computeAchievement(
+        { region: cardData.region, grapes: cardData.grapes, price_estimate: cardData.price },
+        wines,
+      );
+
+      const vintageStr = cleanField(cardData.vintage);
+      const vintageNum = vintageStr ? parseInt(vintageStr) : null;
+
+      // Build tasting_data JSON with both user and Sommy data
+      const tastingJson = {
+        appearance: tastingData.appearance,
+        nose_intensity: tastingData.nose_intensity,
+        nose_aromas: tastingData.nose_aromas,
+        sweetness: tastingData.sweetness,
+        acidity: tastingData.acidity,
+        tannin: tastingData.tannin,
+        body: tastingData.body,
+        finish: tastingData.finish,
+        palate_flavours: tastingData.palate_flavours,
+        sommy_primary: cardData.primary,
+        sommy_secondary: cardData.secondary,
+        sommy_nose: cardData.nose,
+        sommy_texture: cardData.texture,
+      };
+
+      const row = {
+        user_id: user.id,
+        wine_name: cardData.name,
+        producer: cleanField(cardData.producer) || null,
+        vintage: (vintageNum && !isNaN(vintageNum)) ? vintageNum : null,
+        region: cleanField(cardData.region) || null,
+        grapes: cleanField(cardData.grapes) || null,
+        style: cleanField(cardData.style) || null,
+        personal_rating: rating || null,
+        date_tasted: date || null,
+        notes: notes.trim() || null,
+        image_url: imgUrl,
+        price_estimate: cleanField(cardData.price) || null,
+        sommy_description: sommyProse || null,
+        // User's tasting selections as comma-separated strings
+        primary_notes: tastingData.palate_flavours.length > 0 ? tastingData.palate_flavours.join(", ") : null,
+        secondary_notes: null,
+        nose: tastingData.nose_aromas.length > 0 ? tastingData.nose_aromas.join(", ") : null,
+        texture: [
+          tastingData.body && `${tastingData.body} body`,
+          tastingData.acidity && `${tastingData.acidity} acidity`,
+          tastingData.tannin && `${tastingData.tannin} tannin`,
+          tastingData.finish && `${tastingData.finish} finish`,
+        ].filter(Boolean).join(", ") || null,
+        tasting_data: tastingJson,
+        sommy_comparison: sommyComparison || null,
+        achievement,
+      };
+
+      await directInsert("wine_journal", row);
+
+      setAchievementMsg(achievement);
+      setStep("achievement");
+      await load();
+      silentRefresh();
+    } catch (e: any) {
+      console.error("Save tasting wine error:", e);
+      setSaveError(e?.message || "Failed to save. Try signing out and back in.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── Reset flow ──────────────────────────────────────────────────────────────
 
   const resetFlow = () => {
@@ -586,6 +897,10 @@ export default function Journal() {
     setManualName("");
     setManualRegion("");
     setAchievementMsg("");
+    setTastingData(INITIAL_TASTING);
+    setSommyComparison("");
+    setComparingWithSommy(false);
+    setTastingMode(false);
   };
 
   // ── Delete wine (with confirmation) ───────────────────────────────────────
@@ -847,6 +1162,26 @@ export default function Journal() {
                   </div>
                 </div>
               </button>
+              <button onClick={() => { setTastingMode(true); fileInputRef.current?.click(); }} style={{
+                background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
+                cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
+              }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(140,28,46,0.04)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 2h8l4 10H4L8 2z" />
+                    <path d="M12 12v8" />
+                    <path d="M8 22h8" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
+                    Tasting mode
+                  </div>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
+                    Taste along and compare notes with Sommy
+                  </div>
+                </div>
+              </button>
             </div>
             <button onClick={resetFlow} style={{
               width: "100%", padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10,
@@ -1018,6 +1353,383 @@ export default function Journal() {
           </div>
         )}
 
+        {/* ── Step: Tasting — Look ── */}
+        {step === "tasting_look" && (
+          <div style={{ marginBottom: 24 }}>
+            <TastingProgressBar currentStep={0} />
+            <div style={{ ...mono(), color: "#8C1C2E", marginBottom: 6, fontSize: "0.65rem" }}>STEP 1 OF 4</div>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Look</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", marginBottom: 20, lineHeight: 1.5 }}>
+              Hold your glass up. What do you see?
+            </p>
+
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>COLOUR INTENSITY</div>
+              <SegmentedControl options={COLOUR_INTENSITY} value={tastingData.appearance.intensity}
+                onChange={v => setTastingData(d => ({ ...d, appearance: { ...d.appearance, intensity: v } }))} />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>COLOUR HUE</div>
+              <SegmentedControl options={getHueOptions(cardData?.style)} value={tastingData.appearance.hue}
+                onChange={v => setTastingData(d => ({ ...d, appearance: { ...d.appearance, hue: v } }))} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={resetFlow} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Cancel</button>
+              <button onClick={() => setStep("tasting_smell")} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, cursor: "pointer",
+              }}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step: Tasting — Smell ── */}
+        {step === "tasting_smell" && (
+          <div style={{ marginBottom: 24 }}>
+            <TastingProgressBar currentStep={1} />
+            <div style={{ ...mono(), color: "#8C1C2E", marginBottom: 6, fontSize: "0.65rem" }}>STEP 2 OF 4</div>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Smell</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", marginBottom: 20, lineHeight: 1.5 }}>
+              Swirl gently, then take a breath. What aromas come through?
+            </p>
+
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>AROMA INTENSITY</div>
+              <SegmentedControl options={AROMA_INTENSITY} value={tastingData.nose_intensity}
+                onChange={v => setTastingData(d => ({ ...d, nose_intensity: v }))} />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>WHAT DO YOU SMELL?</div>
+              <AromaPillGrid selected={tastingData.nose_aromas} onToggle={item =>
+                setTastingData(d => ({
+                  ...d,
+                  nose_aromas: d.nose_aromas.includes(item)
+                    ? d.nose_aromas.filter(a => a !== item)
+                    : [...d.nose_aromas, item],
+                }))
+              } />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setStep("tasting_look")} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Back</button>
+              <button onClick={() => setStep("tasting_taste")} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, cursor: "pointer",
+              }}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step: Tasting — Taste ── */}
+        {step === "tasting_taste" && (
+          <div style={{ marginBottom: 24 }}>
+            <TastingProgressBar currentStep={2} />
+            <div style={{ ...mono(), color: "#8C1C2E", marginBottom: 6, fontSize: "0.65rem" }}>STEP 3 OF 4</div>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Taste</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", marginBottom: 20, lineHeight: 1.5 }}>
+              Take a sip. Let it sit on your tongue.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>SWEETNESS</div>
+                <SegmentedControl options={SWEETNESS_OPTIONS} value={tastingData.sweetness}
+                  onChange={v => setTastingData(d => ({ ...d, sweetness: v }))} />
+              </div>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>ACIDITY</div>
+                <SegmentedControl options={ACIDITY_OPTIONS} value={tastingData.acidity}
+                  onChange={v => setTastingData(d => ({ ...d, acidity: v }))} />
+              </div>
+              {isRedWine(cardData?.style) && (
+                <div>
+                  <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>TANNIN</div>
+                  <SegmentedControl options={TANNIN_OPTIONS} value={tastingData.tannin}
+                    onChange={v => setTastingData(d => ({ ...d, tannin: v }))} />
+                </div>
+              )}
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>BODY</div>
+                <SegmentedControl options={BODY_OPTIONS} value={tastingData.body}
+                  onChange={v => setTastingData(d => ({ ...d, body: v }))} />
+              </div>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>FINISH</div>
+                <SegmentedControl options={FINISH_OPTIONS} value={tastingData.finish}
+                  onChange={v => setTastingData(d => ({ ...d, finish: v }))} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>WHAT FLAVOURS DO YOU TASTE?</div>
+              <AromaPillGrid selected={tastingData.palate_flavours} onToggle={item =>
+                setTastingData(d => ({
+                  ...d,
+                  palate_flavours: d.palate_flavours.includes(item)
+                    ? d.palate_flavours.filter(a => a !== item)
+                    : [...d.palate_flavours, item],
+                }))
+              } />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setStep("tasting_smell")} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Back</button>
+              <button onClick={() => setStep("tasting_take")} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, cursor: "pointer",
+              }}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step: Tasting — Your Take ── */}
+        {step === "tasting_take" && (
+          <div style={{ marginBottom: 24 }}>
+            <TastingProgressBar currentStep={3} />
+            <div style={{ ...mono(), color: "#8C1C2E", marginBottom: 6, fontSize: "0.65rem" }}>STEP 4 OF 4</div>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Your Take</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", marginBottom: 20, lineHeight: 1.5 }}>
+              In your own words — what did you think?
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>YOUR RATING</div>
+              <Stars value={rating} onChange={setRating} size="1.4rem" />
+            </div>
+
+            <textarea
+              placeholder="Your overall impression..."
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={4}
+              style={{ ...inputStyle, resize: "vertical", marginBottom: 12 }}
+            />
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>DATE TASTED</div>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setStep("tasting_taste")} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Back</button>
+              <button onClick={fetchSommyComparison} disabled={comparingWithSommy} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: comparingWithSommy ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400,
+                cursor: comparingWithSommy ? "default" : "pointer",
+              }}>
+                {comparingWithSommy ? "Comparing..." : "See Sommy's take"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step: Tasting — Sommy's Reveal ── */}
+        {step === "tasting_reveal" && (
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Sommy's Take</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", marginBottom: 20 }}>
+              Here's how I saw it
+            </p>
+
+            {/* Wine card summary */}
+            {cardData && (
+              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "16px", marginBottom: 14 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.05rem", fontWeight: 400, color: "#1A1410", marginBottom: 4, lineHeight: 1.3 }}>
+                  {cardData.name}
+                  {cleanField(cardData.vintage) && <span style={{ fontWeight: 300 }}> {cleanField(cardData.vintage)}</span>}
+                </div>
+                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginBottom: 8 }}>
+                  {[cardData.producer, cardData.region].filter(Boolean).join(" · ")}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {cardData.grapes && <span style={{ ...mono("0.52rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{cardData.grapes.toUpperCase()}</span>}
+                  {cardData.style && <span style={{ ...mono("0.52rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{cardData.style.toUpperCase()}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* Sommy's tasting pills */}
+            {cardData && (cardData.primary || cardData.secondary || cardData.nose || cardData.texture) && (
+              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+                <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#8C1C2E" }}>SOMMY'S TASTING NOTES</div>
+                <TastingPills primary={cardData.primary} secondary={cardData.secondary} nose={cardData.nose} texture={cardData.texture} />
+              </div>
+            )}
+
+            {/* Sommy's reflective comparison */}
+            {sommyComparison && (
+              <div style={{
+                fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+                color: "#1A1410", lineHeight: 1.65, marginBottom: 20,
+                padding: "16px", background: "rgba(140,28,46,0.03)", borderRadius: 12,
+              }}>
+                {sommyComparison}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setStep("tasting_edit")} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Edit my notes</button>
+              <button onClick={saveTastingWine} disabled={saving} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: saving ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400,
+                cursor: saving ? "default" : "pointer",
+              }}>{saving ? "Saving..." : "Save to journal"}</button>
+            </div>
+            {saveError && (
+              <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", color: "#8C1C2E", marginTop: 10, textAlign: "center" }}>{saveError}</p>
+            )}
+          </div>
+        )}
+
+        {/* ── Step: Tasting — Edit ── */}
+        {step === "tasting_edit" && (
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", margin: "0 0 6px" }}>Refine Your Notes</h2>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", marginBottom: 16 }}>
+              Update anything after seeing Sommy's perspective
+            </p>
+
+            {/* Collapsed Sommy comparison reference */}
+            {sommyComparison && (
+              <details style={{ marginBottom: 18 }}>
+                <summary style={{
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.1em",
+                  color: "#8C1C2E", cursor: "pointer", padding: "8px 0",
+                }}>SOMMY'S COMPARISON</summary>
+                <div style={{
+                  fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300,
+                  color: "#5A5248", lineHeight: 1.55, padding: "10px 14px",
+                  background: "rgba(140,28,46,0.03)", borderRadius: 10, marginTop: 6,
+                }}>{sommyComparison}</div>
+              </details>
+            )}
+
+            {/* Appearance */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>APPEARANCE — INTENSITY</div>
+              <SegmentedControl options={COLOUR_INTENSITY} value={tastingData.appearance.intensity}
+                onChange={v => setTastingData(d => ({ ...d, appearance: { ...d.appearance, intensity: v } }))} />
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>APPEARANCE — HUE</div>
+              <SegmentedControl options={getHueOptions(cardData?.style)} value={tastingData.appearance.hue}
+                onChange={v => setTastingData(d => ({ ...d, appearance: { ...d.appearance, hue: v } }))} />
+            </div>
+
+            {/* Nose */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>NOSE INTENSITY</div>
+              <SegmentedControl options={AROMA_INTENSITY} value={tastingData.nose_intensity}
+                onChange={v => setTastingData(d => ({ ...d, nose_intensity: v }))} />
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>NOSE AROMAS</div>
+              <AromaPillGrid selected={tastingData.nose_aromas} onToggle={item =>
+                setTastingData(d => ({
+                  ...d,
+                  nose_aromas: d.nose_aromas.includes(item) ? d.nose_aromas.filter(a => a !== item) : [...d.nose_aromas, item],
+                }))
+              } />
+            </div>
+
+            {/* Palate scales */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 18 }}>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>SWEETNESS</div>
+                <SegmentedControl options={SWEETNESS_OPTIONS} value={tastingData.sweetness}
+                  onChange={v => setTastingData(d => ({ ...d, sweetness: v }))} />
+              </div>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>ACIDITY</div>
+                <SegmentedControl options={ACIDITY_OPTIONS} value={tastingData.acidity}
+                  onChange={v => setTastingData(d => ({ ...d, acidity: v }))} />
+              </div>
+              {isRedWine(cardData?.style) && (
+                <div>
+                  <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>TANNIN</div>
+                  <SegmentedControl options={TANNIN_OPTIONS} value={tastingData.tannin}
+                    onChange={v => setTastingData(d => ({ ...d, tannin: v }))} />
+                </div>
+              )}
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>BODY</div>
+                <SegmentedControl options={BODY_OPTIONS} value={tastingData.body}
+                  onChange={v => setTastingData(d => ({ ...d, body: v }))} />
+              </div>
+              <div>
+                <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>FINISH</div>
+                <SegmentedControl options={FINISH_OPTIONS} value={tastingData.finish}
+                  onChange={v => setTastingData(d => ({ ...d, finish: v }))} />
+              </div>
+            </div>
+
+            {/* Palate flavours */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#5A5248" }}>PALATE FLAVOURS</div>
+              <AromaPillGrid selected={tastingData.palate_flavours} onToggle={item =>
+                setTastingData(d => ({
+                  ...d,
+                  palate_flavours: d.palate_flavours.includes(item) ? d.palate_flavours.filter(a => a !== item) : [...d.palate_flavours, item],
+                }))
+              } />
+            </div>
+
+            {/* Rating */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ ...mono("0.55rem"), marginBottom: 8, color: "#5A5248" }}>RATING</div>
+              <Stars value={rating} onChange={setRating} size="1.4rem" />
+            </div>
+
+            {/* Notes */}
+            <textarea
+              placeholder="Your overall impression..."
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+              style={{ ...inputStyle, resize: "vertical", marginBottom: 20 }}
+            />
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setStep("tasting_reveal")} style={{
+                flex: 1, padding: "12px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+              }}>Back</button>
+              <button onClick={saveTastingWine} disabled={saving} style={{
+                flex: 1, padding: "12px", border: "none", borderRadius: 10,
+                background: saving ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400,
+                cursor: saving ? "default" : "pointer",
+              }}>{saving ? "Saving..." : "Save to journal"}</button>
+            </div>
+            {saveError && (
+              <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", color: "#8C1C2E", marginTop: 10, textAlign: "center" }}>{saveError}</p>
+            )}
+          </div>
+        )}
+
         {/* ═══════════════ JOURNAL TAB ═══════════════ */}
         {activeTab === "journal" && (
           <>
@@ -1134,10 +1846,106 @@ export default function Journal() {
                             {wine.grapes && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.grapes.toUpperCase()}</span>}
                             {wine.style && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.style.toUpperCase()}</span>}
                           </div>
-                          {/* Tasting characteristics */}
-                          {(wine.primary_notes || wine.secondary_notes || wine.nose || wine.texture) && (
+                          {/* Tasting mode detail — structured data */}
+                          {wine.tasting_data && (
+                            <div style={{ marginBottom: 12 }}>
+                              <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 8 }}>YOUR TASTING</div>
+                              {/* Appearance */}
+                              {((wine.tasting_data as any).appearance?.intensity || (wine.tasting_data as any).appearance?.hue) && (
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>APPEARANCE</span>
+                                  {(wine.tasting_data as any).appearance?.intensity && (
+                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                      {(wine.tasting_data as any).appearance.intensity}
+                                    </span>
+                                  )}
+                                  {(wine.tasting_data as any).appearance?.hue && (
+                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                      {(wine.tasting_data as any).appearance.hue}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {/* Nose aromas from tasting */}
+                              {(wine.tasting_data as any).nose_aromas?.length > 0 && (
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6, alignItems: "center" }}>
+                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>NOSE</span>
+                                  {(wine.tasting_data as any).nose_intensity && (
+                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                      {(wine.tasting_data as any).nose_intensity}
+                                    </span>
+                                  )}
+                                  {((wine.tasting_data as any).nose_aromas as string[]).map((a: string, i: number) => {
+                                    const c = flavorColors[classifyNote(a)] || flavorColors.neutral;
+                                    return (
+                                      <span key={i} style={{
+                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
+                                        letterSpacing: "0.08em", padding: "2px 7px",
+                                        background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                                        borderRadius: 5, textTransform: "uppercase",
+                                      }}>{a}</span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {/* Palate scales */}
+                              {((wine.tasting_data as any).sweetness || (wine.tasting_data as any).acidity || (wine.tasting_data as any).body) && (
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>PALATE</span>
+                                  {(wine.tasting_data as any).sweetness && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).sweetness}</span>}
+                                  {(wine.tasting_data as any).acidity && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).acidity} acid</span>}
+                                  {(wine.tasting_data as any).tannin && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).tannin} tannin</span>}
+                                  {(wine.tasting_data as any).body && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).body} body</span>}
+                                  {(wine.tasting_data as any).finish && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).finish} finish</span>}
+                                </div>
+                              )}
+                              {/* Palate flavours from tasting */}
+                              {(wine.tasting_data as any).palate_flavours?.length > 0 && (
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6, alignItems: "center" }}>
+                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>FLAVOURS</span>
+                                  {((wine.tasting_data as any).palate_flavours as string[]).map((a: string, i: number) => {
+                                    const c = flavorColors[classifyNote(a)] || flavorColors.neutral;
+                                    return (
+                                      <span key={i} style={{
+                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
+                                        letterSpacing: "0.08em", padding: "2px 7px",
+                                        background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                                        borderRadius: 5, textTransform: "uppercase",
+                                      }}>{a}</span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {/* Sommy's tasting (for tasting mode entries) */}
+                          {wine.tasting_data && ((wine.tasting_data as any).sommy_primary || (wine.tasting_data as any).sommy_nose) && (
+                            <div style={{ marginBottom: 10 }}>
+                              <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
+                              <TastingPills
+                                primary={(wine.tasting_data as any).sommy_primary}
+                                secondary={(wine.tasting_data as any).sommy_secondary}
+                                nose={(wine.tasting_data as any).sommy_nose}
+                                texture={(wine.tasting_data as any).sommy_texture}
+                              />
+                            </div>
+                          )}
+                          {/* Tasting characteristics (for non-tasting-mode entries) */}
+                          {!wine.tasting_data && (wine.primary_notes || wine.secondary_notes || wine.nose || wine.texture) && (
                             <div style={{ marginBottom: 10 }}>
                               <TastingPills primary={wine.primary_notes} secondary={wine.secondary_notes} nose={wine.nose} texture={wine.texture} />
+                            </div>
+                          )}
+                          {/* Sommy's comparison (tasting mode) */}
+                          {wine.sommy_comparison && (
+                            <div style={{
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300,
+                              color: "#1A1410", lineHeight: 1.55, margin: "0 0 10px",
+                              padding: "12px 14px", background: "rgba(140,28,46,0.03)", borderRadius: 10,
+                              borderLeft: "3px solid rgba(140,28,46,0.15)",
+                            }}>
+                              <div style={{ ...mono("0.48rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S COMPARISON</div>
+                              {wine.sommy_comparison}
                             </div>
                           )}
                           {/* Sommy's description */}

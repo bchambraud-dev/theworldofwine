@@ -43,23 +43,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Single subscription only — onAuthStateChange fires INITIAL_SESSION
-    // immediately if a stored session exists, so getSession() is redundant
-    // and causes the double-fire that thrashes child component effects.
+    // 1. getSession() fires immediately with the stored session.
+    //    The Supabase client auto-refreshes expired tokens internally
+    //    before making REST calls, so fetchProfile works even if the
+    //    stored access_token has expired.
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      const nextUser = session?.user ?? null;
+      setUser(prev => (prev?.id === nextUser?.id ? prev : nextUser));
+      try {
+        if (nextUser) await fetchProfile(nextUser.id);
+      } catch (e) {
+        console.error("fetchProfile error (getSession):", e);
+      }
+      if (!initialized.current) {
+        initialized.current = true;
+        setLoading(false);
+      }
+    });
+
+    // 2. onAuthStateChange handles subsequent events: token refresh,
+    //    sign-out, new sign-in. The user object is stabilised by ID
+    //    so downstream effects don't re-fire on every token refresh.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
-
         const nextUser = session?.user ?? null;
-
-        // Stabilise the user object: only replace the reference if the
-        // user ID actually changed. Without this, every auth token refresh
-        // creates a new object → downstream useEffect deps fire repeatedly.
-        setUser(prev => {
-          if (prev?.id === nextUser?.id) return prev;
-          return nextUser;
-        });
-
+        setUser(prev => (prev?.id === nextUser?.id ? prev : nextUser));
         try {
           if (nextUser) {
             await fetchProfile(nextUser.id);
@@ -67,12 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setProfile(null);
           }
         } catch (e) {
-          console.error("fetchProfile error:", e);
+          console.error("fetchProfile error (authChange):", e);
         } finally {
+          // Always clear loading in case getSession didn't fire first
           if (!initialized.current) {
             initialized.current = true;
-            setLoading(false);
-          } else {
             setLoading(false);
           }
         }

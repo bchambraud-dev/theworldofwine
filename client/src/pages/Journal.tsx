@@ -344,6 +344,26 @@ export default function Journal() {
   };
 
   // ── Save wine ───────────────────────────────────────────────────────────────
+  //
+  // The Supabase JS client gates EVERY operation behind an internal auth lock
+  // (navigator.locks + initializePromise). If the auth state is in limbo
+  // (e.g. token refresh in progress, or initialize never resolved after an
+  // OAuth callback error), supabase.from().insert() silently hangs forever.
+  //
+  // To avoid this, the insert uses raw fetch() with the access token read
+  // directly from the Supabase session in localStorage. This bypasses the
+  // auth lock entirely.
+
+  const getAccessToken = (): string | null => {
+    try {
+      const raw = localStorage.getItem("sb-ycgxczvsxiilqzvyzpso-auth-token");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || null;
+    } catch {
+      return null;
+    }
+  };
 
   const saveWine = async () => {
     if (!user) return;
@@ -353,31 +373,42 @@ export default function Journal() {
     setSaving(true);
     setSaveError("");
     try {
-      // Ensure we have a valid auth session before any Supabase call.
-      // If the token expired during the scan step, this forces a refresh.
-      let { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr || !sessionData.session) {
-        // Try a forced refresh before giving up
-        const { error: refreshErr } = await supabase.auth.refreshSession();
-        if (refreshErr) {
-          throw new Error("Session expired. Please sign in again.");
-        }
-        // Re-read after refresh
-        const recheck = await supabase.auth.getSession();
-        if (!recheck.data.session) {
-          throw new Error("Session expired. Please sign in again.");
-        }
+      // Read access token directly from localStorage — bypasses Supabase's
+      // internal auth lock which can hang indefinitely.
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("Session expired. Please sign in again.");
       }
 
       // Upload label image (10s timeout — save the wine even if upload is slow)
       let imgUrl: string | null = null;
-      try {
-        imgUrl = await Promise.race([
-          uploadImage(),
-          new Promise<null>(resolve => setTimeout(() => resolve(null), 10000)),
-        ]);
-      } catch (uploadErr) {
-        console.warn("Image upload failed, continuing without image:", uploadErr);
+      if (imageBase64) {
+        try {
+          const byteChars = atob(imageBase64);
+          const byteArray = new Uint8Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+          const blob = new Blob([byteArray], { type: imageMediaType });
+          const ext = imageMediaType.includes("png") ? "png" : "jpg";
+          const path = `${user.id}/${Date.now()}.${ext}`;
+
+          const uploadRes = await Promise.race([
+            fetch(`https://ycgxczvsxiilqzvyzpso.supabase.co/storage/v1/object/wine-labels/${path}`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${token}`,
+                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4",
+                "Content-Type": imageMediaType,
+              },
+              body: blob,
+            }),
+            new Promise<Response>((_, reject) => setTimeout(() => reject(new Error("Upload timeout")), 10000)),
+          ]);
+          if (uploadRes.ok) {
+            imgUrl = `https://ycgxczvsxiilqzvyzpso.supabase.co/storage/v1/object/public/wine-labels/${path}`;
+          }
+        } catch (uploadErr) {
+          console.warn("Image upload failed, continuing without image:", uploadErr);
+        }
       }
 
       // Compute achievement
@@ -407,15 +438,30 @@ export default function Journal() {
         achievement,
       };
 
-      // Insert with a 15s timeout — Supabase calls can hang if auth is in limbo
-      const insertResult = await Promise.race([
-        supabase.from("wine_journal").insert(row),
-        new Promise<{ error: { message: string } }>(
-          (_, reject) => setTimeout(() => reject(new Error("Save timed out. Please try again.")), 15000)
+      // Insert via raw fetch — bypasses supabase-js auth lock entirely.
+      // The supabase client's .insert() calls getSession() internally,
+      // which acquires a navigator.locks lock. If the auth state is in
+      // limbo (common after OAuth callback errors), this hangs forever.
+      const insertRes = await Promise.race([
+        fetch("https://ycgxczvsxiilqzvyzpso.supabase.co/rest/v1/wine_journal", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4",
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify(row),
+        }),
+        new Promise<Response>((_, reject) =>
+          setTimeout(() => reject(new Error("Save timed out. Please try again.")), 15000)
         ),
       ]);
 
-      if (insertResult.error) throw new Error(insertResult.error.message);
+      if (!insertRes.ok) {
+        const errBody = await insertRes.text().catch(() => "");
+        throw new Error(errBody || `Save failed (${insertRes.status})`);
+      }
 
       setAchievementMsg(achievement);
       setStep("achievement");

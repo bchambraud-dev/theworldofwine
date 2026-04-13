@@ -2,13 +2,16 @@ import { createContext, useContext, useEffect, useState, useRef, type ReactNode 
 import { type Session, type User } from "@supabase/supabase-js";
 import { supabase, type UserProfile } from "./supabase";
 
-// auth.tsx — thin layer: session identity only.
-// Behavioural data (stats, preferences, topics) lives in useUserData.tsx.
+// ─── Auth Context ───────────────────────────────────────────────────────────
+// Owns: session, user (stable by id), profile, loading flag.
+// Design: NOTHING can leave `loading` stuck at true. Every code path
+// reaches `finish()` within a bounded time. Every async call is wrapped
+// in try/catch so a network failure never breaks the render tree.
 
 interface AuthContextType {
   session: Session | null;
-  user: User | null;       // stable: same reference unless userId changes
-  userId: string | null;   // primitive — safe to use as useEffect dependency
+  user: User | null;
+  userId: string | null;
   profile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
@@ -19,22 +22,31 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession]   = useState<Session | null>(null);
-  const [user, setUser]         = useState<User | null>(null);
-  const [profile, setProfile]   = useState<UserProfile | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const initialized = useRef(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser]       = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const done = useRef(false);
 
-  // Fetch profile with retries (DB trigger may lag on first sign-in)
-  const fetchProfile = async (userId: string, retries = 3) => {
-    for (let i = 0; i < retries; i++) {
-      const { data } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (data) { setProfile(data as UserProfile); return; }
-      if (i < retries - 1) await new Promise(r => setTimeout(r, 600));
+  // Mark initialisation complete — called from EVERY code path.
+  const finish = () => {
+    if (!done.current) { done.current = true; setLoading(false); }
+  };
+
+  // Stable user setter: only replace the reference if the actual user changes.
+  const stableSetUser = (next: User | null) => {
+    setUser(prev => (prev?.id === next?.id ? prev : next));
+  };
+
+  // Fetch profile with retries. Always resolves (never throws to caller).
+  const fetchProfile = async (uid: string) => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const { data } = await supabase
+          .from("user_profiles").select("*").eq("id", uid).single();
+        if (data) { setProfile(data as UserProfile); return; }
+      } catch { /* network error — retry */ }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 500));
     }
   };
 
@@ -42,55 +54,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) await fetchProfile(user.id);
   };
 
+  // ─── Initialisation ─────────────────────────────────────────────────────
   useEffect(() => {
-    // 1. getSession() fires immediately with the stored session.
-    //    The Supabase client auto-refreshes expired tokens internally
-    //    before making REST calls, so fetchProfile works even if the
-    //    stored access_token has expired.
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      const nextUser = session?.user ?? null;
-      setUser(prev => (prev?.id === nextUser?.id ? prev : nextUser));
-      try {
-        if (nextUser) await fetchProfile(nextUser.id);
-      } catch (e) {
-        console.error("fetchProfile error (getSession):", e);
-      }
-      if (!initialized.current) {
-        initialized.current = true;
-        setLoading(false);
-      }
-    });
+    // Safety net: if NOTHING fires within 4 seconds, unblock the UI anyway.
+    const timeout = setTimeout(finish, 4000);
 
-    // 2. onAuthStateChange handles subsequent events: token refresh,
-    //    sign-out, new sign-in. The user object is stabilised by ID
-    //    so downstream effects don't re-fire on every token refresh.
+    // Helper: process an auth event (used by both getSession and onChange)
+    const handleSession = async (s: Session | null) => {
+      setSession(s);
+      const u = s?.user ?? null;
+      stableSetUser(u);
+      if (u) await fetchProfile(u.id);
+      else setProfile(null);
+      finish();
+    };
+
+    // 1. Immediate: read stored session from localStorage.
+    supabase.auth.getSession()
+      .then(({ data: { session: s } }) => handleSession(s))
+      .catch(() => finish()); // corrupted session? just finish.
+
+    // 2. Ongoing: token refresh, sign-in, sign-out events.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        const nextUser = session?.user ?? null;
-        setUser(prev => (prev?.id === nextUser?.id ? prev : nextUser));
-        try {
-          if (nextUser) {
-            await fetchProfile(nextUser.id);
-          } else {
-            setProfile(null);
-          }
-        } catch (e) {
-          console.error("fetchProfile error (authChange):", e);
-        } finally {
-          // Always clear loading in case getSession didn't fire first
-          if (!initialized.current) {
-            initialized.current = true;
-            setLoading(false);
-          }
-        }
-      }
+      async (_event, s) => {
+        try { await handleSession(s); } catch { finish(); }
+      },
     );
 
-    return () => subscription.unsubscribe();
+    return () => { clearTimeout(timeout); subscription.unsubscribe(); };
   }, []);
 
+  // ─── Actions ────────────────────────────────────────────────────────────
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -99,21 +93,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // Clear state immediately — never block UI on a network call
     setSession(null);
     setUser(null);
     setProfile(null);
+    // Fire-and-forget with timeout — never block the UI
     Promise.race([
       supabase.auth.signOut(),
-      new Promise(resolve => setTimeout(resolve, 3000)),
+      new Promise(r => setTimeout(r, 3000)),
     ]).catch(() => {});
   };
 
-  const userId = user?.id ?? null;
-
   return (
     <AuthContext.Provider value={{
-      session, user, userId, profile, loading,
+      session, user, userId: user?.id ?? null, profile, loading,
       signInWithGoogle, signOut, refreshProfile,
     }}>
       {children}

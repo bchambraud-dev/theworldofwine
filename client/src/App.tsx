@@ -2,6 +2,36 @@ import { Switch, Route, Router, Link, useLocation } from "wouter";
 // Using standard path routing (no hash)
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { Component, type ReactNode, type ErrorInfo } from "react";
+
+// Global error boundary — a crash in any component shows a recovery UI
+// instead of a blank white screen.
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error("App crash:", error, info.componentStack); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F4EF", padding: 32 }}>
+          <div style={{ textAlign: "center", maxWidth: 380 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.4rem", color: "#1A1410", marginBottom: 12 }}>Something went wrong</div>
+            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", color: "#5A5248", lineHeight: 1.6, marginBottom: 20 }}>
+              The app ran into an error. A page refresh usually fixes it.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: "10px 24px", border: "none", borderRadius: 20, background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", cursor: "pointer" }}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useCallback, useEffect, useMemo } from "react";
@@ -330,6 +360,7 @@ function App() {
   }, []);
 
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
       <TooltipProvider>
@@ -348,6 +379,7 @@ function App() {
       </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

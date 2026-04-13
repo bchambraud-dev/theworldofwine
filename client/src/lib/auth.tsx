@@ -1,12 +1,18 @@
-import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
 import { type Session, type User } from "@supabase/supabase-js";
 import { supabase, type UserProfile } from "./supabase";
+import { directSelect, SUPABASE_URL, ANON_KEY, getAccessToken } from "./supabaseDirectFetch";
 
 // ─── Auth Context ───────────────────────────────────────────────────────────
-// Owns: session, user (stable by id), profile, loading flag.
-// Design: NOTHING can leave `loading` stuck at true. Every code path
-// reaches `finish()` within a bounded time. Every async call is wrapped
-// in try/catch so a network failure never breaks the render tree.
+// FULLY bypasses the Supabase JS client for session init, profile fetch,
+// and sign-out. The supabase-js auth lock (navigator.locks + initializePromise)
+// can hang indefinitely after OAuth callback errors or network flakes.
+//
+// We only use supabase.auth for:
+// - signInWithOAuth (fires a redirect, doesn't touch the lock)
+// - onAuthStateChange (listener, but we don't depend on it for init)
+
+const STORAGE_KEY = "sb-ycgxczvsxiilqzvyzpso-auth-token";
 
 interface AuthContextType {
   session: Session | null;
@@ -28,88 +34,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const done = useRef(false);
 
-  // Mark initialisation complete — called from EVERY code path.
   const finish = () => {
     if (!done.current) { done.current = true; setLoading(false); }
   };
 
-  // Stable user setter: only replace the reference if the actual user changes.
   const stableSetUser = (next: User | null) => {
     setUser(prev => (prev?.id === next?.id ? prev : next));
   };
 
-  // Fetch profile with retries. Always resolves (never throws to caller).
-  const fetchProfile = async (uid: string) => {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const { data } = await supabase
-          .from("user_profiles").select("*").eq("id", uid).single();
-        if (data) { setProfile(data as UserProfile); return; }
-      } catch { /* network error — retry */ }
-      if (attempt < 2) await new Promise(r => setTimeout(r, 500));
+  // Fetch profile via raw fetch — bypasses supabase-js auth lock.
+  const fetchProfileDirect = async (uid: string): Promise<UserProfile | null> => {
+    try {
+      const token = getAccessToken();
+      if (!token) return null;
+      const rows = await directSelect<UserProfile>(
+        "user_profiles",
+        `select=*&id=eq.${uid}`,
+        5000,
+      );
+      return rows?.[0] ?? null;
+    } catch {
+      return null;
     }
   };
 
-  const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
+  // Read session from localStorage — bypasses supabase-js entirely.
+  const readStoredSession = (): Session | null => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.access_token || !parsed?.user) return null;
+      return parsed as Session;
+    } catch {
+      return null;
+    }
   };
 
+  // Process a session (from localStorage or onAuthStateChange)
+  const handleSession = useCallback(async (s: Session | null) => {
+    setSession(s);
+    const u = s?.user ?? null;
+    stableSetUser(u);
+    if (u) {
+      const p = await fetchProfileDirect(u.id);
+      if (p) setProfile(p);
+    } else {
+      setProfile(null);
+    }
+    finish();
+  }, []);
+
   // ─── Initialisation ─────────────────────────────────────────────────────
-  //
-  // CRITICAL: We do NOT use supabase.auth.getSession() for initial session read.
-  // getSession() acquires a navigator.locks lock internally and awaits
-  // initializePromise. If the auth state is in limbo (common after OAuth
-  // callback errors or network flakes), getSession() hangs indefinitely.
-  // The 4s safety timeout fires but by then session/user are null = zombie state.
-  //
-  // Instead, we read the session directly from localStorage (same place
-  // supabase-js stores it) and hydrate from there. The onAuthStateChange
-  // listener still fires for token refreshes, sign-in, sign-out, etc.
-  //
   useEffect(() => {
     const timeout = setTimeout(finish, 4000);
 
-    const handleSession = async (s: Session | null) => {
-      setSession(s);
-      const u = s?.user ?? null;
-      stableSetUser(u);
-      if (u) await fetchProfile(u.id);
-      else setProfile(null);
-      finish();
-    };
-
-    // 1. Read session directly from localStorage — bypasses auth lock entirely.
-    const readStoredSession = (): Session | null => {
-      try {
-        const raw = localStorage.getItem("sb-ycgxczvsxiilqzvyzpso-auth-token");
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        // Supabase stores { access_token, refresh_token, expires_at, user, ... }
-        if (!parsed?.access_token || !parsed?.user) return null;
-        // Check if token is expired (expires_at is in seconds)
-        const now = Math.floor(Date.now() / 1000);
-        if (parsed.expires_at && parsed.expires_at < now - 60) {
-          // Token expired more than 60s ago — let onAuthStateChange handle refresh
-          return null;
-        }
-        return parsed as Session;
-      } catch {
-        return null;
-      }
-    };
-
+    // 1. Immediate: read from localStorage (instant, no network, no lock)
     const stored = readStoredSession();
     if (stored) {
       handleSession(stored).catch(() => finish());
     } else {
-      // No stored session — try getSession as fallback (with a race timeout)
-      Promise.race([
-        supabase.auth.getSession().then(({ data: { session: s } }) => handleSession(s)),
-        new Promise<void>(resolve => setTimeout(resolve, 2000)),
-      ]).catch(() => {}).finally(finish);
+      // No stored session — user is not logged in
+      finish();
     }
 
-    // 2. Ongoing: token refresh, sign-in, sign-out events.
+    // 2. Ongoing: listen for auth events (sign-in callback, token refresh)
+    // This is safe because onAuthStateChange doesn't await initializePromise
+    // in newer supabase-js versions — it registers immediately.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, s) => {
         try { await handleSession(s); } catch { finish(); }
@@ -117,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => { clearTimeout(timeout); subscription.unsubscribe(); };
-  }, []);
+  }, [handleSession]);
 
   // ─── Actions ────────────────────────────────────────────────────────────
   const signInWithGoogle = async () => {
@@ -128,15 +119,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // 1. Clear React state immediately
     setSession(null);
     setUser(null);
     setProfile(null);
-    // Fire-and-forget with timeout — never block the UI
+
+    // 2. Clear localStorage directly — this is what prevents the zombie
+    localStorage.removeItem(STORAGE_KEY);
+
+    // 3. Tell Supabase server to revoke the refresh token (fire-and-forget)
+    // Use raw fetch, not supabase.auth.signOut() which hangs on the auth lock.
+    const token = getAccessToken();
+    try {
+      await Promise.race([
+        fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "apikey": ANON_KEY,
+          },
+        }),
+        new Promise(r => setTimeout(r, 2000)),
+      ]);
+    } catch {
+      // Server-side revocation failed — that's OK, localStorage is already cleared
+    }
+
+    // 4. Also try the supabase client sign-out as a fallback (with tight timeout)
     Promise.race([
       supabase.auth.signOut(),
-      new Promise(r => setTimeout(r, 3000)),
+      new Promise(r => setTimeout(r, 1000)),
     ]).catch(() => {});
   };
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      const p = await fetchProfileDirect(user.id);
+      if (p) setProfile(p);
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{

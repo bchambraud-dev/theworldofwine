@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback, us
 import { supabase } from "./supabase";
 import { useAuth } from "./auth";
 import { regionToCountry } from "./countryFlags";
+import { directSelect, directInsert, directUpdate } from "./supabaseDirectFetch";
 
 // useUserData — owns ALL behavioural user data.
 // Loads once when userId is available, caches, exposes refresh + mutations.
@@ -92,83 +93,45 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async (uid: string, silent = false) => {
     if (!silent) setDataLoading(true);
     try {
-      const [chats, regions, guides, wines, topics, prefs, goalsRes, journalRes, wishlistRes, allRegionsRes] =
+      // All queries via raw fetch — bypasses supabase-js auth lock entirely.
+      const [chatRows, regionRows, guideRows, wineIdRows, topicRows, prefRows, goalRows, journalRows, wishlistRows, regionOnlyRows] =
         await Promise.all([
-          supabase.from("sommy_conversations")
-            .select("user_id", { count: "exact" })
-            .eq("user_id", uid).eq("role", "user"),
-
-          supabase.from("user_activity")
-            .select("user_id", { count: "exact" })
-            .eq("user_id", uid).eq("activity_type", "region_view"),
-
-          supabase.from("user_activity")
-            .select("item_id", { count: "exact" })
-            .eq("user_id", uid).eq("activity_type", "guide_read"),
-
-          supabase.from("wine_journal")
-            .select("user_id", { count: "exact" })
-            .eq("user_id", uid),
-
-          supabase.from("sommy_conversations")
-            .select("content")
-            .eq("user_id", uid).eq("role", "user")
-            .order("created_at", { ascending: false })
-            .limit(3),
-
-          supabase.from("user_preferences")
-            .select("preferred_types")
-            .eq("user_id", uid)
-            .maybeSingle(),
-
-          supabase.from("user_goals")
-            .select("id, title, target_count, current_count, completed")
-            .eq("user_id", uid).eq("completed", false)
-            .order("created_at", { ascending: false })
-            .limit(3),
-
-          supabase.from("wine_journal")
-            .select("id, wine_name, producer, vintage, region, grapes, style, notes, personal_rating, price_estimate, date_tasted")
-            .eq("user_id", uid)
-            .order("date_tasted", { ascending: false, nullsFirst: false })
-            .limit(8),
-
-          supabase.from("wine_wishlist")
-            .select("id, wine_name, producer, region, grapes, style, price_estimate, why, source, created_at")
-            .eq("user_id", uid)
-            .order("created_at", { ascending: false }),
-
-          // All journal regions for country passport (lightweight: only region column)
-          supabase.from("wine_journal")
-            .select("region")
-            .eq("user_id", uid),
+          directSelect("sommy_conversations", `select=user_id&user_id=eq.${uid}&role=eq.user`),
+          directSelect("user_activity", `select=user_id&user_id=eq.${uid}&activity_type=eq.region_view`),
+          directSelect("user_activity", `select=item_id&user_id=eq.${uid}&activity_type=eq.guide_read`),
+          directSelect("wine_journal", `select=id&user_id=eq.${uid}`),
+          directSelect("sommy_conversations", `select=content&user_id=eq.${uid}&role=eq.user&order=created_at.desc&limit=3`),
+          directSelect("user_preferences", `select=preferred_types&user_id=eq.${uid}`),
+          directSelect("user_goals", `select=id,title,target_count,current_count,completed&user_id=eq.${uid}&completed=eq.false&order=created_at.desc&limit=3`),
+          directSelect("wine_journal", `select=id,wine_name,producer,vintage,region,grapes,style,notes,personal_rating,price_estimate,date_tasted&user_id=eq.${uid}&order=date_tasted.desc.nullslast&limit=8`),
+          directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at&user_id=eq.${uid}&order=created_at.desc`),
+          directSelect("wine_journal", `select=region&user_id=eq.${uid}`),
         ]);
 
       setStats({
-        chats:   chats.count   ?? 0,
-        regions: regions.count ?? 0,
-        guides:  guides.count  ?? 0,
-        wines:   wines.count   ?? 0,
+        chats:   chatRows.length,
+        regions: regionRows.length,
+        guides:  guideRows.length,
+        wines:   wineIdRows.length,
       });
 
-      // Extract completed guide IDs for learning path
       setCompletedGuideIds(
-        (guides.data ?? []).map((r: any) => r.item_id as string).filter(Boolean)
+        guideRows.map((r: any) => r.item_id as string).filter(Boolean)
       );
 
       setRecentTopics(
-        (topics.data ?? []).map((t: any) => t.content as string)
+        topicRows.map((t: any) => t.content as string)
       );
 
       setPreferences({
-        preferred_types: (prefs.data as any)?.preferred_types ?? [],
+        preferred_types: prefRows[0]?.preferred_types ?? [],
       });
 
-      setGoals((goalsRes.data ?? []) as UserGoal[]);
-      setJournal((journalRes.data ?? []) as JournalEntry[]);
-      setWishlist((wishlistRes.data ?? []) as WishlistEntry[]);
+      setGoals(goalRows as UserGoal[]);
+      setJournal(journalRows as JournalEntry[]);
+      setWishlist(wishlistRows as WishlistEntry[]);
       setAllRegions(
-        (allRegionsRes.data ?? []).map((r: any) => r.region as string).filter(Boolean)
+        regionOnlyRows.map((r: any) => r.region as string).filter(Boolean)
       );
 
     } catch (e) {
@@ -214,14 +177,18 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
   const savePreferences = useCallback(async (level: string, types: string[]) => {
     if (!userId) return;
-    await Promise.all([
-      supabase.from("user_profiles")
-        .update({ experience_level: level })
-        .eq("id", userId),
-      supabase.from("user_preferences")
-        .upsert({ user_id: userId, preferred_types: types }),
-    ]);
-    await refreshProfile(); // updates profile in auth context (for level badge etc.)
+    try {
+      await Promise.all([
+        directUpdate("user_profiles", userId, { experience_level: level }),
+        directInsert("user_preferences", { user_id: userId, preferred_types: types }),
+      ]);
+    } catch {
+      // upsert may fail if row exists — try update instead
+      try {
+        await directUpdate("user_preferences", userId, { preferred_types: types });
+      } catch { /* ignore */ }
+    }
+    await refreshProfile();
     setPreferences({ preferred_types: types });
   }, [userId, refreshProfile]);
 

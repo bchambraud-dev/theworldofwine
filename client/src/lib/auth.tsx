@@ -55,11 +55,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // ─── Initialisation ─────────────────────────────────────────────────────
+  //
+  // CRITICAL: We do NOT use supabase.auth.getSession() for initial session read.
+  // getSession() acquires a navigator.locks lock internally and awaits
+  // initializePromise. If the auth state is in limbo (common after OAuth
+  // callback errors or network flakes), getSession() hangs indefinitely.
+  // The 4s safety timeout fires but by then session/user are null = zombie state.
+  //
+  // Instead, we read the session directly from localStorage (same place
+  // supabase-js stores it) and hydrate from there. The onAuthStateChange
+  // listener still fires for token refreshes, sign-in, sign-out, etc.
+  //
   useEffect(() => {
-    // Safety net: if NOTHING fires within 4 seconds, unblock the UI anyway.
     const timeout = setTimeout(finish, 4000);
 
-    // Helper: process an auth event (used by both getSession and onChange)
     const handleSession = async (s: Session | null) => {
       setSession(s);
       const u = s?.user ?? null;
@@ -69,10 +78,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       finish();
     };
 
-    // 1. Immediate: read stored session from localStorage.
-    supabase.auth.getSession()
-      .then(({ data: { session: s } }) => handleSession(s))
-      .catch(() => finish()); // corrupted session? just finish.
+    // 1. Read session directly from localStorage — bypasses auth lock entirely.
+    const readStoredSession = (): Session | null => {
+      try {
+        const raw = localStorage.getItem("sb-ycgxczvsxiilqzvyzpso-auth-token");
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        // Supabase stores { access_token, refresh_token, expires_at, user, ... }
+        if (!parsed?.access_token || !parsed?.user) return null;
+        // Check if token is expired (expires_at is in seconds)
+        const now = Math.floor(Date.now() / 1000);
+        if (parsed.expires_at && parsed.expires_at < now - 60) {
+          // Token expired more than 60s ago — let onAuthStateChange handle refresh
+          return null;
+        }
+        return parsed as Session;
+      } catch {
+        return null;
+      }
+    };
+
+    const stored = readStoredSession();
+    if (stored) {
+      handleSession(stored).catch(() => finish());
+    } else {
+      // No stored session — try getSession as fallback (with a race timeout)
+      Promise.race([
+        supabase.auth.getSession().then(({ data: { session: s } }) => handleSession(s)),
+        new Promise<void>(resolve => setTimeout(resolve, 2000)),
+      ]).catch(() => {}).finally(finish);
+    }
 
     // 2. Ongoing: token refresh, sign-in, sign-out events.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

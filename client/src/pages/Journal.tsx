@@ -24,9 +24,8 @@ interface Wine {
   price_estimate: string | null;
   sommy_description: string | null;
   achievement: string | null;
-  primary_notes: string | null;
-  secondary_notes: string | null;
-  nose: string | null;
+  nose_notes: string | null;
+  palate_notes: string | null;
   texture: string | null;
   tasting_data: Record<string, unknown> | null;
   sommy_comparison: string | null;
@@ -41,9 +40,8 @@ interface ParsedCard {
   grapes: string;
   style: string;
   price: string;
-  primary: string;
-  secondary: string;
   nose: string;
+  palate: string;
   texture: string;
 }
 
@@ -102,9 +100,8 @@ function parseWineCard(text: string): { card: ParsedCard | null; prose: string }
     grapes: obj.grapes || "",
     style: obj.style || "",
     price: obj.price || "",
-    primary: obj.primary || "",
-    secondary: obj.secondary || "",
     nose: obj.nose || "",
+    palate: obj.palate || "",
     texture: obj.texture || "",
   };
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
@@ -215,14 +212,12 @@ const categoryLabelStyle: React.CSSProperties = {
   flexShrink: 0, paddingTop: 2,
 };
 
-function TastingPills({ primary, secondary, nose, texture }: {
-  primary?: string | null; secondary?: string | null;
-  nose?: string | null; texture?: string | null;
+function TastingPills({ nose, palate, texture }: {
+  nose?: string | null; palate?: string | null; texture?: string | null;
 }) {
   const cats: { label: string; items: string[]; colorize: boolean }[] = [];
-  if (primary) cats.push({ label: "PRIMARY", items: primary.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
-  if (secondary) cats.push({ label: "SECONDARY", items: secondary.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
   if (nose) cats.push({ label: "NOSE", items: nose.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
+  if (palate) cats.push({ label: "PALATE", items: palate.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
   if (texture) cats.push({ label: "TEXTURE", items: texture.split(",").map(s => s.trim()).filter(Boolean), colorize: false });
   if (cats.length === 0) return null;
   return (
@@ -707,9 +702,8 @@ export default function Journal() {
         image_url: imgUrl,
         price_estimate: cleanField(cardData?.price) || null,
         sommy_description: sommyProse || null,
-        primary_notes: cleanField(cardData?.primary) || null,
-        secondary_notes: cleanField(cardData?.secondary) || null,
-        nose: cleanField(cardData?.nose) || null,
+        nose_notes: cleanField(cardData?.nose) || null,
+        palate_notes: cleanField(cardData?.palate) || null,
         texture: cleanField(cardData?.texture) || null,
         achievement,
       };
@@ -744,9 +738,8 @@ export default function Journal() {
             region: cardData.region,
             grapes: cardData.grapes,
             style: cardData.style,
-            primary: cardData.primary,
-            secondary: cardData.secondary,
             nose: cardData.nose,
+            palate: cardData.palate,
             texture: cardData.texture,
           },
           user_tasting: {
@@ -833,9 +826,8 @@ export default function Journal() {
         body: tastingData.body,
         finish: tastingData.finish,
         palate_flavours: tastingData.palate_flavours,
-        sommy_primary: cardData.primary,
-        sommy_secondary: cardData.secondary,
         sommy_nose: cardData.nose,
+        sommy_palate: cardData.palate,
         sommy_texture: cardData.texture,
       };
 
@@ -854,9 +846,8 @@ export default function Journal() {
         price_estimate: cleanField(cardData.price) || null,
         sommy_description: sommyProse || null,
         // User's tasting selections as comma-separated strings
-        primary_notes: tastingData.palate_flavours.length > 0 ? tastingData.palate_flavours.join(", ") : null,
-        secondary_notes: null,
-        nose: tastingData.nose_aromas.length > 0 ? tastingData.nose_aromas.join(", ") : null,
+        nose_notes: tastingData.nose_aromas.length > 0 ? tastingData.nose_aromas.join(", ") : null,
+        palate_notes: tastingData.palate_flavours.length > 0 ? tastingData.palate_flavours.join(", ") : null,
         texture: [
           tastingData.body && `${tastingData.body} body`,
           tastingData.acidity && `${tastingData.acidity} acidity`,
@@ -1236,9 +1227,9 @@ export default function Journal() {
             )}
 
             {/* Tasting characteristics */}
-            {cardData && (cardData.primary || cardData.secondary || cardData.nose || cardData.texture) && (
+            {cardData && (cardData.nose || cardData.palate || cardData.texture) && (
               <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
-                <TastingPills primary={cardData.primary} secondary={cardData.secondary} nose={cardData.nose} texture={cardData.texture} />
+                <TastingPills nose={cardData.nose} palate={cardData.palate} texture={cardData.texture} />
               </div>
             )}
 
@@ -1567,10 +1558,10 @@ export default function Journal() {
             )}
 
             {/* Sommy's tasting pills */}
-            {cardData && (cardData.primary || cardData.secondary || cardData.nose || cardData.texture) && (
+            {cardData && (cardData.nose || cardData.palate || cardData.texture) && (
               <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
                 <div style={{ ...mono("0.55rem"), marginBottom: 10, color: "#8C1C2E" }}>SOMMY'S TASTING NOTES</div>
-                <TastingPills primary={cardData.primary} secondary={cardData.secondary} nose={cardData.nose} texture={cardData.texture} />
+                <TastingPills nose={cardData.nose} palate={cardData.palate} texture={cardData.texture} />
               </div>
             )}
 
@@ -1918,21 +1909,20 @@ export default function Journal() {
                             </div>
                           )}
                           {/* Sommy's tasting (for tasting mode entries) */}
-                          {wine.tasting_data && ((wine.tasting_data as any).sommy_primary || (wine.tasting_data as any).sommy_nose) && (
+                          {wine.tasting_data && ((wine.tasting_data as any).sommy_nose || (wine.tasting_data as any).sommy_palate) && (
                             <div style={{ marginBottom: 10 }}>
                               <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
                               <TastingPills
-                                primary={(wine.tasting_data as any).sommy_primary}
-                                secondary={(wine.tasting_data as any).sommy_secondary}
                                 nose={(wine.tasting_data as any).sommy_nose}
+                                palate={(wine.tasting_data as any).sommy_palate}
                                 texture={(wine.tasting_data as any).sommy_texture}
                               />
                             </div>
                           )}
                           {/* Tasting characteristics (for non-tasting-mode entries) */}
-                          {!wine.tasting_data && (wine.primary_notes || wine.secondary_notes || wine.nose || wine.texture) && (
+                          {!wine.tasting_data && (wine.nose_notes || wine.palate_notes || wine.texture) && (
                             <div style={{ marginBottom: 10 }}>
-                              <TastingPills primary={wine.primary_notes} secondary={wine.secondary_notes} nose={wine.nose} texture={wine.texture} />
+                              <TastingPills nose={wine.nose_notes} palate={wine.palate_notes} texture={wine.texture} />
                             </div>
                           )}
                           {/* Sommy's comparison (tasting mode) */}

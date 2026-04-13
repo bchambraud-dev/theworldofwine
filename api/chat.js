@@ -18,9 +18,8 @@ region: [region/appellation]
 grapes: [grape variety or varieties]
 style: [e.g. "Red — Bold and Structured" or "White — Crisp and Mineral"]
 price: [approximate market price range, e.g. "$25–40" or "~$65"]
-primary: [comma-separated primary tasting notes — fruit, floral, herbal flavours you'd taste, e.g. "Blackberry, Cherry, Plum, Violet"]
-secondary: [comma-separated secondary notes from winemaking, e.g. "Vanilla, Toast, Smoke, Brioche"]
-nose: [comma-separated aromas/smell, e.g. "Dark fruit, Cedar, Leather, Earth"]
+nose: [comma-separated aromas — everything you'd smell: fruit, floral, earth, oak, spice, e.g. "Cherry, Violet, Cedar, Vanilla, Leather"]
+palate: [comma-separated flavours you'd taste on the palate, e.g. "Blackberry, Plum, Dark chocolate, Espresso, Black pepper"]
 texture: [comma-separated mouthfeel descriptors, e.g. "Silky tannins, Full body, Bright acidity, Long finish"]
 WINE_CARD_END
 

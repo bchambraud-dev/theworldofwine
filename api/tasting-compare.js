@@ -37,9 +37,8 @@ Grapes: ${wine_card.grapes || "Unknown"}
 Style: ${wine_card.style || "Unknown"}
 
 My tasting assessment (Sommy's notes):
-Primary notes: ${wine_card.primary || "None noted"}
-Secondary notes: ${wine_card.secondary || "None noted"}
 Nose: ${wine_card.nose || "None noted"}
+Palate: ${wine_card.palate || "None noted"}
 Texture: ${wine_card.texture || "None noted"}
 
 Here is what the user observed during their guided tasting:

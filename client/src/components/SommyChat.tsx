@@ -61,9 +61,8 @@ interface WineCard {
   region: string;
   grapes: string;
   style: string;
-  primary: string;
-  secondary: string;
   nose: string;
+  palate: string;
   texture: string;
 }
 
@@ -92,9 +91,8 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     producer: get("producer"),
     vintage: get("vintage"),
     region: get("region"),
-    primary: get("primary"),
-    secondary: get("secondary"),
     nose: get("nose"),
+    palate: get("palate"),
     texture: get("texture"),
     grapes: get("grapes"),
     style: get("style"),
@@ -563,9 +561,9 @@ The more you share — what you enjoy, what you've tried, even what you definite
                       ))}
                     </div>
                     {/* Tasting characteristics — colour-coded by flavour family */}
-                    {(msg.wineCard.primary || msg.wineCard.secondary || msg.wineCard.nose || msg.wineCard.texture) && (
+                    {(msg.wineCard.nose || msg.wineCard.palate || msg.wineCard.texture) && (
                       <div style={{ padding: "8px 14px 12px", borderTop: "1px solid #EDEAE3", display: "flex", flexDirection: "column", gap: 5 }}>
-                        {[{label: "PRIMARY", val: msg.wineCard.primary, colorize: true}, {label: "SECONDARY", val: msg.wineCard.secondary, colorize: true}, {label: "NOSE", val: msg.wineCard.nose, colorize: true}, {label: "TEXTURE", val: msg.wineCard.texture, colorize: false}]
+                        {[{label: "NOSE", val: msg.wineCard.nose, colorize: true}, {label: "PALATE", val: msg.wineCard.palate, colorize: true}, {label: "TEXTURE", val: msg.wineCard.texture, colorize: false}]
                           .filter(c => c.val)
                           .map(c => (
                             <div key={c.label} style={{ display: "flex", alignItems: "flex-start", gap: 5, flexWrap: "wrap" }}>

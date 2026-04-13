@@ -6,6 +6,45 @@ import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
 import { directInsert } from "@/lib/supabaseDirectFetch";
 
+// Colour-coded tasting pills — matches the ftag system on producer pages
+const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
+  fruit:   { bg: "rgba(184,50,74,0.06)",  color: "rgba(160,30,55,0.85)",  border: "rgba(184,50,74,0.25)" },
+  floral:  { bg: "rgba(160,80,160,0.06)", color: "rgba(140,60,140,0.85)", border: "rgba(160,80,160,0.25)" },
+  earth:   { bg: "rgba(120,85,45,0.06)",  color: "rgba(100,70,30,0.85)",  border: "rgba(120,85,45,0.25)" },
+  oak:     { bg: "rgba(150,110,40,0.06)", color: "rgba(130,95,25,0.85)",  border: "rgba(150,110,40,0.25)" },
+  spice:   { bg: "rgba(180,100,40,0.06)", color: "rgba(150,80,20,0.85)",  border: "rgba(180,100,40,0.25)" },
+  mineral: { bg: "rgba(70,100,150,0.06)", color: "rgba(50,85,140,0.85)",  border: "rgba(70,100,150,0.25)" },
+};
+const neutralPill = { bg: "#F7F4EF", color: "#5A5248", border: "transparent" };
+
+const tastingKeywords: Record<string, string> = {
+  blackcurrant: "fruit", cassis: "fruit", cherry: "fruit", raspberry: "fruit",
+  plum: "fruit", strawberry: "fruit", citrus: "fruit", lemon: "fruit",
+  berry: "fruit", fig: "fruit", apple: "fruit", pear: "fruit", peach: "fruit",
+  blackberry: "fruit", blueberry: "fruit", apricot: "fruit", melon: "fruit",
+  tropical: "fruit", grapefruit: "fruit", lime: "fruit", orange: "fruit",
+  cranberry: "fruit", pomegranate: "fruit", dark: "fruit", red: "fruit",
+  earth: "earth", mushroom: "earth", truffle: "earth", soil: "earth",
+  tobacco: "earth", leather: "earth", mineral: "mineral", wet: "earth",
+  forest: "earth", undergrowth: "earth", slate: "mineral", chalk: "mineral",
+  cedar: "oak", oak: "oak", vanilla: "oak", butter: "oak",
+  toast: "oak", smoke: "oak", brioche: "oak", caramel: "oak",
+  chocolate: "oak", coffee: "oak", mocha: "oak", charred: "oak",
+  violet: "floral", rose: "floral", floral: "floral", lavender: "floral",
+  jasmine: "floral", blossom: "floral", petal: "floral", acacia: "floral",
+  pepper: "spice", spice: "spice", cinnamon: "spice", clove: "spice",
+  thyme: "spice", sage: "spice", herb: "spice", anise: "spice",
+  licorice: "spice", nutmeg: "spice", dried: "spice",
+};
+
+function classifyTastingNote(note: string) {
+  const lower = note.toLowerCase();
+  for (const [kw, cat] of Object.entries(tastingKeywords)) {
+    if (lower.includes(kw)) return tastingPillColors[cat] || neutralPill;
+  }
+  return neutralPill;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -514,17 +553,20 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         </div>
                       ))}
                     </div>
-                    {/* Tasting characteristics */}
+                    {/* Tasting characteristics — colour-coded by flavour family */}
                     {(msg.wineCard.primary || msg.wineCard.secondary || msg.wineCard.nose || msg.wineCard.texture) && (
                       <div style={{ padding: "8px 14px 12px", borderTop: "1px solid #EDEAE3", display: "flex", flexDirection: "column", gap: 5 }}>
-                        {[{label: "PRIMARY", val: msg.wineCard.primary}, {label: "SECONDARY", val: msg.wineCard.secondary}, {label: "NOSE", val: msg.wineCard.nose}, {label: "TEXTURE", val: msg.wineCard.texture}]
+                        {[{label: "PRIMARY", val: msg.wineCard.primary, colorize: true}, {label: "SECONDARY", val: msg.wineCard.secondary, colorize: true}, {label: "NOSE", val: msg.wineCard.nose, colorize: true}, {label: "TEXTURE", val: msg.wineCard.texture, colorize: false}]
                           .filter(c => c.val)
                           .map(c => (
                             <div key={c.label} style={{ display: "flex", alignItems: "flex-start", gap: 5, flexWrap: "wrap" }}>
                               <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase", paddingTop: 2, flexShrink: 0 }}>{c.label}</span>
-                              {c.val!.split(",").map(s => s.trim()).filter(Boolean).map((item, j) => (
-                                <span key={j} style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", padding: "2px 7px", background: "#F7F4EF", borderRadius: 5, color: "#5A5248", textTransform: "uppercase", whiteSpace: "nowrap" }}>{item}</span>
-                              ))}
+                              {c.val!.split(",").map(s => s.trim()).filter(Boolean).map((item, j) => {
+                                const col = c.colorize ? classifyTastingNote(item) : neutralPill;
+                                return (
+                                  <span key={j} style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", padding: "2px 7px", background: col.bg, color: col.color, border: `1px solid ${col.border}`, borderRadius: 5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{item}</span>
+                                );
+                              })}
                             </div>
                           ))}
                       </div>

@@ -159,13 +159,51 @@ function SortChip({ label, active, onClick }: { label: string; active: boolean; 
 }
 
 // ── Tasting characteristic pills ─────────────────────────────────────────────
+// Colour-codes individual pills by flavour family (matching the ftag system
+// used on producer/grape detail pages). Texture pills stay neutral grey.
 
-const pillStyle: React.CSSProperties = {
-  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-  letterSpacing: "0.08em", padding: "3px 8px",
-  background: "#F7F4EF", borderRadius: 6, color: "#5A5248",
-  textTransform: "uppercase", whiteSpace: "nowrap",
+const flavorColors: Record<string, { bg: string; color: string; border: string }> = {
+  fruit:   { bg: "rgba(184,50,74,0.06)",  color: "rgba(160,30,55,0.85)",  border: "rgba(184,50,74,0.25)" },
+  floral:  { bg: "rgba(160,80,160,0.06)", color: "rgba(140,60,140,0.85)", border: "rgba(160,80,160,0.25)" },
+  earth:   { bg: "rgba(120,85,45,0.06)",  color: "rgba(100,70,30,0.85)",  border: "rgba(120,85,45,0.25)" },
+  oak:     { bg: "rgba(150,110,40,0.06)", color: "rgba(130,95,25,0.85)",  border: "rgba(150,110,40,0.25)" },
+  spice:   { bg: "rgba(180,100,40,0.06)", color: "rgba(150,80,20,0.85)",  border: "rgba(180,100,40,0.25)" },
+  mineral: { bg: "rgba(70,100,150,0.06)", color: "rgba(50,85,140,0.85)",  border: "rgba(70,100,150,0.25)" },
+  neutral: { bg: "#F7F4EF",               color: "#5A5248",               border: "transparent" },
 };
+
+const flavorKeywords: Record<string, string> = {
+  // fruit
+  blackcurrant: "fruit", cassis: "fruit", cherry: "fruit", raspberry: "fruit",
+  plum: "fruit", strawberry: "fruit", citrus: "fruit", lemon: "fruit",
+  berry: "fruit", fig: "fruit", apple: "fruit", pear: "fruit", peach: "fruit",
+  blackberry: "fruit", blueberry: "fruit", apricot: "fruit", melon: "fruit",
+  tropical: "fruit", grapefruit: "fruit", lime: "fruit", orange: "fruit",
+  cranberry: "fruit", pomegranate: "fruit", dark: "fruit", red: "fruit",
+  // earth
+  earth: "earth", mushroom: "earth", truffle: "earth", soil: "earth",
+  tobacco: "earth", leather: "earth", mineral: "mineral", wet: "earth",
+  forest: "earth", undergrowth: "earth", slate: "mineral", chalk: "mineral",
+  // oak / winemaking
+  cedar: "oak", oak: "oak", vanilla: "oak", butter: "oak",
+  toast: "oak", smoke: "oak", brioche: "oak", caramel: "oak",
+  chocolate: "oak", coffee: "oak", mocha: "oak", charred: "oak",
+  // floral
+  violet: "floral", rose: "floral", floral: "floral", lavender: "floral",
+  jasmine: "floral", blossom: "floral", petal: "floral", acacia: "floral",
+  // spice / herbal
+  pepper: "spice", spice: "spice", cinnamon: "spice", clove: "spice",
+  thyme: "spice", sage: "spice", herb: "spice", anise: "spice",
+  licorice: "spice", nutmeg: "spice", dried: "spice",
+};
+
+function classifyNote(note: string): string {
+  const lower = note.toLowerCase();
+  for (const [kw, cat] of Object.entries(flavorKeywords)) {
+    if (lower.includes(kw)) return cat;
+  }
+  return "neutral";
+}
 
 const categoryLabelStyle: React.CSSProperties = {
   fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
@@ -177,20 +215,29 @@ function TastingPills({ primary, secondary, nose, texture }: {
   primary?: string | null; secondary?: string | null;
   nose?: string | null; texture?: string | null;
 }) {
-  const cats: { label: string; items: string[] }[] = [];
-  if (primary) cats.push({ label: "PRIMARY", items: primary.split(",").map(s => s.trim()).filter(Boolean) });
-  if (secondary) cats.push({ label: "SECONDARY", items: secondary.split(",").map(s => s.trim()).filter(Boolean) });
-  if (nose) cats.push({ label: "NOSE", items: nose.split(",").map(s => s.trim()).filter(Boolean) });
-  if (texture) cats.push({ label: "TEXTURE", items: texture.split(",").map(s => s.trim()).filter(Boolean) });
+  const cats: { label: string; items: string[]; colorize: boolean }[] = [];
+  if (primary) cats.push({ label: "PRIMARY", items: primary.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
+  if (secondary) cats.push({ label: "SECONDARY", items: secondary.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
+  if (nose) cats.push({ label: "NOSE", items: nose.split(",").map(s => s.trim()).filter(Boolean), colorize: true });
+  if (texture) cats.push({ label: "TEXTURE", items: texture.split(",").map(s => s.trim()).filter(Boolean), colorize: false });
   if (cats.length === 0) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {cats.map(cat => (
         <div key={cat.label} style={{ display: "flex", alignItems: "flex-start", gap: 6, flexWrap: "wrap" }}>
           <span style={categoryLabelStyle}>{cat.label}</span>
-          {cat.items.map((item, i) => (
-            <span key={i} style={pillStyle}>{item}</span>
-          ))}
+          {cat.items.map((item, i) => {
+            const c = cat.colorize ? flavorColors[classifyNote(item)] || flavorColors.neutral : flavorColors.neutral;
+            return (
+              <span key={i} style={{
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                letterSpacing: "0.08em", padding: "3px 8px",
+                background: c.bg, color: c.color,
+                border: `1px solid ${c.border}`,
+                borderRadius: 6, textTransform: "uppercase", whiteSpace: "nowrap",
+              }}>{item}</span>
+            );
+          })}
         </div>
       ))}
     </div>

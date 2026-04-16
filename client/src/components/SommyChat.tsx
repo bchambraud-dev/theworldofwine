@@ -452,7 +452,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
       {/* Chat popup */}
       {isOpen && (
-        <div data-testid="sommy-chatbox" style={{ position: "fixed", bottom: 24, right: 24, width: "min(400px, calc(100vw - 32px))", height: "min(580px, calc(100vh - 100px))", background: "#F7F4EF", borderRadius: 20, boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" }}>
+        <div data-testid="sommy-chatbox" style={{ position: "fixed", bottom: 0, right: 0, width: window.innerWidth <= 640 ? "100vw" : "min(400px, calc(100vw - 32px))", height: window.innerWidth <= 640 ? "calc(100vh - 56px)" : "min(580px, calc(100vh - 100px))", background: "#F7F4EF", borderRadius: window.innerWidth <= 640 ? "16px 16px 0 0" : 20, boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" }}>
 
           {/* Header */}
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #EDEAE3", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>

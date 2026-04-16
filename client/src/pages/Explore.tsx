@@ -15,6 +15,9 @@ export default function Explore() {
   const store = useWineStore();
   const { toast } = useToast();
 
+  const [vintageOn, setVintageOn] = useState(false);
+  const [vintageYear, setVintageYear] = useState(2020);
+
   const isListView = isListRoute;
 
   // Auto-select region or producer from URL params
@@ -87,9 +90,69 @@ export default function Explore() {
             showProducers={store.showProducers}
             showBoundaries={store.showBoundaries}
             hasActiveFilter={store.hasActiveFilter}
+            vintageYear={vintageOn ? vintageYear : null}
           />
 
-          {/* Zoom controls handled by MapLibre */}
+          {/* ── Vintage heatmap toggle ── */}
+          <div style={{
+            position: "absolute",
+            top: 10,
+            right: 50,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 6,
+          }}>
+            <button
+              onClick={() => setVintageOn(v => !v)}
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "9px",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase" as const,
+                color: vintageOn ? "#F7F4EF" : "#5A5248",
+                background: vintageOn ? "#8C1C2E" : "rgba(255,255,255,0.92)",
+                border: `1px solid ${vintageOn ? "#8C1C2E" : "#EDEAE3"}`,
+                borderRadius: 14,
+                padding: "5px 12px",
+                cursor: "pointer",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                transition: "all 0.2s ease",
+              }}
+            >
+              Vintages
+            </button>
+            {vintageOn && (
+              <div style={{
+                background: "rgba(255,255,255,0.94)",
+                border: "1px solid #EDEAE3",
+                borderRadius: 10,
+                padding: "8px 12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}>
+                <span style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: "#1A1410",
+                  minWidth: 36,
+                }}>{vintageYear}</span>
+                <input
+                  type="range"
+                  min={2005}
+                  max={2023}
+                  value={vintageYear}
+                  onChange={e => setVintageYear(Number(e.target.value))}
+                  style={{ width: 130, accentColor: "#8C1C2E" }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 

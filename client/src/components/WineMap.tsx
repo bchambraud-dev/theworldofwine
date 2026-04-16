@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { regionBoundaries } from "@/data/regionBoundaries";
+import { vintageData, vintageColor, vintageLabel } from "@/data/vintages";
 
 // MapLibre GL JS loaded from CDN (global `maplibregl`)
 declare const maplibregl: typeof import("maplibre-gl").default;
@@ -15,6 +16,7 @@ interface WineMapProps {
   showProducers: boolean;
   showBoundaries: boolean;
   hasActiveFilter?: boolean;
+  vintageYear?: number | null;
 }
 
 const BOUNDARY_SOURCE = "region-boundaries";
@@ -49,6 +51,66 @@ const wineCountries = [
   { code: "JP", name: "Japan", lat: 35.7, lng: 138.6 },
   { code: "TR", name: "Turkey", lat: 38.6, lng: 34.8 },
 ];
+
+const VINTAGE_OVERLAY = "vintage-overlay";
+const VILLAGE_LABELS_SOURCE = "village-labels";
+const VILLAGE_LABELS_LAYER = "village-labels-layer";
+
+const villageLabels = [
+  // Bordeaux
+  { name: "Saint-Émilion", lat: 44.89, lng: -0.16 },
+  { name: "Pauillac", lat: 45.20, lng: -0.75 },
+  { name: "Margaux", lat: 45.04, lng: -0.67 },
+  { name: "Pomerol", lat: 44.93, lng: -0.18 },
+  { name: "Sauternes", lat: 44.53, lng: -0.34 },
+  { name: "Pessac-Léognan", lat: 44.73, lng: -0.63 },
+  // Burgundy
+  { name: "Gevrey-Chambertin", lat: 47.23, lng: 4.97 },
+  { name: "Vosne-Romanée", lat: 47.17, lng: 4.95 },
+  { name: "Nuits-Saint-Georges", lat: 47.14, lng: 4.95 },
+  { name: "Meursault", lat: 46.98, lng: 4.76 },
+  { name: "Puligny-Montrachet", lat: 46.95, lng: 4.75 },
+  { name: "Pommard", lat: 47.01, lng: 4.79 },
+  { name: "Chablis", lat: 47.81, lng: 3.80 },
+  // Piedmont
+  { name: "Barolo", lat: 44.61, lng: 7.94 },
+  { name: "Barbaresco", lat: 44.73, lng: 8.08 },
+  { name: "La Morra", lat: 44.64, lng: 7.93 },
+  { name: "Serralunga", lat: 44.61, lng: 7.99 },
+  // Tuscany
+  { name: "Montalcino", lat: 43.06, lng: 11.49 },
+  { name: "Montepulciano", lat: 43.10, lng: 11.78 },
+  { name: "Bolgheri", lat: 43.23, lng: 10.61 },
+  { name: "Chianti Classico", lat: 43.47, lng: 11.25 },
+  { name: "San Gimignano", lat: 43.47, lng: 11.04 },
+  // Napa
+  { name: "Rutherford", lat: 38.46, lng: -122.42 },
+  { name: "Oakville", lat: 38.43, lng: -122.41 },
+  { name: "Stags Leap", lat: 38.42, lng: -122.35 },
+  { name: "Calistoga", lat: 38.58, lng: -122.58 },
+  { name: "St. Helena", lat: 38.51, lng: -122.47 },
+];
+
+function buildVillageGeoJSON() {
+  return {
+    type: "FeatureCollection" as const,
+    features: villageLabels.map(v => ({
+      type: "Feature" as const,
+      geometry: { type: "Point" as const, coordinates: [v.lng, v.lat] },
+      properties: { name: v.name },
+    })),
+  };
+}
+
+// Build a lookup: regionId → score for a given year
+function getVintageScoresForYear(year: number): Map<string, number | null> {
+  const m = new Map<string, number | null>();
+  for (const rv of vintageData) {
+    const v = rv.vintages.find(v => v.year === year);
+    m.set(rv.regionId, v?.score ?? null);
+  }
+  return m;
+}
 
 function buildProducerGeoJSON(producers: Producer[]) {
   return {
@@ -108,6 +170,7 @@ export default function WineMap({
   showProducers,
   showBoundaries,
   hasActiveFilter = false,
+  vintageYear = null,
 }: WineMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -429,6 +492,55 @@ export default function WineMap({
         `).addTo(map.current!);
       });
       map.current.on("mouseleave", "producer-dots", () => { producerPopup.remove(); });
+
+      // ─── Vintage overlay layer (on top of boundaries) ────────────────
+      map.current.addSource("vintage-overlay-src", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] } as any,
+      });
+
+      map.current.addLayer({
+        id: VINTAGE_OVERLAY,
+        type: "fill",
+        source: "vintage-overlay-src",
+        paint: {
+          "fill-color": ["coalesce", ["get", "fillColor"], "rgba(0,0,0,0)"],
+          "fill-opacity": [
+            "interpolate", ["linear"], ["zoom"],
+            2, 0.4,
+            4, 0.6,
+            6, 0.8,
+            8, 0.9,
+          ],
+        },
+        layout: { visibility: "none" },
+      });
+
+      // ─── Village / Appellation labels (zoom 8+) ─────────────────────
+      map.current.addSource(VILLAGE_LABELS_SOURCE, {
+        type: "geojson",
+        data: buildVillageGeoJSON() as any,
+      });
+
+      map.current.addLayer({
+        id: VILLAGE_LABELS_LAYER,
+        type: "symbol",
+        source: VILLAGE_LABELS_SOURCE,
+        minzoom: 8,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": ["Open Sans Italic"],
+          "text-size": 11,
+          "text-allow-overlap": false,
+          "text-anchor": "center",
+          "text-padding": 4,
+        },
+        paint: {
+          "text-color": "rgba(140, 28, 46, 0.6)",
+          "text-halo-color": "rgba(255, 255, 255, 0.8)",
+          "text-halo-width": 2,
+        },
+      });
     });
 
     return () => {
@@ -832,6 +944,53 @@ export default function WineMap({
     }
   }, [selectedRegionId, regions]);
 
+  // Vintage heatmap overlay
+  useEffect(() => {
+    if (!map.current || !boundariesAdded.current) return;
+
+    const m = map.current;
+    const layer = m.getLayer(VINTAGE_OVERLAY);
+    if (!layer) return;
+
+    if (vintageYear === null || vintageYear === undefined) {
+      // Hide overlay
+      m.setLayoutProperty(VINTAGE_OVERLAY, "visibility", "none");
+      return;
+    }
+
+    // Build overlay GeoJSON from region boundaries + vintage scores
+    const scores = getVintageScoresForYear(vintageYear);
+    const features = regionBoundaries
+      .filter(rb => scores.has(rb.id))
+      .map(rb => {
+        const score = scores.get(rb.id) ?? null;
+        const isMulti =
+          rb.coordinates.length > 1 &&
+          Array.isArray(rb.coordinates[0]) &&
+          Array.isArray(rb.coordinates[0][0]) &&
+          typeof rb.coordinates[0][0][0] === "number";
+
+        return {
+          type: "Feature" as const,
+          properties: {
+            id: rb.id,
+            fillColor: vintageColor(score),
+            score,
+            label: vintageLabel(score),
+          },
+          geometry: isMulti
+            ? { type: "MultiPolygon" as const, coordinates: rb.coordinates.map((ring: any) => [ring]) }
+            : { type: "Polygon" as const, coordinates: rb.coordinates },
+        };
+      });
+
+    const source = m.getSource("vintage-overlay-src") as any;
+    if (source?.setData) {
+      source.setData({ type: "FeatureCollection", features } as any);
+    }
+    m.setLayoutProperty(VINTAGE_OVERLAY, "visibility", "visible");
+  }, [vintageYear]);
+
   return (
     <>
       <style>{`
@@ -853,6 +1012,46 @@ export default function WineMap({
         }
       `}</style>
       <div ref={mapContainer} className="w-full h-full" data-testid="wine-map" />
+      {vintageYear !== null && vintageYear !== undefined && (
+        <div style={{
+          position: "absolute",
+          bottom: 28,
+          right: 10,
+          background: "rgba(255,255,255,0.94)",
+          border: "1px solid #EDEAE3",
+          borderRadius: 8,
+          padding: "8px 10px",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "9px",
+          letterSpacing: "0.04em",
+          color: "#5A5248",
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          zIndex: 5,
+        }}>
+          {[
+            { label: "Exceptional", score: 96 },
+            { label: "Excellent", score: 93 },
+            { label: "Good", score: 89 },
+            { label: "Average", score: 85 },
+            { label: "No data", score: null },
+          ].map(({ label, score }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{
+                width: 12,
+                height: 12,
+                borderRadius: 2,
+                background: vintageColor(score),
+                border: "1px solid rgba(0,0,0,0.08)",
+                flexShrink: 0,
+              }} />
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }

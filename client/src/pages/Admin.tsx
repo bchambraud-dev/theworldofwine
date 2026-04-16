@@ -675,13 +675,13 @@ export default function Admin() {
   if (!user || user.email !== ADMIN_EMAIL) return <AccessDenied />;
 
   return (
-    <div style={{ fontFamily: C.fontBody, color: C.text }}>
+    <div style={{ fontFamily: C.fontBody, color: C.text, height: "calc(100vh - 56px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
       <style>{`
         @keyframes admin-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes admin-spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px 48px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px 80px" }}>
         {/* Breadcrumb + period selector */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
           <span style={{ fontFamily: C.fontMono, fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.04em" }}>

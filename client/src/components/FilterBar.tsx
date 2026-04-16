@@ -34,18 +34,46 @@ const worldOptions: { value: "old" | "new"; label: string }[] = [
 ];
 
 const topGrapes: string[] = [
+  // Red
   "Pinot Noir",
   "Cabernet Sauvignon",
   "Merlot",
-  "Chardonnay",
   "Syrah",
-  "Riesling",
   "Sangiovese",
   "Nebbiolo",
   "Tempranillo",
   "Grenache",
+  "Malbec",
+  "Gamay",
+  "Cabernet Franc",
+  "Mourvèdre",
+  "Pinotage",
+  "Zinfandel",
+  "Barbera",
+  "Tannat",
+  "Carmenère",
+  "Touriga Nacional",
+  "Nero d'Avola",
+  // White
+  "Chardonnay",
+  "Riesling",
   "Sauvignon Blanc",
   "Pinot Grigio",
+  "Chenin Blanc",
+  "Gewürztraminer",
+  "Viognier",
+  "Grüner Veltliner",
+  "Semillon",
+  "Assyrtiko",
+  "Albariño",
+  "Marsanne",
+  "Roussanne",
+  "Muscat",
+  "Verdejo",
+  // Other
+  "Pinot Meunier",
+  "Saperavi",
+  "Rkatsiteli",
 ];
 
 const flavourProfileOptions: string[] = [

@@ -386,27 +386,6 @@ export const producers: Producer[] = [
     grapeVarieties: ["Tempranillo", "Garnacha", "Viura"],
     world: "old"
   },
-  {
-    id: "vega-sicilia",
-    name: "Vega Sicilia",
-    regionId: "rioja",
-    country: "Spain",
-    lat: 41.65,
-    lng: -4.10,
-    description: "Technically located in Ribera del Duero, but Vega Sicilia operates at a level that transcends regional boundaries. Their <strong>Único</strong> — a Tempranillo-Cabernet blend that can spend up to a decade in oak and bottle before you're allowed to buy it — is Spain's most iconic fine wine. Collected by royalty, served at state dinners, and capable of aging for another 50 years after release. There is nothing else quite like it in Spain.",
-    founded: "1864",
-    flagshipWine: "Único",
-    wineType: ["red"],
-    priceRange: "luxury",
-    isNatural: false,
-    isAwardWinner: true,
-    tasteProfile: ["Dark Fruit", "Cedar", "Leather", "Spice", "Tobacco"],
-    keyFacts: ["Único ages 10+ years before release", "Spain's most iconic wine estate", "Also produces Valbuena (5-year release) and Alión"],
-    prestige: "legendary",
-    characteristics: ["age-worthy", "estate-grown", "old-vines"],
-    grapeVarieties: ["Tempranillo", "Cabernet Sauvignon", "Merlot"],
-    world: "old"
-  },
   // ── NAPA VALLEY ──────────────────────────────────────────────────────────────
   {
     id: "opus-one",

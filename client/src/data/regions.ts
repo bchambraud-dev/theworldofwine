@@ -301,6 +301,25 @@ export const wineRegions: WineRegion[] = [
     flavorProfile: "Grüner Veltliner: white pepper, citrus, green herb, and mineral. Riesling: lime, stone fruit, slate, and great longevity.",
     notableStyles: ["Grüner Veltliner Smaragd", "Riesling Smaragd", "Federspiel (medium-bodied)"]
   },
+  {
+    id: "burgenland",
+    name: "Burgenland",
+    country: "Austria",
+    lat: 47.85,
+    lng: 16.85,
+    zoom: 9,
+    description: "On the eastern edge of Austria, where the Alps flatten into the great Hungarian plain, <strong>Burgenland</strong> produces Austria's most compelling red wines — and some of the world's greatest sweet ones. The <strong>Pannonian climate</strong> — hot summers moderated by the vast, shallow Lake Neusiedl — is perfect for <strong>Blaufränkisch</strong>, a grape of dark cherry intensity and peppery spice that can rival northern Rhône Syrah for character. And when autumn mists roll off the lake, Botrytis cinerea works its magic on Welschriesling and Chardonnay, creating luscious, honeyed <strong>Trockenbeerenauslese</strong> to rival Sauternes. A new generation of biodynamic producers in the village of <strong>Gols</strong> is making some of Europe's most exciting natural wine.",
+    facts: [
+      "Lake Neusiedl is Europe's second-largest steppe lake and creates the humid conditions ideal for botrytis noble rot",
+      "Blaufränkisch from the Leithaberg and Mittelburgenland DAC is Austria's most structured and age-worthy red",
+      "The Pannobile group in Gols has redefined Austrian red wine since the mid-1990s",
+      "Burgenland's sweet wines from Rust and Illmitz rank among Europe's finest — and most underpriced"
+    ],
+    grapes: ["Blaufränkisch", "Zweigelt", "St. Laurent", "Welschriesling", "Chardonnay", "Grüner Veltliner"],
+    climate: "Pannonian — warm, continental with hot summers moderated by Lake Neusiedl; cold winters",
+    flavorProfile: "Blaufränkisch: dark cherry, blackberry, pepper, mineral, and firm structure. Zweigelt: juicy, soft, spiced plum. Sweet wines: apricot, honey, botrytis, and piercing acidity.",
+    notableStyles: ["Blaufränkisch (Dry Red)", "Zweigelt", "Trockenbeerenauslese (Sweet)", "Pannobile Blends"]
+  },
   // ── HUNGARY ──────────────────────────────────────────────────────────────────
   {
     id: "tokaj",
@@ -385,6 +404,25 @@ export const wineRegions: WineRegion[] = [
     flavorProfile: "Assyrtiko: lemon, white peach, saline minerality, wet stone, and fiery acidity with great aging potential. Vinsanto: fig, raisin, honey, saffron.",
     notableStyles: ["Assyrtiko (Dry White)", "Vinsanto (Sweet)", "Nykteri (Oak-Aged White)"]
   },
+  {
+    id: "naoussa",
+    name: "Naoussa",
+    country: "Greece",
+    lat: 40.63,
+    lng: 22.07,
+    zoom: 10,
+    description: "Tucked into the <strong>foothills of Mount Vermio</strong> in Macedonia, Naoussa is Greece's great red wine appellation — home to the noble, fiercely tannic <strong>Xinomavro</strong> grape. The name means 'acid black,' and the grape lives up to it: high acidity, firm tannins, and aromas that shift from <strong>tomato leaf and olive</strong> when young to something hauntingly close to aged Nebbiolo — dried cherry, leather, tobacco, earth — after a decade in the bottle. The cool continental climate at altitude gives Xinomavro the long growing season it demands, and the best wines from here are among the most <strong>age-worthy reds</strong> in the Mediterranean.",
+    facts: [
+      "Naoussa was one of the first Greek appellations to receive official recognition in 1971",
+      "Xinomavro translates to 'acid black' — perfectly describing the grape's fierce tannins and deep color",
+      "The vineyards sit at 150–350 metres on the slopes of Mount Vermio in central Macedonia",
+      "Top producers' Xinomavro is often compared to Barolo for its tannic structure and aging potential"
+    ],
+    grapes: ["Xinomavro"],
+    climate: "Continental with cold winters, warm summers, and significant altitude influence",
+    flavorProfile: "Xinomavro: red cherry, sundried tomato, olive, earth, and leather when young. With age: dried rose, tobacco, truffle, and tar — strikingly Nebbiolo-like.",
+    notableStyles: ["Xinomavro (Dry Red)", "Xinomavro Rosé", "Old Vine Cuvées"]
+  },
   // ── ENGLAND ──────────────────────────────────────────────────────────────────
   {
     id: "english-sparkling",
@@ -468,6 +506,26 @@ export const wineRegions: WineRegion[] = [
     flavorProfile: "Malbec: plum, blackberry, violet, dark chocolate, and velvety tannins. Torrontés: floral, peachy, aromatic.",
     notableStyles: ["Malbec", "High-Altitude Cabernet", "Torrontés", "Malbec-Cab Blends"]
   },
+  {
+    id: "patagonia",
+    image: "/regions/patagonia.webp",
+    name: "Patagonia",
+    country: "Argentina",
+    lat: -39.00,
+    lng: -67.50,
+    zoom: 8,
+    description: "At the edge of the known wine world, <strong>Patagonia</strong> is rewriting the rules of Argentine winemaking. Where Mendoza relies on altitude for freshness, Patagonia uses sheer <strong>latitude</strong> — its vineyards sit between the 38th and 45th parallels, buffeted by relentless winds and extreme <strong>diurnal temperature swings</strong> that can exceed 25°C. The result is wines of startling purity and razor-sharp acidity. <strong>Pinot Noir</strong> from the Río Negro and Neuquén valleys is rivalling cool-climate benchmarks from Burgundy and Central Otago, while <strong>Malbec</strong> here trades Mendoza's plush power for a leaner, more elegant expression.",
+    facts: [
+      "Bodega Otronia near Lake Musters in Chubut is the world's southernmost significant winery, at latitude 45°S",
+      "Patagonian winds of 30–60 km/h naturally protect vines from disease, reducing the need for chemical treatments",
+      "The Río Negro Valley has some of Argentina's oldest Semillon vines, planted by European immigrants over a century ago",
+      "Humberto Canale, founded in 1908, was producing wine in Patagonia decades before the region gained international recognition"
+    ],
+    grapes: ["Pinot Noir", "Malbec", "Merlot", "Chardonnay", "Sauvignon Blanc", "Semillon"],
+    climate: "Cool continental desert with extreme wind exposure, intense UV radiation, and dramatic day-night temperature swings",
+    flavorProfile: "Pinot Noir: bright cherry, wild strawberry, rose petal, and silky elegance. Malbec: leaner than Mendoza — red fruit, violet, graphite, and crisp acidity. Chardonnay: citrus, mineral, and cool-climate precision.",
+    notableStyles: ["Pinot Noir", "Cool-Climate Malbec", "Old-Vine Semillon", "Chardonnay"]
+  },
   // ── CHILE ────────────────────────────────────────────────────────────────────
   {
     id: "maipo-colchagua",
@@ -488,6 +546,26 @@ export const wineRegions: WineRegion[] = [
     climate: "Mediterranean — warm, dry summers; cool Pacific and Andean influences",
     flavorProfile: "Cabernet: cassis, eucalyptus, cedar, and firm structure. Carménère: dark fruit, coffee, dark chocolate, green pepper, and plush body.",
     notableStyles: ["Cabernet Sauvignon", "Carménère", "Bordeaux-Style Blends", "Icon Wines"]
+  },
+  {
+    id: "casablanca-valley",
+    image: "/regions/casablanca-valley.webp",
+    name: "Casablanca Valley",
+    country: "Chile",
+    lat: -33.32,
+    lng: -71.40,
+    zoom: 10,
+    description: "Just an hour from Santiago, the <strong>Casablanca Valley</strong> proved that Chile could do far more than bold reds. When Pablo Morandé planted the first vines here in 1982, locals thought he was crazy — the valley was cattle country, not wine country. But the cool <strong>Pacific</strong> fog that rolls in each morning and the limestone-rich soils turned out to be perfect for <strong>Sauvignon Blanc</strong>, <strong>Chardonnay</strong>, and increasingly stunning <strong>Pinot Noir</strong>. Today Casablanca is Chile's cool-climate benchmark, producing whites of crystalline purity and reds of surprising finesse.",
+    facts: [
+      "Pablo Morandé planted Casablanca's first commercial vineyard in 1982 — transforming cattle pasture into Chile's white wine capital",
+      "Morning fog from the Pacific (the camanchaca) cools the valley by up to 15°C, creating ideal conditions for aromatic whites",
+      "Kingston Family Vineyards sits on a historic ranch acquired during Chile's 19th-century gold rush",
+      "Casablanca has become South America's leading cool-climate region — its Sauvignon Blanc rivals Marlborough and Sancerre"
+    ],
+    grapes: ["Sauvignon Blanc", "Chardonnay", "Pinot Noir", "Syrah", "Carmenère"],
+    climate: "Cool maritime influenced by Pacific fog (camanchaca); warm afternoons, cool nights, minimal rainfall",
+    flavorProfile: "Sauvignon Blanc: grapefruit, lime, green pepper, and flinty minerality. Chardonnay: citrus, white peach, and elegant oak. Pinot Noir: bright cherry, raspberry, and silky texture. Syrah: cool-climate pepper and dark fruit.",
+    notableStyles: ["Sauvignon Blanc", "Chardonnay", "Cool-Climate Pinot Noir", "Syrah"]
   },
   // ── USA ──────────────────────────────────────────────────────────────────────
   {
@@ -798,6 +876,44 @@ export const wineRegions: WineRegion[] = [
     flavorProfile: "Amarone: intense dark cherry, dried fig, dark chocolate, and spice with velvety tannins. Prosecco: fresh pear, apple blossom, and cream. Soave: almond, white flower, and citrus zest.",
     notableStyles: ["Amarone della Valpolicella", "Prosecco DOCG", "Soave Classico", "Recioto"]
   },
+  {
+    id: "campania",
+    name: "Campania",
+    country: "Italy",
+    lat: 40.85,
+    lng: 14.55,
+    zoom: 8,
+    description: "In the shadow of <strong>Vesuvius</strong> and across the rugged hills of Irpinia, Campania is one of Italy's most ancient and exciting wine regions — and one that's still barely known outside the country. The great red grape here is <strong>Aglianico</strong>, which in the Taurasi DOCG produces wines of <strong>ferocious tannic intensity</strong>, dark fruit, and volcanic mineral depth that need years of patience before they reveal their full, brooding magnificence. The whites are equally distinctive: <strong>Fiano di Avellino</strong> is honeyed, nutty, and complex; Greco di Tufo is citric, mineral, and bracing. These are grapes the ancient Romans adored — and modern drinkers are rediscovering why.",
+    facts: [
+      "Taurasi is called the 'Barolo of the South' for its tannic structure and extraordinary aging potential",
+      "Aglianico is one of Italy's oldest grape varieties, brought by Greek colonists over 2,500 years ago",
+      "Volcanic soils from Vesuvius and the Campi Flegrei give the wines a distinctive smoky minerality",
+      "Campania has more indigenous grape varieties than almost any other Italian region — a living treasure chest"
+    ],
+    grapes: ["Aglianico", "Fiano", "Greco di Tufo", "Falanghina", "Piedirosso"],
+    climate: "Mediterranean with volcanic soils; coastal areas moderated by the Tyrrhenian Sea, inland Irpinia is more continental",
+    flavorProfile: "Aglianico (Taurasi): black cherry, plum, tobacco, leather, and volcanic mineral with powerful tannins. Fiano: honey, hazelnut, pear, and waxy texture. Greco: citrus, almond, and saline freshness.",
+    notableStyles: ["Taurasi (Aglianico Red)", "Fiano di Avellino", "Greco di Tufo", "Falanghina del Sannio"]
+  },
+  {
+    id: "alto-adige",
+    name: "Alto Adige",
+    country: "Italy",
+    lat: 46.50,
+    lng: 11.35,
+    zoom: 9,
+    description: "Pressed against the Austrian border in Italy's far northeast, Alto Adige — or <strong>Südtirol</strong>, as the German-speaking locals call it — is where Alpine precision meets Italian warmth. The vineyards cling to steep, sun-drenched slopes above the <strong>Adige River valley</strong>, with the Dolomites as a backdrop so dramatic it seems fake. The wines are equally striking: <strong>Pinot Grigio</strong> here is nothing like the bland stuff sold in supermarkets — it's mineral, structured, and serious. <strong>Gewürztraminer</strong> is exotic and perfumed (the grape may have originated here, in the village of Tramin). And Pinot Nero from higher altitudes is surprisingly elegant. Over 20 grape varieties thrive in this tiny region, each finding its ideal altitude and aspect.",
+    facts: [
+      "Alto Adige is officially bilingual — Italian and German — and the wine culture reflects both traditions",
+      "Gewürztraminer may have originated in the village of Tramin (Termeno), which gave the grape its name",
+      "Vineyards range from 200 to over 1,000 metres altitude, creating dramatic microclimatic variation",
+      "Over 98% of production is DOC classified — the highest percentage of any Italian wine region"
+    ],
+    grapes: ["Pinot Grigio", "Gewürztraminer", "Pinot Nero", "Lagrein", "Schiava", "Pinot Bianco", "Sauvignon Blanc"],
+    climate: "Alpine continental — warm days, cool nights, sheltered valley with strong diurnal temperature variation",
+    flavorProfile: "Pinot Grigio: pear, apple, mineral, and surprising depth. Gewürztraminer: lychee, rose petal, ginger, and exotic spice. Lagrein: dark berry, chocolate, and Alpine herbs.",
+    notableStyles: ["Pinot Grigio", "Gewürztraminer", "Lagrein (Red)", "Pinot Nero", "Valle Isarco Whites"]
+  },
   // ── SPAIN (CONTINUED) ────────────────────────────────────────────────────────
   {
     id: "ribera-del-duero",
@@ -838,6 +954,25 @@ export const wineRegions: WineRegion[] = [
     climate: "Hot and dry Mediterranean, tempered by Atlantic winds; the Levante and Poniente winds play crucial roles",
     flavorProfile: "Fino: saline, yeasty, almond, and chamomile. Oloroso: walnut, dried fruit, and toffee. PX: raisin, fig, chocolate, and molasses.",
     notableStyles: ["Fino", "Manzanilla", "Amontillado", "Oloroso", "Palo Cortado", "Pedro Ximénez"]
+  },
+  {
+    id: "rias-baixas",
+    name: "Rias Baixas",
+    country: "Spain",
+    lat: 42.20,
+    lng: -8.75,
+    zoom: 9,
+    description: "On Spain's lush, rain-soaked <strong>Atlantic coast</strong> in Galicia, Rias Baixas is about as far from the sun-baked Spanish stereotype as you can get. This is white wine country — cool, green, and maritime — and its star is <strong>Albariño</strong>, a grape that produces some of the most purely refreshing whites in Europe: bright citrus, white peach, a distinctive <strong>saline minerality</strong> from the proximity to the sea, and a racy acidity that makes it an almost unfairly perfect partner for shellfish. The best vineyards train their vines on <strong>pergolas</strong> of granite, lifting them off the damp ground to avoid rot in this rainy climate. Simple, yes. But the best Albariños — especially aged cuvées — are far more complex than their easy-drinking reputation suggests.",
+    facts: [
+      "Albariño accounts for over 95% of plantings — this is essentially a single-variety region",
+      "Rias Baixas literally means 'lower estuaries' — the vineyards overlook Atlantic inlets teeming with seafood",
+      "The traditional pergola training system lifts vines to 2 metres high, protecting from rot in this wet climate",
+      "Producers are now making aged, lees-stirred Albariños that can cellar for a decade — rewriting the grape's story"
+    ],
+    grapes: ["Albariño", "Caiño Blanco", "Loureira", "Treixadura", "Espadeiro"],
+    climate: "Cool Atlantic maritime — high rainfall, moderate temperatures, strong ocean influence",
+    flavorProfile: "Albariño: lemon zest, white peach, green apple, sea salt, and granite minerality. Aged examples develop honey, almond, and waxy complexity.",
+    notableStyles: ["Albariño (Dry White)", "Aged Albariño Sur Lie", "Espadeiro Rosé"]
   },
   // ── AUSTRALIA (CONTINUED) ────────────────────────────────────────────────────
   {
@@ -943,6 +1078,26 @@ export const wineRegions: WineRegion[] = [
     flavorProfile: "Riesling: steely minerality, lime, green apple, and white peach. Aged Auslesen develop honey, petrol, and dried apricot. Spätburgunder offers silky red cherry and earthy elegance.",
     notableStyles: ["Riesling Spätlese", "Riesling Auslese", "Sekt (Sparkling)", "Spätburgunder"]
   },
+  {
+    id: "pfalz",
+    image: "/regions/pfalz.webp",
+    name: "Pfalz",
+    country: "Germany",
+    lat: 49.30,
+    lng: 8.15,
+    zoom: 9,
+    description: "Germany's sunniest wine region stretches along the <strong>Haardt Mountains</strong> — the northern extension of the Vosges — creating a sheltered corridor that feels almost Mediterranean. The <strong>Pfalz</strong> was once considered Riesling's workhorse region, but a quiet revolution has elevated it to rival the Mosel and Rheingau for quality. The secret weapon is diversity: volcanic <strong>basalt</strong>, limestone, red sandstone, and loess soils produce Rieslings of extraordinary range, from steely and mineral to opulent and golden. And then there's <strong>Spätburgunder</strong> — German Pinot Noir — which in the hands of top Pfalz producers rivals red Burgundy.",
+    facts: [
+      "The Pfalz receives more sunshine hours than any other German wine region — nearly Mediterranean warmth",
+      "Weingut Dr. Bürklin-Wolf, founded in 1597, was the first estate to adopt Burgundian vineyard classification in Germany",
+      "The Mittelhaardt zone between Neustadt and Bad Dürkheim is considered Germany's finest stretch of vineyard land",
+      "Friedrich Becker's vineyards straddle the French border — his Pinot Noir is fermented from grapes grown in both countries"
+    ],
+    grapes: ["Riesling", "Spätburgunder (Pinot Noir)", "Dornfelder", "Grauburgunder", "Weißburgunder"],
+    climate: "Warm continental, sheltered by the Haardt Mountains; Germany's sunniest and driest wine region",
+    flavorProfile: "Riesling: ripe peach, apricot, tropical hints, and smoky minerality. Spätburgunder: silky cherry, earthy spice, and Burgundian elegance. Grauburgunder: rich, round, honeyed.",
+    notableStyles: ["Riesling GG (Großes Gewächs)", "Spätburgunder (Pinot Noir)", "Riesling Spätlese", "Grauburgunder"]
+  },
   // ── PORTUGAL (CONTINUED) ─────────────────────────────────────────────────────
   {
     id: "vinho-verde",
@@ -963,6 +1118,25 @@ export const wineRegions: WineRegion[] = [
     climate: "Atlantic oceanic — high rainfall, cool temperatures, high humidity; perfect for crisp, high-acid whites",
     flavorProfile: "Lime zest, green apple, white peach, and a distinctive saline minerality. Alvarinho adds stone fruit depth and textural richness. Light effervescence adds freshness.",
     notableStyles: ["Alvarinho", "Multi-varietal Blends", "Sparkling Vinho Verde"]
+  },
+  {
+    id: "alentejo",
+    name: "Alentejo",
+    country: "Portugal",
+    lat: 38.57,
+    lng: -7.90,
+    zoom: 8,
+    description: "Stretching across the sun-baked plains south of Lisbon, the Alentejo is Portugal's largest and most dynamic wine region — a landscape of <strong>cork oak forests</strong>, whitewashed villages, and vast estates where <strong>Aragonez</strong> and the inky <strong>Alicante Bouschet</strong> thrive in the heat. For decades this was rustic country wine territory. Then a quality revolution arrived: modern wineries, temperature-controlled fermentation, and a new generation of producers who realized that old-vine field blends and indigenous grapes on <strong>granite and schist soils</strong> could produce something genuinely world-class. The reds are generous, ripe, and sun-drenched; the whites — led by Antão Vaz — are surprisingly fresh and aromatic.",
+    facts: [
+      "The Alentejo region contains more than one-third of Portugal's cork oak forests — the world's largest",
+      "Alicante Bouschet, a teinturier grape with red flesh, produces some of Portugal's most intense and distinctive reds",
+      "Eight official sub-regions each with distinct terroir, from clay plains to granite mountain slopes",
+      "The traditional clay amphorae (talha) winemaking method here predates Roman occupation"
+    ],
+    grapes: ["Aragonez (Tempranillo)", "Alicante Bouschet", "Trincadeira", "Touriga Nacional", "Antão Vaz", "Arinto"],
+    climate: "Hot Mediterranean — scorching dry summers, mild winters; one of the warmest regions in Portugal",
+    flavorProfile: "Reds: ripe blackberry, plum, chocolate, leather, and warm spice with generous body. Whites: stone fruit, tropical notes, and herbal freshness. Alicante Bouschet: intensely dark, ink-like concentration.",
+    notableStyles: ["Aragonez-Alicante Bouschet Blends", "Old Vine Field Blends", "Talha (Clay Amphora) Wines", "Antão Vaz Whites"]
   },
   // ── SOUTH AFRICA (CONTINUED) ─────────────────────────────────────────────────
   {

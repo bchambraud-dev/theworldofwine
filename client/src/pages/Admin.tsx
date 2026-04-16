@@ -1,40 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
-
-// ─── Admin-only fetch using service_role key (bypasses RLS) ──────────────────
-const SERVICE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc3NjEzMSwiZXhwIjoyMDg3MzUyMTMxfQ.JEXkuSX8vPCTMf8v5w1Wm5t-vIGMgYRLvPSQBgp5Vlk";
-
-async function adminFetch<T = any>(
-  table: string,
-  queryParams: string,
-  timeoutMs = 15000,
-): Promise<T[]> {
-  const res = await Promise.race([
-    fetch(`${SUPABASE_URL}/rest/v1/${table}?${queryParams}`, {
-      method: "GET",
-      headers: {
-        apikey: ANON_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-      },
-    }),
-    new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error("Request timed out")), timeoutMs),
-    ),
-  ]);
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(body || `Query failed (${res.status})`);
-  }
-  return res.json();
-}
+import { SUPABASE_URL, ANON_KEY, getAccessToken } from "@/lib/supabaseDirectFetch";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface UserProfile {
   id: string;
   display_name: string | null;
+  avatar_url: string | null;
   created_at: string;
   experience_level: string | null;
 }
@@ -44,231 +17,321 @@ interface WineEntry {
   wine_name: string | null;
   region: string | null;
   created_at: string;
-  tasting_data: any;
+  has_tasting: boolean | null;
 }
 interface WishlistEntry { id: string; user_id: string; created_at: string }
-interface SommyMsg { id: string; user_id: string; role: string; created_at: string }
-interface ActivityEntry { user_id: string; activity_type: string; item_id: string | null; created_at: string }
+interface ConversationEntry { id: string; user_id: string; created_at: string }
+interface ActivityEntry {
+  id?: string;
+  user_id: string;
+  activity_type: string;
+  item_id: string | null;
+  created_at: string;
+}
 
-interface DashData {
+interface AdminData {
   users: UserProfile[];
   wines: WineEntry[];
   wishlist: WishlistEntry[];
-  sommyMsgs: SommyMsg[];
-  activity: ActivityEntry[];
-  guideReads: ActivityEntry[];
+  conversations: ConversationEntry[];
+  activities: ActivityEntry[];
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function isThisWeek(iso: string): boolean {
-  const d = new Date(iso);
-  const now = new Date();
-  const weekAgo = new Date(now);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  return d >= weekAgo;
-}
+type Period = "7" | "30" | "90" | "all";
 
-function relativeDate(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - d.getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  if (diff < 7) return `${diff}d ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function hasTastingData(w: WineEntry): boolean {
-  if (!w.tasting_data || w.tasting_data === "{}" || w.tasting_data === "null") return false;
-  if (typeof w.tasting_data === "string") {
-    try {
-      const p = JSON.parse(w.tasting_data);
-      return p && Object.keys(p).length > 0;
-    } catch { return false; }
-  }
-  if (typeof w.tasting_data === "object") return Object.keys(w.tasting_data).length > 0;
-  return false;
-}
-
-// ─── Styles ──────────────────────────────────────────────────────────────────
-const S = {
-  bg: "#1A1410",
-  card: "#1E1915",
-  cardBorder: "#2A231D",
-  cream: "#F7F4EF",
-  creamMuted: "#B8B0A4",
-  creamFaint: "#7A7268",
-  wine: "#8C1C2E",
-  wineLight: "#A8364A",
-  wineGlow: "rgba(140, 28, 46, 0.15)",
-  gold: "#C9A84C",
-  green: "#4CAF7D",
-  greenBg: "rgba(76, 175, 125, 0.12)",
+// ─── Palette (cream / light — matches site) ─────────────────────────────────
+const C = {
+  bg: "#F7F4EF",
+  card: "#FFFFFF",
+  cardBorder: "#EDEAE3",
+  text: "#1A1410",
+  muted: "#5A5248",
+  accent: "#8C1C2E",
+  accentLight: "rgba(140, 28, 46, 0.08)",
+  green: "#4A7A52",
+  greenBg: "rgba(74, 122, 82, 0.10)",
+  gold: "#B8963E",
+  goldBg: "rgba(184, 150, 62, 0.10)",
+  purple: "#6B4C8A",
+  purpleBg: "rgba(107, 76, 138, 0.10)",
+  border: "#EDEAE3",
+  trackBg: "rgba(0,0,0,0.04)",
   fontDisplay: "'Fraunces', Georgia, serif",
   fontBody: "'Jost', -apple-system, sans-serif",
   fontMono: "'Geist Mono', 'SF Mono', monospace",
-  radius: 10,
-  radiusSm: 6,
+  radius: 14,
 } as const;
 
-// ─── Access Gate ─────────────────────────────────────────────────────────────
+// ─── Access control ──────────────────────────────────────────────────────────
 const ADMIN_EMAIL = "bchambraud@gmail.com";
 
-function AccessDenied() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    const t = setTimeout(() => setLocation("/explore"), 2000);
-    return () => clearTimeout(t);
-  }, [setLocation]);
+// ─── RPC fetch ───────────────────────────────────────────────────────────────
+async function fetchAdminStats(userId: string): Promise<AdminData> {
+  const token = getAccessToken();
+  if (!token) throw new Error("Not authenticated");
+
+  const res = await Promise.race([
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_stats`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        apikey: ANON_KEY,
+      },
+      body: JSON.stringify({ admin_uid: userId }),
+    }),
+    new Promise<Response>((_, rej) =>
+      setTimeout(() => rej(new Error("Request timed out")), 20000),
+    ),
+  ]);
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(body || `RPC failed (${res.status})`);
+  }
+
+  const raw = await res.json();
+  return {
+    users: raw.users || [],
+    wines: raw.wines || [],
+    wishlist: raw.wishlist || [],
+    conversations: raw.conversations || [],
+    activities: raw.activities || [],
+  };
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function relativeTime(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "1 day ago";
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return "1 week ago";
+  if (weeks < 5) return `${weeks} weeks ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function periodDays(p: Period): number | null {
+  if (p === "7") return 7;
+  if (p === "30") return 30;
+  if (p === "90") return 90;
+  return null;
+}
+
+function inRange(iso: string, startMs: number, endMs: number): boolean {
+  const t = new Date(iso).getTime();
+  return t >= startMs && t < endMs;
+}
+
+function countInRange<T extends { created_at: string }>(items: T[], startMs: number, endMs: number): number {
+  return items.filter(i => inRange(i.created_at, startMs, endMs)).length;
+}
+
+// ─── Section label ───────────────────────────────────────────────────────────
+function SectionLabel({ children }: { children: string }) {
   return (
-    <div style={{ minHeight: "100vh", background: S.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontFamily: S.fontDisplay, fontSize: "1.4rem", color: S.cream, marginBottom: 8 }}>Access Denied</div>
-        <p style={{ fontFamily: S.fontBody, fontSize: "0.85rem", color: S.creamFaint }}>Redirecting to explore...</p>
-      </div>
+    <div style={{
+      fontFamily: C.fontMono, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em",
+      textTransform: "uppercase" as const, color: C.muted, marginBottom: 12,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ─── Avatar ──────────────────────────────────────────────────────────────────
+function Avatar({ name, url, size = 28 }: { name: string; url?: string | null; size?: number }) {
+  const initials = (name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt=""
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      background: C.accentLight, color: C.accent,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.38, fontFamily: C.fontBody, fontWeight: 600,
+    }}>
+      {initials}
+    </div>
+  );
+}
+
+// ─── Period Selector ─────────────────────────────────────────────────────────
+function PeriodSelector({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  const pills: { label: string; val: Period }[] = [
+    { label: "7D", val: "7" },
+    { label: "30D", val: "30" },
+    { label: "90D", val: "90" },
+    { label: "ALL", val: "all" },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 0, background: C.trackBg, borderRadius: 8, padding: 3 }}>
+      {pills.map(p => (
+        <button
+          key={p.val}
+          onClick={() => onChange(p.val)}
+          style={{
+            padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer",
+            fontFamily: C.fontMono, fontSize: 11, fontWeight: 600, letterSpacing: "0.04em",
+            background: value === p.val ? C.card : "transparent",
+            color: value === p.val ? C.text : C.muted,
+            boxShadow: value === p.val ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+            transition: "all 0.15s ease",
+          }}
+        >
+          {p.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, delta, icon }: { label: string; value: number; delta?: number; icon: React.ReactNode }) {
+function KpiCard({ label, total, thisPeriod, prevPeriod, periodLabel }: {
+  label: string; total: number; thisPeriod: number; prevPeriod: number; periodLabel: string;
+}) {
+  const delta = thisPeriod - prevPeriod;
+  const deltaColor = delta > 0 ? C.green : delta < 0 ? C.accent : C.muted;
+  const deltaPrefix = delta > 0 ? "+" : "";
+
   return (
     <div style={{
-      background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius,
-      padding: "20px 22px", position: "relative", overflow: "hidden",
+      background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius,
+      padding: "22px 24px",
     }}>
       <div style={{
-        width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-        marginBottom: 12, background: S.wineGlow,
+        fontFamily: C.fontMono, fontSize: 10, fontWeight: 600, letterSpacing: "0.08em",
+        textTransform: "uppercase" as const, color: C.muted, marginBottom: 10,
       }}>
-        {icon}
+        {label}
       </div>
       <div style={{
-        fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" as const,
-        color: S.creamFaint, marginBottom: 10, fontFamily: S.fontBody,
-      }}>{label}</div>
+        fontFamily: C.fontDisplay, fontSize: 34, fontWeight: 600, letterSpacing: "-0.02em",
+        color: C.text, lineHeight: 1.1,
+      }}>
+        {total.toLocaleString()}
+      </div>
       <div style={{
-        fontFamily: S.fontMono, fontSize: 32, fontWeight: 600, letterSpacing: "-0.02em",
-        color: S.cream, lineHeight: 1.1, fontVariantNumeric: "tabular-nums lining-nums",
-      }}>{value.toLocaleString()}</div>
-      {delta !== undefined && (
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 4, marginTop: 8,
-          fontFamily: S.fontMono, fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 4,
-          color: delta > 0 ? S.green : S.creamFaint,
-          background: delta > 0 ? S.greenBg : "rgba(122, 114, 104, 0.12)",
-        }}>
-          +{delta} this week
-        </span>
-      )}
+        marginTop: 8, fontFamily: C.fontMono, fontSize: 11.5, fontWeight: 500, color: deltaColor,
+      }}>
+        {deltaPrefix}{delta} vs prev {periodLabel}
+      </div>
     </div>
   );
 }
 
-// ─── SVG Icons ───────────────────────────────────────────────────────────────
-const iconColor = S.wineLight;
-const IconUsers = <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="5" r="3"/><path d="M2.5 14c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/></svg>;
-const IconWine = <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"><path d="M8 2C8 2 9.5 6 12 7.5L8 14L4 7.5C6.5 6 8 2 8 2z"/></svg>;
-const IconSommy = <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"><path d="M3 4h10v7a2 2 0 01-2 2H5a2 2 0 01-2-2V4z"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M6 7h4"/></svg>;
-const IconStar = <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round"><path d="M8 3l1.5 3.5L13 7l-2.5 2.5L11 13l-3-1.8L5 13l.5-3.5L3 7l3.5-.5z"/></svg>;
+// ─── Activity Chart (pure CSS bars) ──────────────────────────────────────────
+function ActivityChart({ data, period }: { data: AdminData; period: Period }) {
+  const numDays = periodDays(period);
 
-// ─── Activity Timeline (CSS bars, no chart library) ─────────────────────────
-function ActivityTimeline({ users, wines, sommyMsgs }: { users: UserProfile[]; wines: WineEntry[]; sommyMsgs: SommyMsg[] }) {
-  const days: string[] = [];
-  const labels: string[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-    labels.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
-  }
+  const { days, labels, maxVal } = useMemo(() => {
+    const now = Date.now();
+    const d: string[] = [];
+    const l: string[] = [];
+    const span = numDays || Math.ceil((now - Math.min(
+      ...data.users.map(u => new Date(u.created_at).getTime()),
+      ...data.wines.map(w => new Date(w.created_at).getTime()),
+      now,
+    )) / 86400000) + 1;
+    const actualDays = Math.min(span, 365);
 
-  const bucket = (items: { created_at: string }[]) => {
-    const m: Record<string, number> = {};
-    items.forEach(it => { const k = it.created_at?.slice(0, 10); if (k) m[k] = (m[k] || 0) + 1; });
-    return m;
-  };
+    for (let i = actualDays - 1; i >= 0; i--) {
+      const dt = new Date(now - i * 86400000);
+      d.push(dt.toISOString().slice(0, 10));
+      l.push(dt.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+    }
 
-  const signups = bucket(users);
-  const wineLogs = bucket(wines);
-  const sommyAct = bucket(sommyMsgs);
+    const counts: Record<string, number> = {};
+    const allItems = [
+      ...data.wines.map(w => w.created_at),
+      ...data.conversations.map(c => c.created_at),
+      ...data.wishlist.map(w => w.created_at),
+    ];
+    allItems.forEach(iso => {
+      const k = iso?.slice(0, 10);
+      if (k) counts[k] = (counts[k] || 0) + 1;
+    });
 
-  const maxVal = Math.max(1, ...days.map(d => (signups[d] || 0) + (wineLogs[d] || 0) + (sommyAct[d] || 0)));
+    const mv = Math.max(1, ...d.map(day => counts[day] || 0));
+    return { days: d.map(day => ({ key: day, count: counts[day] || 0 })), labels: l, maxVal: mv };
+  }, [data, numDays]);
 
-  // Show labels for every ~5th bar
-  const labelEvery = Math.max(1, Math.floor(days.length / 6));
+  const labelEvery = Math.max(1, Math.floor(days.length / 7));
 
   return (
-    <div style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius, padding: 24 }}>
-      <div style={{ fontFamily: S.fontDisplay, fontSize: 16, fontWeight: 600, color: S.cream, marginBottom: 20 }}>
-        Activity (Last 30 Days)
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24 }}>
+      <div style={{ fontFamily: C.fontDisplay, fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 20 }}>
+        Daily Activity
       </div>
-      {/* Legend */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-        {[{ label: "Sign-ups", color: S.wine }, { label: "Wine Logs", color: S.gold }, { label: "Sommy Messages", color: "rgba(184,176,164,0.35)" }].map(l => (
-          <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
-            <span style={{ fontFamily: S.fontBody, fontSize: 11, color: S.creamFaint }}>{l.label}</span>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 1, height: 160 }}>
+        {days.map((d, i) => (
+          <div key={d.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
+            <div
+              title={`${labels[i]}: ${d.count} actions`}
+              style={{
+                width: "100%", maxWidth: 12,
+                height: d.count > 0 ? `${Math.max(4, (d.count / maxVal) * 100)}%` : "0%",
+                background: C.accent, borderRadius: 2, transition: "height 0.3s ease",
+              }}
+            />
+            {i % labelEvery === 0 && (
+              <div style={{ fontSize: 9, color: C.muted, marginTop: 6, whiteSpace: "nowrap", fontFamily: C.fontMono }}>
+                {labels[i]}
+              </div>
+            )}
           </div>
         ))}
       </div>
-      {/* Bars */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 200 }}>
-        {days.map((d, i) => {
-          const s = signups[d] || 0;
-          const w = wineLogs[d] || 0;
-          const m = sommyAct[d] || 0;
-          const total = s + w + m;
-          const pct = (total / maxVal) * 100;
-          return (
-            <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}>
-              <div style={{ width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end" }} title={`${labels[i]}: ${s} signups, ${w} wines, ${m} messages`}>
-                {m > 0 && <div style={{ width: "100%", height: `${(m / maxVal) * 100}%`, background: "rgba(184,176,164,0.35)", borderRadius: "2px 2px 0 0", minHeight: m > 0 ? 2 : 0 }} />}
-                {w > 0 && <div style={{ width: "100%", height: `${(w / maxVal) * 100}%`, background: S.gold, minHeight: w > 0 ? 2 : 0 }} />}
-                {s > 0 && <div style={{ width: "100%", height: `${(s / maxVal) * 100}%`, background: S.wine, borderRadius: "0 0 2px 2px", minHeight: s > 0 ? 2 : 0 }} />}
-              </div>
-              {i % labelEvery === 0 && (
-                <div style={{ fontSize: 9, color: S.creamFaint, marginTop: 4, whiteSpace: "nowrap", fontFamily: S.fontBody }}>
-                  {labels[i]}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
 
-// ─── Top Regions (horizontal bars) ──────────────────────────────────────────
+// ─── Top Regions ─────────────────────────────────────────────────────────────
 function TopRegions({ wines }: { wines: WineEntry[] }) {
-  const regionCounts: Record<string, number> = {};
-  wines.forEach(w => { const r = w.region || "Unknown"; regionCounts[r] = (regionCounts[r] || 0) + 1; });
-  const sorted = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const sorted = useMemo(() => {
+    const counts: Record<string, number> = {};
+    wines.forEach(w => { const r = w.region || "Unknown"; counts[r] = (counts[r] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  }, [wines]);
   const maxVal = sorted[0]?.[1] || 1;
-  const colors = ["#8C1C2E", "#A8364A", "#C9A84C", "#8B6D3E", "#6B8C5A", "#5A7C8C", "#9C7B6C", "#7A5C6C", "#6C5C4C", "#5C4C3C"];
 
   return (
-    <div style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius, padding: 24 }}>
-      <div style={{ fontFamily: S.fontDisplay, fontSize: 16, fontWeight: 600, color: S.cream, marginBottom: 20 }}>
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24 }}>
+      <div style={{ fontFamily: C.fontDisplay, fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 20 }}>
         Top Regions
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {sorted.map(([region, count], i) => (
+        {sorted.map(([region, count]) => (
           <div key={region} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ flex: "0 0 120px", fontSize: 12, color: S.creamMuted, fontFamily: S.fontBody, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{
+              flex: "0 0 120px", fontSize: 12, color: C.muted, fontFamily: C.fontBody,
+              textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
               {region}
             </span>
-            <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${(count / maxVal) * 100}%`, background: colors[i] || S.wine, borderRadius: 4 }} />
+            <div style={{ flex: 1, height: 8, background: C.trackBg, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(count / maxVal) * 100}%`, background: C.accent, borderRadius: 4, transition: "width 0.5s ease" }} />
             </div>
-            <span style={{ flex: "0 0 36px", fontFamily: S.fontMono, fontSize: 12, fontWeight: 600, color: S.cream, fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ flex: "0 0 32px", fontFamily: C.fontMono, fontSize: 12, fontWeight: 600, color: C.text, fontVariantNumeric: "tabular-nums" }}>
               {count}
             </span>
           </div>
         ))}
         {sorted.length === 0 && (
-          <div style={{ textAlign: "center", padding: 32, color: S.creamFaint, fontSize: 13 }}>No wine logs yet</div>
+          <div style={{ textAlign: "center", padding: 24, color: C.muted, fontSize: 13 }}>No wine logs yet</div>
         )}
       </div>
     </div>
@@ -276,57 +339,66 @@ function TopRegions({ wines }: { wines: WineEntry[] }) {
 }
 
 // ─── User Table ──────────────────────────────────────────────────────────────
-function UserTable({ data }: { data: DashData }) {
-  const { users, wines, wishlist, sommyMsgs, guideReads } = data;
+function UserTable({ data }: { data: AdminData }) {
+  const { users, wines, wishlist, conversations, activities } = data;
 
-  const winesByUser: Record<string, number> = {};
-  wines.forEach(w => { winesByUser[w.user_id] = (winesByUser[w.user_id] || 0) + 1; });
+  const stats = useMemo(() => {
+    const winesByUser: Record<string, number> = {};
+    const tastingsByUser: Record<string, number> = {};
+    wines.forEach(w => {
+      winesByUser[w.user_id] = (winesByUser[w.user_id] || 0) + 1;
+      if (w.has_tasting) tastingsByUser[w.user_id] = (tastingsByUser[w.user_id] || 0) + 1;
+    });
 
-  const wishlistByUser: Record<string, number> = {};
-  wishlist.forEach(w => { wishlistByUser[w.user_id] = (wishlistByUser[w.user_id] || 0) + 1; });
+    const wishlistByUser: Record<string, number> = {};
+    wishlist.forEach(w => { wishlistByUser[w.user_id] = (wishlistByUser[w.user_id] || 0) + 1; });
 
-  const sommyByUser: Record<string, number> = {};
-  sommyMsgs.forEach(m => { sommyByUser[m.user_id] = (sommyByUser[m.user_id] || 0) + 1; });
+    const chatsByUser: Record<string, number> = {};
+    conversations.forEach(c => { chatsByUser[c.user_id] = (chatsByUser[c.user_id] || 0) + 1; });
 
-  const guidesByUser: Record<string, Set<string>> = {};
-  guideReads.forEach(g => {
-    if (!guidesByUser[g.user_id]) guidesByUser[g.user_id] = new Set();
-    if (g.item_id) guidesByUser[g.user_id].add(g.item_id);
-  });
+    const guidesByUser: Record<string, Set<string>> = {};
+    activities.filter(a => a.activity_type === "guide_read").forEach(a => {
+      if (!guidesByUser[a.user_id]) guidesByUser[a.user_id] = new Set();
+      if (a.item_id) guidesByUser[a.user_id].add(a.item_id);
+    });
 
-  const tastingsByUser: Record<string, number> = {};
-  wines.forEach(w => {
-    if (hasTastingData(w)) tastingsByUser[w.user_id] = (tastingsByUser[w.user_id] || 0) + 1;
-  });
+    return { winesByUser, tastingsByUser, wishlistByUser, chatsByUser, guidesByUser };
+  }, [wines, wishlist, conversations, activities]);
 
-  const sorted = [...users].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const sorted = useMemo(() =>
+    [...users].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+  [users]);
 
   const thStyle: React.CSSProperties = {
-    fontFamily: S.fontBody, fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
-    textTransform: "uppercase", color: S.creamFaint, textAlign: "left", padding: "10px 14px",
-    borderBottom: `1px solid ${S.cardBorder}`, whiteSpace: "nowrap", background: S.card,
+    fontFamily: C.fontMono, fontSize: 10, fontWeight: 600, letterSpacing: "0.08em",
+    textTransform: "uppercase", color: C.muted, textAlign: "left", padding: "10px 14px",
+    borderBottom: `1px solid ${C.cardBorder}`, whiteSpace: "nowrap", background: C.card,
   };
   const tdStyle: React.CSSProperties = {
-    padding: "12px 14px", borderBottom: "1px solid rgba(42, 35, 29, 0.5)",
-    color: S.creamMuted, verticalAlign: "middle", whiteSpace: "nowrap", fontSize: 13,
+    padding: "10px 14px", borderBottom: `1px solid ${C.cardBorder}`,
+    color: C.muted, verticalAlign: "middle", whiteSpace: "nowrap", fontSize: 13,
   };
   const numStyle: React.CSSProperties = {
-    ...tdStyle, fontFamily: S.fontMono, fontVariantNumeric: "tabular-nums lining-nums", fontWeight: 500,
+    ...tdStyle, fontFamily: C.fontMono, fontVariantNumeric: "tabular-nums", fontWeight: 500, color: C.text,
   };
 
-  const levelBadge = (level: string) => {
-    const l = (level || "beginner").toLowerCase();
-    const bg = l === "advanced" ? S.wineGlow : l === "intermediate" ? "rgba(201, 168, 76, 0.12)" : S.greenBg;
-    const color = l === "advanced" ? S.wineLight : l === "intermediate" ? S.gold : "#6CC9A0";
+  const levelBadge = (level: string | null) => {
+    const l = (level || "").toLowerCase();
+    let bg = "rgba(0,0,0,0.04)";
+    let color = C.muted;
+    let label = level || "Not set";
+    if (l === "beginner") { bg = C.greenBg; color = C.green; label = "Beginner"; }
+    else if (l === "intermediate") { bg = C.goldBg; color = C.gold; label = "Intermediate"; }
+    else if (l === "advanced" || l === "expert") { bg = C.purpleBg; color = C.purple; label = l === "expert" ? "Expert" : "Advanced"; }
     return (
-      <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, letterSpacing: "0.02em", background: bg, color }}>
-        {l.charAt(0).toUpperCase() + l.slice(1)}
+      <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: bg, color }}>
+        {label}
       </span>
     );
   };
 
   return (
-    <div style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius, padding: 0, overflowX: "auto", marginBottom: 36 }}>
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 0, overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -335,25 +407,30 @@ function UserTable({ data }: { data: DashData }) {
             <th style={thStyle}>Level</th>
             <th style={thStyle}>Wines</th>
             <th style={thStyle}>Wishlist</th>
-            <th style={thStyle}>Sommy</th>
+            <th style={thStyle}>Chats</th>
             <th style={thStyle}>Guides</th>
             <th style={thStyle}>Tastings</th>
           </tr>
         </thead>
         <tbody>
           {sorted.length === 0 && (
-            <tr><td colSpan={8} style={{ ...tdStyle, textAlign: "center", padding: 32, color: S.creamFaint }}>No users yet</td></tr>
+            <tr><td colSpan={8} style={{ ...tdStyle, textAlign: "center", padding: 32, color: C.muted }}>No users yet</td></tr>
           )}
           {sorted.map(user => (
-            <tr key={user.id} style={{ transition: "background 0.15s ease" }}>
-              <td style={{ ...tdStyle, color: S.cream, fontWeight: 500 }}>{user.display_name || "Anonymous"}</td>
-              <td style={tdStyle}>{relativeDate(user.created_at)}</td>
-              <td style={tdStyle}>{levelBadge(user.experience_level || "beginner")}</td>
-              <td style={numStyle}>{winesByUser[user.id] || 0}</td>
-              <td style={numStyle}>{wishlistByUser[user.id] || 0}</td>
-              <td style={numStyle}>{sommyByUser[user.id] || 0}</td>
-              <td style={numStyle}>{guidesByUser[user.id]?.size || 0}</td>
-              <td style={numStyle}>{tastingsByUser[user.id] || 0}</td>
+            <tr key={user.id}>
+              <td style={{ ...tdStyle, color: C.text, fontWeight: 500 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Avatar name={user.display_name || "?"} url={user.avatar_url} size={28} />
+                  {user.display_name || "Anonymous"}
+                </div>
+              </td>
+              <td style={tdStyle}>{relativeTime(user.created_at)}</td>
+              <td style={tdStyle}>{levelBadge(user.experience_level)}</td>
+              <td style={numStyle}>{stats.winesByUser[user.id] || 0}</td>
+              <td style={numStyle}>{stats.wishlistByUser[user.id] || 0}</td>
+              <td style={numStyle}>{stats.chatsByUser[user.id] || 0}</td>
+              <td style={numStyle}>{stats.guidesByUser[user.id]?.size || 0}</td>
+              <td style={numStyle}>{stats.tastingsByUser[user.id] || 0}</td>
             </tr>
           ))}
         </tbody>
@@ -363,47 +440,121 @@ function UserTable({ data }: { data: DashData }) {
 }
 
 // ─── Feature Adoption ────────────────────────────────────────────────────────
-function FeatureAdoption({ data }: { data: DashData }) {
-  const { users, wines, wishlist, sommyMsgs, guideReads } = data;
-  const total = users.length || 1;
+function FeatureAdoption({ data }: { data: AdminData }) {
+  const total = data.users.length || 1;
 
-  const usersWhoLoggedWine = new Set(wines.map(w => w.user_id));
-  const usersWhoUsedTasting = new Set(wines.filter(hasTastingData).map(w => w.user_id));
-  const usersWithWishlist = new Set(wishlist.map(w => w.user_id));
-  const usersWithGuide = new Set(guideReads.map(g => g.user_id));
-  const usersWithSommy = new Set(sommyMsgs.map(m => m.user_id));
-
-  const features = [
-    { label: "Logged a wine", pct: Math.round((usersWhoLoggedWine.size / total) * 100) },
-    { label: "Used tasting mode", pct: Math.round((usersWhoUsedTasting.size / total) * 100) },
-    { label: "Created a wishlist", pct: Math.round((usersWithWishlist.size / total) * 100) },
-    { label: "Completed a guide", pct: Math.round((usersWithGuide.size / total) * 100) },
-    { label: "Chatted with Sommy", pct: Math.round((usersWithSommy.size / total) * 100) },
-  ];
+  const features = useMemo(() => {
+    const usersLogged = new Set(data.wines.map(w => w.user_id));
+    const usersTasting = new Set(data.wines.filter(w => w.has_tasting).map(w => w.user_id));
+    const usersWishlist = new Set(data.wishlist.map(w => w.user_id));
+    const usersGuide = new Set(data.activities.filter(a => a.activity_type === "guide_read").map(a => a.user_id));
+    const usersSommy = new Set(data.conversations.map(c => c.user_id));
+    return [
+      { label: "Wine logging", count: usersLogged.size },
+      { label: "Tasting mode", count: usersTasting.size },
+      { label: "Wishlist", count: usersWishlist.size },
+      { label: "Guides", count: usersGuide.size },
+      { label: "Sommy", count: usersSommy.size },
+    ];
+  }, [data]);
 
   const [animated, setAnimated] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setAnimated(true)); }, []);
 
   return (
-    <div style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius, padding: 24, marginBottom: 36 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        {features.map(f => (
-          <div key={f.label} style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span style={{ flex: "0 0 180px", fontSize: 13, color: S.creamMuted, textAlign: "right", whiteSpace: "nowrap", fontFamily: S.fontBody }}>
-              {f.label}
-            </span>
-            <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden" }}>
-              <div style={{
-                height: "100%", borderRadius: 4, background: S.wine,
-                width: animated ? `${f.pct}%` : "0%",
-                transition: "width 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
-              }} />
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24 }}>
+      <div style={{ fontFamily: C.fontDisplay, fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 20 }}>
+        Feature Adoption
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {features.map(f => {
+          const pct = Math.round((f.count / total) * 100);
+          return (
+            <div key={f.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <span style={{ flex: "0 0 130px", fontSize: 13, color: C.muted, textAlign: "right", whiteSpace: "nowrap", fontFamily: C.fontBody }}>
+                {f.label}
+              </span>
+              <div style={{ flex: 1, height: 8, background: C.trackBg, borderRadius: 4, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 4, background: C.accent,
+                  opacity: 0.7,
+                  width: animated ? `${pct}%` : "0%",
+                  transition: "width 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+                }} />
+              </div>
+              <span style={{ flex: "0 0 70px", fontFamily: C.fontMono, fontSize: 12, fontWeight: 500, color: C.text }}>
+                {f.count}/{total} ({pct}%)
+              </span>
             </div>
-            <span style={{ flex: "0 0 50px", fontFamily: S.fontMono, fontSize: 14, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: S.cream }}>
-              {f.pct}%
-            </span>
-          </div>
-        ))}
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Recent Activity Feed ────────────────────────────────────────────────────
+function RecentActivity({ data }: { data: AdminData }) {
+  const userMap = useMemo(() => {
+    const m: Record<string, UserProfile> = {};
+    data.users.forEach(u => { m[u.id] = u; });
+    return m;
+  }, [data.users]);
+
+  const wineMap = useMemo(() => {
+    const m: Record<string, WineEntry> = {};
+    data.wines.forEach(w => { m[w.id] = w; });
+    return m;
+  }, [data.wines]);
+
+  const feed = useMemo(() => {
+    const items: { key: string; userId: string; text: string; time: string }[] = [];
+
+    // Sign-ups
+    data.users.forEach(u => {
+      items.push({ key: `signup-${u.id}`, userId: u.id, text: "signed up", time: u.created_at });
+    });
+
+    // Wine logs
+    data.wines.forEach(w => {
+      const name = w.wine_name || "a wine";
+      items.push({ key: `wine-${w.id}`, userId: w.user_id, text: `logged ${name}`, time: w.created_at });
+    });
+
+    // Sommy conversations
+    data.conversations.forEach(c => {
+      items.push({ key: `chat-${c.id}`, userId: c.user_id, text: "started a Sommy conversation", time: c.created_at });
+    });
+
+    items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    return items.slice(0, 20);
+  }, [data]);
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24 }}>
+      <div style={{ fontFamily: C.fontDisplay, fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 16 }}>
+        Recent Activity
+      </div>
+      <div style={{ maxHeight: 360, overflowY: "auto" }}>
+        {feed.length === 0 && (
+          <div style={{ textAlign: "center", padding: 24, color: C.muted, fontSize: 13 }}>No activity yet</div>
+        )}
+        {feed.map(item => {
+          const user = userMap[item.userId];
+          const name = user?.display_name || "Someone";
+          return (
+            <div key={item.key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
+              <Avatar name={name} url={user?.avatar_url} size={24} />
+              <div style={{ flex: 1, fontSize: 13, color: C.text, lineHeight: 1.4 }}>
+                <span style={{ fontWeight: 600 }}>{name}</span>{" "}
+                <span style={{ color: C.muted }}>{item.text}</span>
+              </div>
+              <span style={{ fontFamily: C.fontMono, fontSize: 11, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>
+                {relativeTime(item.time)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -413,172 +564,172 @@ function FeatureAdoption({ data }: { data: DashData }) {
 function Skeleton({ width, height }: { width: number | string; height: number }) {
   return (
     <div style={{
-      width, height, borderRadius: S.radiusSm,
-      background: `linear-gradient(90deg, ${S.card} 25%, #252019 50%, ${S.card} 75%)`,
+      width, height, borderRadius: 8,
+      background: `linear-gradient(90deg, #EDEAE3 25%, #F7F4EF 50%, #EDEAE3 75%)`,
       backgroundSize: "200% 100%",
       animation: "admin-shimmer 1.5s infinite",
     }} />
   );
 }
 
+// ─── Access Denied ───────────────────────────────────────────────────────────
+function AccessDenied() {
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    const t = setTimeout(() => setLocation("/explore"), 2000);
+    return () => clearTimeout(t);
+  }, [setLocation]);
+  return (
+    <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ fontFamily: C.fontBody, fontSize: 14, color: C.muted }}>Not authorized. Redirecting...</p>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
-  const [data, setData] = useState<DashData | null>(null);
+  const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [period, setPeriod] = useState<Period>("30");
   const mountedRef = useRef(true);
 
-  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const loadData = useCallback(async () => {
+    if (!user?.id) return;
     setRefreshing(true);
     setError(null);
     try {
-      const [users, wines, wishlist, sommyMsgs, activity, guideReads] = await Promise.all([
-        adminFetch<UserProfile>("user_profiles", "select=id,display_name,created_at,experience_level"),
-        adminFetch<WineEntry>("wine_journal", "select=id,user_id,wine_name,region,created_at,tasting_data"),
-        adminFetch<WishlistEntry>("wine_wishlist", "select=id,user_id,created_at"),
-        adminFetch<SommyMsg>("sommy_conversations", "select=id,user_id,role,created_at&role=eq.user"),
-        adminFetch<ActivityEntry>("user_activity", "select=user_id,activity_type,item_id,created_at"),
-        adminFetch<ActivityEntry>("user_activity", "select=user_id,item_id,created_at&activity_type=eq.guide_read"),
-      ]);
+      const result = await fetchAdminStats(user.id);
       if (!mountedRef.current) return;
-      setData({ users, wines, wishlist, sommyMsgs, activity, guideReads });
-      setLastRefresh(new Date().toLocaleString());
+      setData(result);
+      setLastRefresh(new Date().toLocaleTimeString());
     } catch (e: any) {
       if (!mountedRef.current) return;
       setError(e.message || "Failed to load data");
     } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
+      if (mountedRef.current) { setLoading(false); setRefreshing(false); }
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!authLoading && user?.email === ADMIN_EMAIL) loadData();
   }, [authLoading, user, loadData]);
 
+  // ─── Period computation ──
+  const kpis = useMemo(() => {
+    if (!data) return null;
+    const now = Date.now();
+    const days = periodDays(period);
+
+    if (!days) {
+      return {
+        users: { total: data.users.length, thisPeriod: data.users.length, prevPeriod: 0 },
+        wines: { total: data.wines.length, thisPeriod: data.wines.length, prevPeriod: 0 },
+        chats: { total: data.conversations.length, thisPeriod: data.conversations.length, prevPeriod: 0 },
+        wishlist: { total: data.wishlist.length, thisPeriod: data.wishlist.length, prevPeriod: 0 },
+      };
+    }
+
+    const thisStart = now - days * 86400000;
+    const prevStart = thisStart - days * 86400000;
+
+    return {
+      users: {
+        total: data.users.length,
+        thisPeriod: countInRange(data.users, thisStart, now),
+        prevPeriod: countInRange(data.users, prevStart, thisStart),
+      },
+      wines: {
+        total: data.wines.length,
+        thisPeriod: countInRange(data.wines, thisStart, now),
+        prevPeriod: countInRange(data.wines, prevStart, thisStart),
+      },
+      chats: {
+        total: data.conversations.length,
+        thisPeriod: countInRange(data.conversations, thisStart, now),
+        prevPeriod: countInRange(data.conversations, prevStart, thisStart),
+      },
+      wishlist: {
+        total: data.wishlist.length,
+        thisPeriod: countInRange(data.wishlist, thisStart, now),
+        prevPeriod: countInRange(data.wishlist, prevStart, thisStart),
+      },
+    };
+  }, [data, period]);
+
+  const periodLabel = period === "all" ? "all time" : `${period}d`;
+
   // ─── Access control ──
   if (authLoading) {
     return (
-      <div style={{ minHeight: "100vh", background: S.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontFamily: S.fontBody, fontSize: 14, color: S.creamFaint }}>Loading...</div>
+      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontFamily: C.fontBody, fontSize: 14, color: C.muted }}>Loading...</div>
       </div>
     );
   }
-
   if (!user || user.email !== ADMIN_EMAIL) return <AccessDenied />;
 
-  // ─── Dashboard ──
-  const usersThisWeek = data ? data.users.filter(u => isThisWeek(u.created_at)).length : 0;
-  const winesThisWeek = data ? data.wines.filter(w => isThisWeek(w.created_at)).length : 0;
-  const sommyThisWeek = data ? data.sommyMsgs.filter(m => isThisWeek(m.created_at)).length : 0;
-  const wishlistThisWeek = data ? data.wishlist.filter(w => isThisWeek(w.created_at)).length : 0;
-
   return (
-    <div style={{ minHeight: "100vh", background: S.bg, color: S.cream, fontFamily: S.fontBody, overflowY: "auto" }}>
-      {/* Shimmer keyframes */}
-      <style>{`@keyframes admin-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+    <div style={{ fontFamily: C.fontBody, color: C.text }}>
+      <style>{`
+        @keyframes admin-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes admin-spin { to { transform: rotate(360deg); } }
+      `}</style>
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 28px 48px" }}>
-        {/* Header */}
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 32, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <svg width={36} height={36} viewBox="0 0 36 36" fill="none">
-              <rect width={36} height={36} rx={8} fill={S.wine} />
-              <path d="M12 10C12 10 13.5 18 18 20C22.5 18 24 10 24 10" stroke={S.cream} strokeWidth={2} strokeLinecap="round" />
-              <line x1={18} y1={20} x2={18} y2={27} stroke={S.cream} strokeWidth={2} strokeLinecap="round" />
-              <line x1={14} y1={27} x2={22} y2={27} stroke={S.cream} strokeWidth={2} strokeLinecap="round" />
-              <circle cx={18} cy={14} r={1.5} fill={S.cream} opacity={0.4} />
-            </svg>
-            <div>
-              <h1 style={{ fontFamily: S.fontDisplay, fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em", color: S.cream, margin: 0 }}>
-                The World of Wine
-              </h1>
-              <p style={{ fontSize: 13, color: S.creamFaint, margin: "1px 0 0" }}>Admin Dashboard</p>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{
-                width: 8, height: 8, borderRadius: "50%",
-                background: error ? S.wineLight : refreshing ? S.gold : S.green,
-              }} />
-              <span style={{ fontSize: 12, color: S.creamFaint, fontVariantNumeric: "tabular-nums" }}>
-                {error ? "Error" : refreshing ? "Fetching..." : "Live"}
-              </span>
-            </div>
-            <button
-              onClick={loadData}
-              disabled={refreshing}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 7, padding: "8px 16px",
-                border: `1px solid ${S.cardBorder}`, borderRadius: S.radiusSm, background: S.card,
-                color: S.creamMuted, fontFamily: S.fontBody, fontSize: 13, fontWeight: 500,
-                cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.6 : 1,
-                whiteSpace: "nowrap",
-              }}
-            >
-              <svg viewBox="0 0 16 16" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={refreshing ? { animation: "admin-spin 0.8s linear infinite" } : {}}>
-                <path d="M2.5 8a5.5 5.5 0 019.3-3.95M13.5 8a5.5 5.5 0 01-9.3 3.95" />
-                <path d="M12 1.5V4.5H9M4 14.5V11.5H7" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-        </header>
-        <style>{`@keyframes admin-spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px 48px" }}>
+        {/* Breadcrumb + period selector */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+          <span style={{ fontFamily: C.fontMono, fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.04em" }}>
+            Admin
+          </span>
+          <PeriodSelector value={period} onChange={setPeriod} />
+        </div>
 
         {/* Error banner */}
         {error && (
           <div style={{
-            background: "rgba(140, 28, 46, 0.1)", border: "1px solid rgba(140, 28, 46, 0.3)",
-            color: S.wineLight, borderRadius: S.radiusSm, padding: "12px 16px", fontSize: 13, marginBottom: 20,
+            background: "rgba(140, 28, 46, 0.06)", border: "1px solid rgba(140, 28, 46, 0.2)",
+            color: C.accent, borderRadius: 10, padding: "12px 16px", fontSize: 13, marginBottom: 20,
             display: "flex", alignItems: "center", gap: 8,
           }}>
-            <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6" /><line x1="8" y1="5" x2="8" y2="8.5" /><circle cx="8" cy="11" r="0.5" fill="currentColor" /></svg>
             {error}
           </div>
         )}
 
-        {/* KPIs */}
-        <div style={{ fontFamily: S.fontBody, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: S.creamFaint, marginBottom: 14 }}>
-          Key Metrics
-        </div>
-        {loading || !data ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 36 }}>
+        {/* KPI Cards */}
+        <SectionLabel>Key Metrics</SectionLabel>
+        {loading || !kpis ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
             {[0,1,2,3].map(i => (
-              <div key={i} style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: S.radius, padding: "20px 22px" }}>
-                <Skeleton width={32} height={32} />
-                <div style={{ height: 10 }} />
+              <div key={i} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: "22px 24px" }}>
+                <Skeleton width={60} height={12} />
+                <div style={{ height: 12 }} />
                 <Skeleton width={80} height={36} />
-                <div style={{ height: 8 }} />
-                <Skeleton width={60} height={20} />
+                <div style={{ height: 10 }} />
+                <Skeleton width={100} height={14} />
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 36 }}>
-            <KpiCard label="Total Users" value={data.users.length} delta={usersThisWeek} icon={IconUsers} />
-            <KpiCard label="Wines Logged" value={data.wines.length} delta={winesThisWeek} icon={IconWine} />
-            <KpiCard label="Sommy Conversations" value={data.sommyMsgs.length} delta={sommyThisWeek} icon={IconSommy} />
-            <KpiCard label="Wishlist Items" value={data.wishlist.length} delta={wishlistThisWeek} icon={IconStar} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
+            <KpiCard label="Users" total={kpis.users.total} thisPeriod={kpis.users.thisPeriod} prevPeriod={kpis.users.prevPeriod} periodLabel={periodLabel} />
+            <KpiCard label="Wines Logged" total={kpis.wines.total} thisPeriod={kpis.wines.thisPeriod} prevPeriod={kpis.wines.prevPeriod} periodLabel={periodLabel} />
+            <KpiCard label="Sommy Chats" total={kpis.chats.total} thisPeriod={kpis.chats.thisPeriod} prevPeriod={kpis.chats.prevPeriod} periodLabel={periodLabel} />
+            <KpiCard label="Wishlist" total={kpis.wishlist.total} thisPeriod={kpis.wishlist.thisPeriod} prevPeriod={kpis.wishlist.prevPeriod} periodLabel={periodLabel} />
           </div>
         )}
 
-        {/* Charts */}
+        {/* Charts row */}
         {data && (
           <>
-            <div style={{ fontFamily: S.fontBody, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: S.creamFaint, marginBottom: 14 }}>
-              Activity & Regions
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14, marginBottom: 36 }}>
-              <ActivityTimeline users={data.users} wines={data.wines} sommyMsgs={data.sommyMsgs} />
+            <SectionLabel>Activity & Regions</SectionLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14, marginBottom: 32 }}>
+              <ActivityChart data={data} period={period} />
               <TopRegions wines={data.wines} />
             </div>
           </>
@@ -587,45 +738,52 @@ export default function Admin() {
         {/* User Table */}
         {data && (
           <>
-            <div style={{ fontFamily: S.fontBody, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: S.creamFaint, marginBottom: 14 }}>
-              Users
+            <SectionLabel>Users</SectionLabel>
+            <div style={{ marginBottom: 32 }}>
+              <UserTable data={data} />
             </div>
-            <UserTable data={data} />
           </>
         )}
 
-        {/* Feature Adoption */}
+        {/* Feature Adoption + Recent Activity side by side */}
         {data && (
-          <>
-            <div style={{ fontFamily: S.fontBody, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: S.creamFaint, marginBottom: 14 }}>
-              Feature Adoption
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 32 }}>
+            <div>
+              <SectionLabel>Feature Adoption</SectionLabel>
+              <FeatureAdoption data={data} />
             </div>
-            <FeatureAdoption data={data} />
-          </>
+            <div>
+              <SectionLabel>Recent Activity</SectionLabel>
+              <RecentActivity data={data} />
+            </div>
+          </div>
         )}
 
         {/* Footer */}
-        <footer style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 24, borderTop: `1px solid ${S.cardBorder}`, flexWrap: "wrap", gap: 12 }}>
-          <span style={{ fontSize: 12, color: S.creamFaint, fontVariantNumeric: "tabular-nums" }}>
-            {lastRefresh ? `Last refreshed: ${lastRefresh}` : "Loading..."}
-          </span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, paddingTop: 16 }}>
+          {lastRefresh && (
+            <span style={{ fontFamily: C.fontMono, fontSize: 11, color: C.muted }}>
+              Last updated: {lastRefresh}
+            </span>
+          )}
           <button
             onClick={loadData}
             disabled={refreshing}
             style={{
-              display: "inline-flex", alignItems: "center", gap: 7, padding: "8px 16px",
-              border: `1px solid ${S.cardBorder}`, borderRadius: S.radiusSm, background: S.card,
-              color: S.creamMuted, fontFamily: S.fontBody, fontSize: 13, fontWeight: 500,
-              cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.6 : 1,
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px",
+              border: `1px solid ${C.cardBorder}`, borderRadius: 8, background: C.card,
+              color: C.muted, fontFamily: C.fontBody, fontSize: 12, fontWeight: 500,
+              cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.5 : 1,
             }}
           >
-            <svg viewBox="0 0 16 16" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <svg viewBox="0 0 16 16" width={12} height={12} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+              style={refreshing ? { animation: "admin-spin 0.8s linear infinite" } : {}}>
               <path d="M2.5 8a5.5 5.5 0 019.3-3.95M13.5 8a5.5 5.5 0 01-9.3 3.95" />
               <path d="M12 1.5V4.5H9M4 14.5V11.5H7" />
             </svg>
             Refresh
           </button>
-        </footer>
+        </div>
       </div>
     </div>
   );

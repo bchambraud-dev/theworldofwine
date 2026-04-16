@@ -4,6 +4,7 @@ import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
 import { directInsert, directUpdate, directDelete, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { trackWineScan, trackWineLog, trackWishlistAdd, trackTastingComplete } from "@/lib/analytics";
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 
 // ── Types ───────────────────────────────────────────────────────────────────────

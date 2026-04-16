@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback, ty
 import { type Session, type User } from "@supabase/supabase-js";
 import { supabase, type UserProfile } from "./supabase";
 import { directSelect, SUPABASE_URL, ANON_KEY, getAccessToken } from "./supabaseDirectFetch";
+import { trackSignIn } from "./analytics";
 
 // ─── Auth Context ───────────────────────────────────────────────────────────
 // FULLY bypasses the Supabase JS client for session init, profile fetch,
@@ -103,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // in newer supabase-js versions — it registers immediately.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, s) => {
+        if (_event === "SIGNED_IN") trackSignIn();
         try { await handleSession(s); } catch { finish(); }
       },
     );

@@ -56,6 +56,7 @@ import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Journal from "@/pages/Journal";
+import Admin from "@/pages/Admin";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { UserDataProvider } from "@/lib/useUserData";
@@ -347,6 +348,7 @@ function AppRouter() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/journal" component={Journal} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

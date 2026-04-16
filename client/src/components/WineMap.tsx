@@ -50,23 +50,23 @@ const wineCountries = [
   { code: "TR", name: "Turkey", lat: 38.6, lng: 34.8 },
 ];
 
-function getProducerColor(wineType: Producer["wineType"]): string {
-  const primary = wineType[0];
-  switch (primary) {
-    case "red":
-      return "#7a1e3a";
-    case "white":
-      return "#b8860b";
-    case "rosé":
-      return "#d4889a";
-    case "sparkling":
-      return "#c4a747";
-    case "dessert":
-    case "fortified":
-      return "#6b4226";
-    default:
-      return "#8c3b55";
-  }
+function buildProducerGeoJSON(producers: Producer[]) {
+  return {
+    type: "FeatureCollection" as const,
+    features: producers.map(p => ({
+      type: "Feature" as const,
+      geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+      properties: {
+        id: p.id,
+        name: p.name,
+        flagshipWine: p.flagshipWine,
+        country: p.country,
+        priceRange: p.priceRange,
+        wineType: p.wineType[0],
+        regionId: p.regionId,
+      },
+    })),
+  };
 }
 
 function buildGeoJSON(selectedId: string | null) {
@@ -111,10 +111,10 @@ export default function WineMap({
 }: WineMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
   const regionMarkersRef = useRef<maplibregl.Marker[]>([]);
   const countryMarkersRef = useRef<maplibregl.Marker[]>([]);
   const boundariesAdded = useRef(false);
+  const producerLayersAdded = useRef(false);
   // Keep stable references to callbacks for zoom listener
   const onSelectRegionRef = useRef(onSelectRegion);
   const onSelectProducerRef = useRef(onSelectProducer);
@@ -146,6 +146,20 @@ export default function WineMap({
     map.current.on("load", () => {
       if (!map.current || boundariesAdded.current) return;
       boundariesAdded.current = true;
+
+      // Strip roads/transit/rail from basemap and soften boundary lines
+      const style = map.current.getStyle();
+      if (style?.layers) {
+        const hidePatterns = /road|highway|motorway|trunk|transit|rail|ferry|path/i;
+        style.layers.forEach((layer: any) => {
+          if (hidePatterns.test(layer.id)) {
+            try { map.current!.setLayoutProperty(layer.id, "visibility", "none"); } catch (_) {}
+          }
+          if (/boundary/i.test(layer.id) && layer.type === "line") {
+            try { map.current!.setPaintProperty(layer.id, "line-opacity", 0.2); } catch (_) {}
+          }
+        });
+      }
 
       const geojson = buildGeoJSON(selectedRegionId);
 
@@ -279,10 +293,147 @@ export default function WineMap({
       map.current.on("mouseleave", BOUNDARY_FILL_SELECTED, () => {
         if (map.current) map.current.getCanvas().style.cursor = "";
       });
+
+      // ─── Producer native GeoJSON layers (clustered) ───────────────────
+      producerLayersAdded.current = true;
+
+      map.current.addSource("producers", {
+        type: "geojson",
+        data: buildProducerGeoJSON(producers) as any,
+        cluster: true,
+        clusterMaxZoom: 8,
+        clusterRadius: 50,
+      });
+
+      // Cluster circles
+      map.current.addLayer({
+        id: "producer-clusters",
+        type: "circle",
+        source: "producers",
+        filter: ["has", "point_count"],
+        paint: {
+          "circle-color": "#8C1C2E",
+          "circle-radius": ["step", ["get", "point_count"], 18, 5, 22, 10, 26, 20, 30],
+          "circle-opacity": 0.9,
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "rgba(255,255,255,0.7)",
+        },
+      });
+
+      // Cluster count labels
+      map.current.addLayer({
+        id: "cluster-count",
+        type: "symbol",
+        source: "producers",
+        filter: ["has", "point_count"],
+        layout: {
+          "text-field": ["get", "point_count_abbreviated"],
+          "text-font": ["Open Sans Regular"],
+          "text-size": 12,
+        },
+        paint: {
+          "text-color": "#F7F4EF",
+        },
+      });
+
+      // Individual producer dots (unclustered)
+      map.current.addLayer({
+        id: "producer-dots",
+        type: "circle",
+        source: "producers",
+        filter: ["!", ["has", "point_count"]],
+        paint: {
+          "circle-color": [
+            "match", ["get", "wineType"],
+            "red", "#7a1e3a",
+            "white", "#b8860b",
+            "rosé", "#d4889a",
+            "sparkling", "#c4a747",
+            "#8c3b55",
+          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 4, 8, 6, 12, 8],
+          "circle-stroke-width": 1.5,
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+
+      // Producer name labels (appear at zoom 9+)
+      map.current.addLayer({
+        id: "producer-labels",
+        type: "symbol",
+        source: "producers",
+        filter: ["!", ["has", "point_count"]],
+        minzoom: 9,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": ["Open Sans Regular"],
+          "text-size": 11,
+          "text-offset": [0, 1.2],
+          "text-anchor": "top",
+          "text-allow-overlap": false,
+        },
+        paint: {
+          "text-color": "#5A5248",
+          "text-halo-color": "rgba(255,255,255,0.9)",
+          "text-halo-width": 2,
+        },
+      });
+
+      // Apply initial showProducers visibility
+      const producerVisibility = showProducers ? "visible" : "none";
+      ["producer-clusters", "cluster-count", "producer-dots", "producer-labels"].forEach(id => {
+        try { map.current!.setLayoutProperty(id, "visibility", producerVisibility); } catch (_) {}
+      });
+
+      // Click on cluster → zoom in
+      map.current.on("click", "producer-clusters", async (e: any) => {
+        if (!map.current) return;
+        const features = map.current.queryRenderedFeatures(e.point, { layers: ["producer-clusters"] });
+        if (!features.length) return;
+        const clusterId = features[0].properties.cluster_id;
+        const source = map.current.getSource("producers") as any;
+        try {
+          const zoom = await source.getClusterExpansionZoom(clusterId);
+          map.current!.flyTo({ center: (features[0].geometry as any).coordinates, zoom, duration: 1000 });
+        } catch (_) {}
+      });
+
+      // Click on individual producer dot → select
+      map.current.on("click", "producer-dots", (e: any) => {
+        const feature = e.features?.[0];
+        if (feature?.properties?.id) {
+          onSelectProducerRef.current(feature.properties.id);
+        }
+      });
+
+      // Cursor changes
+      map.current.on("mouseenter", "producer-clusters", () => { if (map.current) map.current.getCanvas().style.cursor = "pointer"; });
+      map.current.on("mouseleave", "producer-clusters", () => { if (map.current) map.current.getCanvas().style.cursor = ""; });
+      map.current.on("mouseenter", "producer-dots", () => { if (map.current) map.current.getCanvas().style.cursor = "pointer"; });
+      map.current.on("mouseleave", "producer-dots", () => { if (map.current) map.current.getCanvas().style.cursor = ""; });
+
+      // Hover tooltip on producer dots
+      const producerPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: "wine-tooltip", offset: [0, -8], maxWidth: "220px" });
+
+      map.current.on("mouseenter", "producer-dots", (e: any) => {
+        if (!map.current || !e.features?.length) return;
+        const f = e.features[0];
+        const priceLabel = ({ budget: "$", mid: "$$", premium: "$$$", luxury: "$$$$" } as Record<string, string>)[f.properties.priceRange] || "$$";
+        producerPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="padding: 8px 12px; font-family: 'Jost', sans-serif; font-size: 12px; color: #2c1a14; line-height: 1.5;">
+            <div style="font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: #2c1a14; margin-bottom: 4px;">${f.properties.name}</div>
+            <div style="color: #8c6a5a; margin-bottom: 3px;">${f.properties.country}</div>
+            <div style="margin-bottom: 3px; color: #5a5248;">${f.properties.flagshipWine}</div>
+            <div style="color: #8C1C2E; font-weight: 600;">${priceLabel}</div>
+          </div>
+        `).addTo(map.current!);
+      });
+      map.current.on("mouseleave", "producer-dots", () => { producerPopup.remove(); });
     });
 
     return () => {
       boundariesAdded.current = false;
+      producerLayersAdded.current = false;
       map.current?.remove();
     };
   }, []);
@@ -620,147 +771,27 @@ export default function WineMap({
     };
   }, [regions, selectedRegionId, producers, hasActiveFilter]);
 
-  // Producer markers
+  // Update producer GeoJSON source when producers change
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !producerLayersAdded.current) return;
+    const source = map.current.getSource("producers") as any;
+    if (source?.setData) {
+      source.setData(buildProducerGeoJSON(producers));
+    }
+  }, [producers]);
 
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    if (!showProducers) return;
-
-    const currentZoom = map.current.getZoom();
-
-    producers.forEach((producer) => {
-      const dotColor = getProducerColor(producer.wineType);
-
-      const el = document.createElement("div");
-      el.className = "producer-marker";
-      el.setAttribute("data-testid", `producer-marker-${producer.id}`);
-      el.setAttribute("data-producer-id", producer.id);
-      el.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        cursor: pointer;
-      `;
-
-      const dot = document.createElement("div");
-      dot.className = "producer-dot";
-      dot.style.cssText = `
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: ${dotColor};
-        border: 1.5px solid white;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        flex-shrink: 0;
-      `;
-
-      const nameLabel = document.createElement("div");
-      nameLabel.className = "producer-name-label";
-      nameLabel.textContent = producer.name;
-      nameLabel.style.cssText = `
-        font-family: 'Jost', sans-serif;
-        font-size: 10px;
-        font-weight: 500;
-        color: #5A5248;
-        text-shadow: 0 0 4px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,0.9);
-        white-space: nowrap;
-        user-select: none;
-        opacity: ${currentZoom >= 7 ? "1" : "0"};
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      `;
-
-      el.appendChild(dot);
-      el.appendChild(nameLabel);
-
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onSelectProducerRef.current(producer.id);
-      });
-
-      el.addEventListener("mouseenter", () => {
-        dot.style.transform = "scale(1.7)";
-        dot.style.boxShadow = "0 2px 8px rgba(0,0,0,0.4)";
-      });
-      el.addEventListener("mouseleave", () => {
-        dot.style.transform = "scale(1)";
-        dot.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
-      });
-
-      // Hover tooltip for producer
-      const priceLabel =
-        producer.priceRange === "budget"
-          ? "$"
-          : producer.priceRange === "mid"
-          ? "$$"
-          : producer.priceRange === "premium"
-          ? "$$$"
-          : "$$$$";
-
-      const popup = new maplibregl.Popup({
-        offset: [0, -8],
-        closeButton: false,
-        closeOnClick: false,
-        className: "wine-tooltip",
-        maxWidth: "220px",
-      }).setHTML(`
-        <div style="
-          padding: 8px 12px;
-          font-family: 'Jost', sans-serif;
-          font-size: 12px;
-          color: #2c1a14;
-          line-height: 1.5;
-        ">
-          <div style="font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: #2c1a14; margin-bottom: 4px;">${producer.name}</div>
-          <div style="color: #8c6a5a; margin-bottom: 3px;">${producer.country}</div>
-          <div style="margin-bottom: 3px; color: #5a5248;">${producer.flagshipWine}</div>
-          <div style="color: #8C1C2E; font-weight: 600;">${priceLabel}</div>
-        </div>
-      `);
-
-      el.addEventListener("mouseenter", () => {
-        popup.setLngLat([producer.lng, producer.lat]).addTo(map.current!);
-      });
-      el.addEventListener("mouseleave", () => {
-        popup.remove();
-      });
-
-      const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([producer.lng, producer.lat])
-        .addTo(map.current!);
-
-      markersRef.current.push(marker);
-    });
-
-    // Zoom listener to toggle producer name visibility
-    const handleZoom = () => {
-      if (!map.current) return;
-      const z = map.current.getZoom();
-      markersRef.current.forEach((m) => {
-        const markerEl = m.getElement();
-        const nameLabelEl = markerEl.querySelector(
-          ".producer-name-label"
-        ) as HTMLElement | null;
-        if (nameLabelEl) {
-          nameLabelEl.style.opacity = z >= 7 ? "1" : "0";
+  // Toggle producer layer visibility
+  useEffect(() => {
+    if (!map.current || !producerLayersAdded.current) return;
+    const visibility = showProducers ? "visible" : "none";
+    ["producer-clusters", "cluster-count", "producer-dots", "producer-labels"].forEach(id => {
+      try {
+        if (map.current?.getLayer(id)) {
+          map.current.setLayoutProperty(id, "visibility", visibility);
         }
-      });
-    };
-
-    map.current.on("zoom", handleZoom);
-
-    return () => {
-      map.current?.off("zoom", handleZoom);
-    };
-  }, [producers, onSelectProducer, showProducers]);
+      } catch (_) {}
+    });
+  }, [showProducers]);
 
   // Auto-fit bounds when filters are active
   useEffect(() => {

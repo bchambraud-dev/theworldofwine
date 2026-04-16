@@ -23,6 +23,34 @@ export interface Filters {
 }
 
 // Mapping from flavour profile category to taste profile keywords
+// Grape synonym map — same grape, different regional names.
+// Filtering by any synonym matches producers using any variant.
+const GRAPE_SYNONYMS: Record<string, string[]> = {
+  "Syrah":              ["Shiraz"],
+  "Shiraz":             ["Syrah"],
+  "Pinot Grigio":       ["Pinot Gris"],
+  "Pinot Gris":         ["Pinot Grigio"],
+  "Grenache":           ["Garnacha", "Garnatxa"],
+  "Garnacha":           ["Grenache", "Garnatxa"],
+  "Tempranillo":        ["Tinto Fino", "Tinta Roriz", "Tinto Fino (Tempranillo)"],
+  "Tinto Fino":         ["Tempranillo", "Tinta Roriz"],
+  "Mourv\u00e8dre":          ["Monastrell", "Mataro"],
+  "Pinot Noir":         ["Sp\u00e4tburgunder", "Sp\u00e4tburgunder (Pinot Noir)"],
+  "Sp\u00e4tburgunder":      ["Pinot Noir"],
+  "Albari\u00f1o":           ["Alvarinho"],
+  "Alvarinho":          ["Albari\u00f1o"],
+  "Semillon":           ["S\u00e9millon"],
+  "S\u00e9millon":           ["Semillon"],
+  "Gewürztraminer":    ["Gewurztraminer"],
+  "Gewurztraminer":    ["Gewürztraminer"],
+  "Carignan":           ["Cari\u00f1ena", "Carignane", "Carinyena"],
+  "Touriga Nacional":   ["Touriga Franca"],
+  "Viognier":           ["Rolle"],
+  "Rolle":              ["Viognier"],
+  "Pinot Blanc":        ["Weissburgunder"],
+  "Weissburgunder":     ["Pinot Blanc"],
+};
+
 const flavourProfileMap: Record<string, string[]> = {
   "Dark Fruit": ["Plum", "Blackberry", "Blackcurrant", "Dark Cherry", "Dark Plum", "Cassis", "Dark Berry", "Dark Fruit"],
   "Red Fruit": ["Cherry", "Raspberry", "Strawberry", "Red Cherry", "Cranberry", "Wild Strawberry", "Sour Cherry", "Wild Cherry"],
@@ -111,7 +139,14 @@ export function useWineStore() {
         if (!filters.world.includes(p.world)) return false;
       }
       if (filters.grapeVarieties.length > 0) {
-        if (!filters.grapeVarieties.some((g) => p.grapeVarieties.includes(g))) return false;
+        // Expand filter grapes to include synonyms
+        const expandedFilterGrapes = new Set<string>();
+        for (const g of filters.grapeVarieties) {
+          expandedFilterGrapes.add(g);
+          const syns = GRAPE_SYNONYMS[g];
+          if (syns) syns.forEach(s => expandedFilterGrapes.add(s));
+        }
+        if (!p.grapeVarieties.some(pg => expandedFilterGrapes.has(pg))) return false;
       }
       if (filters.flavourProfile.length > 0) {
         // Map each selected category to its keywords and check if any match
@@ -183,7 +218,15 @@ export function useWineStore() {
           if (filters.wineTypes.length > 0 && !p.wineType.some((t) => filters.wineTypes.includes(t))) return false;
           if (filters.priceRanges.length > 0 && !filters.priceRanges.includes(p.priceRange)) return false;
           if (filters.world.length > 0 && !filters.world.includes(p.world)) return false;
-          if (filters.grapeVarieties.length > 0 && !filters.grapeVarieties.some((g) => p.grapeVarieties.includes(g))) return false;
+          if (filters.grapeVarieties.length > 0) {
+            const expandedGrapes = new Set<string>();
+            for (const g of filters.grapeVarieties) {
+              expandedGrapes.add(g);
+              const syns = GRAPE_SYNONYMS[g];
+              if (syns) syns.forEach(s => expandedGrapes.add(s));
+            }
+            if (!p.grapeVarieties.some(pg => expandedGrapes.has(pg))) return false;
+          }
           if (filters.flavourProfile.length > 0) {
             const matchesAnyCategory = filters.flavourProfile.some((category) => {
               const keywords = flavourProfileMap[category] || [];

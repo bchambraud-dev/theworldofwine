@@ -663,6 +663,8 @@ export default function Cellar() {
   const activeWines = wines.filter(w => w.status === "active");
   const totalBottles = activeWines.reduce((s, w) => s + w.quantity, 0);
   const totalValue = activeWines.reduce((s, w) => s + (w.market_value_estimate || 0) * w.quantity, 0);
+  const totalCost = activeWines.reduce((s, w) => s + (w.purchase_price || 0) * w.quantity, 0);
+  const valueDelta = totalValue - totalCost;
   const uniqueRegions = new Set(activeWines.map(w => w.region).filter(Boolean)).size;
   const readyCount = activeWines.filter(w => {
     const phase = getWinePhase(w);
@@ -741,10 +743,10 @@ export default function Cellar() {
         }}>
           {[
             { label: "BOTTLES", value: totalBottles },
-            { label: "VALUE", value: totalValue > 0 ? formatCellarPrice(totalValue, profile?.currency_code) : "–" },
+            { label: "VALUE", value: totalValue > 0 ? formatCellarPrice(totalValue, profile?.currency_code) : "–", sub: totalCost > 0 && totalValue > 0 ? `BASE ${formatCellarPrice(totalCost, profile?.currency_code)}  ${valueDelta >= 0 ? "+" : ""}${formatCellarPrice(Math.abs(valueDelta), profile?.currency_code)}` : undefined },
             { label: "REGIONS", value: uniqueRegions },
             { label: "READY", value: readyCount },
-          ].map(({ label, value }, i) => (
+          ].map(({ label, value, sub }: any, i: number) => (
             <div key={label} style={{
               padding: "12px 6px", textAlign: "center",
               borderRight: i < 3 ? "1px solid #EDEAE3" : "none",
@@ -753,6 +755,11 @@ export default function Cellar() {
                 {loading ? "·" : value}
               </div>
               <div style={{ ...mono("0.5rem"), color: "#D4D1CA", marginTop: 2 }}>{label}</div>
+              {sub && !loading && (
+                <div style={{ ...mono("0.42rem"), color: valueDelta >= 0 ? "#4A7A52" : "#C03838", marginTop: 3, lineHeight: 1.4 }}>
+                  {sub}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -989,7 +996,7 @@ export default function Cellar() {
                           <span style={{ ...mono("0.52rem"), color: "#5A5248" }}>{formatCellarPrice(wine.purchase_price, profile?.currency_code)}</span>
                         )}
                         {wine.market_value_estimate != null && wine.market_value_estimate > 0 && wine.market_value_estimate !== wine.purchase_price && (
-                          <span style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>~{formatCellarPrice(wine.market_value_estimate, profile?.currency_code)}</span>
+                          <span style={{ ...mono("0.52rem"), color: "#8C1C2E" }} title="Estimated by Sommy (AI) - not a live market price">est. {formatCellarPrice(wine.market_value_estimate, profile?.currency_code)}</span>
                         )}
                       </div>
                       {/* Drinking window bar */}

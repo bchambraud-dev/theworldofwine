@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { getValidToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -81,7 +81,7 @@ const ADMIN_EMAIL = "bchambraud@gmail.com";
 
 // ─── RPC fetch ───────────────────────────────────────────────────────────────
 async function fetchAdminStats(userId: string): Promise<AdminData> {
-  const token = getAccessToken();
+  const token = await getValidToken();
   if (!token) throw new Error("Not authenticated");
 
   const res = await Promise.race([

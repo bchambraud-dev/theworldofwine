@@ -7,14 +7,61 @@ export const SUPABASE_URL = "https://ycgxczvsxiilqzvyzpso.supabase.co";
 export const ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4";
 
+const STORAGE_KEY = "sb-ycgxczvsxiilqzvyzpso-auth-token";
+
 export function getAccessToken(): string | null {
   try {
-    const raw = localStorage.getItem("sb-ycgxczvsxiilqzvyzpso-auth-token");
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw)?.access_token || null;
   } catch {
     return null;
   }
+}
+
+/** Check if the stored token is expired (or within 60s of expiry). */
+function isTokenExpired(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return true;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.expires_at) return false; // can't tell, assume ok
+    return parsed.expires_at < Math.floor(Date.now() / 1000) + 60;
+  } catch {
+    return true;
+  }
+}
+
+/** Refresh the access token using the stored refresh_token. */
+export async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.refresh_token) return null;
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": ANON_KEY },
+      body: JSON.stringify({ refresh_token: parsed.refresh_token }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.access_token) {
+      // Update localStorage with new tokens
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return data.access_token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Get a valid access token, refreshing if expired. */
+export async function getValidToken(): Promise<string | null> {
+  if (!isTokenExpired()) return getAccessToken();
+  return await refreshAccessToken();
 }
 
 function authHeaders(token: string, json = true): Record<string, string> {
@@ -31,7 +78,7 @@ export async function directInsert(
   row: Record<string, unknown>,
   timeoutMs = 15000,
 ): Promise<void> {
-  const token = getAccessToken();
+  const token = await getValidToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
   const res = await Promise.race([
@@ -57,7 +104,7 @@ export async function directUpdate(
   updates: Record<string, unknown>,
   timeoutMs = 15000,
 ): Promise<void> {
-  const token = getAccessToken();
+  const token = await getValidToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
   const res = await Promise.race([
@@ -86,7 +133,7 @@ export async function directSelect<T = any>(
   queryParams: string,
   timeoutMs = 15000,
 ): Promise<T[]> {
-  const token = getAccessToken();
+  const token = await getValidToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
   const res = await Promise.race([
@@ -112,7 +159,7 @@ export async function directDelete(
   id: string,
   timeoutMs = 15000,
 ): Promise<void> {
-  const token = getAccessToken();
+  const token = await getValidToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
   const res = await Promise.race([

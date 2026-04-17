@@ -63,13 +63,12 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
 
-type NavTab = "map" | "journeys" | "academy" | "vintages" | "list" | "news" | "journal";
+type NavTab = "map" | "journeys" | "academy" | "list" | "news" | "journal";
 
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
   { key: "journeys", label: "JOURNEYS", href: "/journeys" },
   { key: "academy", label: "GUIDES", href: "/guides" },
-  { key: "vintages", label: "VINTAGES", href: "/vintages" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
 ];
@@ -81,7 +80,6 @@ function getActiveTab(path: string): NavTab | null {
   if (path.startsWith("/journeys")) return "journeys";
   if (path.startsWith("/journal")) return "journal";
   if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
-  if (path.startsWith("/vintages")) return "vintages";
   if (path.startsWith("/news")) return "news";
   return null;
 }
@@ -340,18 +338,18 @@ function AppRouter() {
       <Route path="/journey/:id" component={JourneyPlayer} />
       <Route path="/guides" component={AcademyHub} />
       <Route path="/guides/grapes/:id" component={GrapeDetail} />
+      <Route path="/guides/flavourmap" component={FlavourMap} />
+      <Route path="/guides/vintages" component={VintageGuide} />
       <Route path="/guides/:guideId" component={GuideDetail} />
       <Route path="/quiz/:quizId" component={QuizPage} />
       <Route path="/news" component={News} />
       <Route path="/discover" component={DiscoverQuiz} />
-      <Route path="/flavour-map" component={FlavourMap} />
       <Route path="/sign-in" component={SignIn} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/journal" component={Journal} />
-      <Route path="/vintages" component={VintageGuide} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>

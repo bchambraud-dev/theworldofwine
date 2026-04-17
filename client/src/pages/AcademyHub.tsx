@@ -54,10 +54,10 @@ export default function AcademyHub() {
         </p>
       </div>
 
-      {/* Flavour Map CTA */}
-      <section style={{ padding: "0 24px 24px", maxWidth: 1200, margin: "0 auto" }}>
+      {/* Tool CTAs: Flavour Map + Vintage Guide */}
+      <section style={{ padding: "0 24px 24px", maxWidth: 1200, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
         <button
-          onClick={() => setLocation("/flavour-map")}
+          onClick={() => setLocation("/guides/flavourmap")}
           data-testid="flavour-map-cta"
           style={{
             width: "100%",
@@ -81,6 +81,35 @@ export default function AcademyHub() {
             </div>
             <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "rgba(247,244,239,0.7)" }}>
               See how 50 wine regions relate by taste &mdash; scatter, compare, and cluster
+            </div>
+          </div>
+          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", color: "rgba(247,244,239,0.5)", letterSpacing: "0.1em", flexShrink: 0 }}>EXPLORE &rarr;</span>
+        </button>
+        <button
+          onClick={() => setLocation("/guides/vintages")}
+          data-testid="vintage-guide-cta"
+          style={{
+            width: "100%",
+            padding: "20px 24px",
+            background: "linear-gradient(135deg, #2E6B3A 0%, #1A4D28 100%)",
+            borderRadius: 14,
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            transition: "transform 0.15s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.01)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.15rem", fontWeight: 400, color: "#F7F4EF", marginBottom: 4 }}>
+              Vintage Guide
+            </div>
+            <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "rgba(247,244,239,0.7)" }}>
+              How each year shaped the wine &mdash; scores, maturity, and commentary for 13 regions
             </div>
           </div>
           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", color: "rgba(247,244,239,0.5)", letterSpacing: "0.1em", flexShrink: 0 }}>EXPLORE &rarr;</span>

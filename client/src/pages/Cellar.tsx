@@ -112,9 +112,18 @@ function formatDate(str: string | null): string {
   return new Date(str).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function formatPrice(n: number | null): string {
+// Currency-aware price formatting
+function formatCellarPrice(n: number | null, currencyCode?: string | null): string {
   if (n == null || n === 0) return "";
-  return `$${n.toLocaleString()}`;
+  const code = currencyCode || "USD";
+  const symbols: Record<string, string> = {
+    SGD: "S$", USD: "US$", EUR: "€", GBP: "£", AUD: "A$", NZD: "NZ$",
+    CAD: "C$", CHF: "CHF", JPY: "¥", CNY: "¥", HKD: "HK$", KRW: "₩",
+    THB: "฿", MYR: "RM", INR: "₹", ZAR: "R", BRL: "R$", MXN: "MX$",
+  };
+  const sym = symbols[code] || `${code} `;
+  if (["JPY", "KRW", "CLP"].includes(code)) return `${sym}${Math.round(n).toLocaleString()}`;
+  return `${sym}${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 function getWinePhase(w: CellarWine): string {
@@ -231,7 +240,7 @@ function Stars({ value, onChange, size = "1rem" }: { value: number; onChange?: (
 // ── Main Component ──────────────────────────────────────────────────────────────
 
 export default function Cellar() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [, setLocation] = useLocation();
 
   // Data
@@ -492,6 +501,7 @@ export default function Cellar() {
           region: row.region,
           grapes: row.grapes,
           style: row.style,
+          currency: profile?.currency_code || "USD",
         }),
       });
       if (!res.ok) return;
@@ -739,7 +749,7 @@ export default function Cellar() {
         }}>
           {[
             { label: "BOTTLES", value: totalBottles },
-            { label: "VALUE", value: totalValue > 0 ? `$${Math.round(totalValue).toLocaleString()}` : "–" },
+            { label: "VALUE", value: totalValue > 0 ? formatCellarPrice(totalValue, profile?.currency_code) : "–" },
             { label: "REGIONS", value: uniqueRegions },
             { label: "READY", value: readyCount },
           ].map(({ label, value }, i) => (
@@ -984,10 +994,10 @@ export default function Cellar() {
                           </span>
                         )}
                         {wine.purchase_price != null && wine.purchase_price > 0 && (
-                          <span style={{ ...mono("0.52rem"), color: "#5A5248" }}>${wine.purchase_price}</span>
+                          <span style={{ ...mono("0.52rem"), color: "#5A5248" }}>{formatCellarPrice(wine.purchase_price, profile?.currency_code)}</span>
                         )}
                         {wine.market_value_estimate != null && wine.market_value_estimate > 0 && wine.market_value_estimate !== wine.purchase_price && (
-                          <span style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>~${wine.market_value_estimate}</span>
+                          <span style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>~{formatCellarPrice(wine.market_value_estimate, profile?.currency_code)}</span>
                         )}
                       </div>
                       {/* Drinking window bar */}

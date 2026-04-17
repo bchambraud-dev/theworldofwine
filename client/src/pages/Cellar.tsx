@@ -6,6 +6,7 @@ import {
   getAccessToken, SUPABASE_URL, ANON_KEY,
 } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
+import { displayPriceSync, preloadRates, convertToUSD } from "@/lib/currencyConvert";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
@@ -112,18 +113,9 @@ function formatDate(str: string | null): string {
   return new Date(str).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-// Currency-aware price formatting
-function formatCellarPrice(n: number | null, currencyCode?: string | null): string {
-  if (n == null || n === 0) return "";
-  const code = currencyCode || "USD";
-  const symbols: Record<string, string> = {
-    SGD: "S$", USD: "US$", EUR: "€", GBP: "£", AUD: "A$", NZD: "NZ$",
-    CAD: "C$", CHF: "CHF", JPY: "¥", CNY: "¥", HKD: "HK$", KRW: "₩",
-    THB: "฿", MYR: "RM", INR: "₹", ZAR: "R", BRL: "R$", MXN: "MX$",
-  };
-  const sym = symbols[code] || `${code} `;
-  if (["JPY", "KRW", "CLP"].includes(code)) return `${sym}${Math.round(n).toLocaleString()}`;
-  return `${sym}${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+// Prices are stored in USD internally. Display in user's currency via live conversion.
+function formatCellarPrice(amountUSD: number | null, currencyCode?: string | null): string {
+  return displayPriceSync(amountUSD, currencyCode || "USD");
 }
 
 function getWinePhase(w: CellarWine): string {
@@ -341,7 +333,7 @@ export default function Cellar() {
     }
   }, [user]);
 
-  useEffect(() => { loadCellar(); loadGoals(); }, [loadCellar, loadGoals]);
+  useEffect(() => { preloadRates(); loadCellar(); loadGoals(); }, [loadCellar, loadGoals]);
 
   // ── Cellar Health ──────────────────────────────────────────────────────────
 
@@ -466,7 +458,7 @@ export default function Cellar() {
         grapes: formGrapes.trim() || null,
         style: formStyle.trim() || null,
         quantity: formQuantity,
-        purchase_price: priceNum && !isNaN(priceNum) ? priceNum : null,
+        purchase_price: (priceNum && !isNaN(priceNum)) ? await convertToUSD(priceNum, profile?.currency_code || "USD") : null,
         purchase_source: formSource.trim() || null,
         purchase_date: formDate || null,
         notes: formNotes.trim() || null,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import {
@@ -6,6 +6,7 @@ import {
   getAccessToken, SUPABASE_URL, ANON_KEY,
 } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
+import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -232,7 +233,6 @@ function Stars({ value, onChange, size = "1rem" }: { value: number; onChange?: (
 export default function Cellar() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Data
   const [wines, setWines] = useState<CellarWine[]>([]);
@@ -721,8 +721,6 @@ export default function Cellar() {
 
   return (
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleImageSelect} style={{ display: "none" }} />
-
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
 
         {/* ── Header ── */}
@@ -790,25 +788,36 @@ export default function Cellar() {
 
         {/* ── Add buttons ── */}
         {step === "idle" && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            <button onClick={() => fileInputRef.current?.click()} style={{
-              flex: 1, padding: "14px 12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
-              background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
-              fontWeight: 400, color: "#8C1C2E", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-              Scan a label
-            </button>
-            <button onClick={() => setStep("form")} style={{
-              flex: 1, padding: "14px 12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
-              background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
-              fontWeight: 400, color: "#5A5248", cursor: "pointer",
-            }}>Add manually</button>
-          </div>
+          <ImageCapture onImageSelect={handleImageSelect}>
+            {({ openCamera, openGallery }) => (
+              <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                <button onClick={openCamera} style={{
+                  flex: 1, padding: "14px 12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
+                  fontWeight: 400, color: "#8C1C2E", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  Scan a label
+                </button>
+                <button onClick={openGallery} title="Choose from gallery" style={{
+                  width: 28, height: "auto", minHeight: 28, borderRadius: 14, border: "1.5px solid #EDEAE3",
+                  background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, alignSelf: "center",
+                }}>
+                  <GalleryIcon size={14} color="#5A5248" />
+                </button>
+                <button onClick={() => setStep("form")} style={{
+                  flex: 1, padding: "14px 12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
+                  fontWeight: 400, color: "#5A5248", cursor: "pointer",
+                }}>Add manually</button>
+              </div>
+            )}
+          </ImageCapture>
         )}
 
         {/* ── Scanning state ── */}

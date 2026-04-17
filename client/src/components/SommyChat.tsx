@@ -6,6 +6,7 @@ import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
 import { directInsert } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
+import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // Colour-coded tasting pills — matches the ftag system on producer pages
 const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -166,7 +167,6 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const [savedWineCards, setSavedWineCards] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
   const { user, profile, refreshProfile } = useAuth();
   const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData, silentRefresh } = useUserData();
@@ -656,32 +656,45 @@ The more you share — what you enjoy, what you've tried, even what you definite
           )}
 
           {/* Input */}
-          <form onSubmit={handleSubmit} style={{ padding: "10px 12px", borderTop: "1px solid #EDEAE3", display: "flex", gap: 8, flexShrink: 0 }}>
-            {/* Hidden file input */}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
+          <ImageCapture onImageSelect={handleImageSelect}>
+            {({ openCamera, openGallery }) => (
+              <form onSubmit={handleSubmit} style={{ padding: "10px 12px", borderTop: "1px solid #EDEAE3", display: "flex", gap: 8, flexShrink: 0 }}>
+                {/* Camera button */}
+                <button
+                  type="button"
+                  onClick={openCamera}
+                  title="Take a photo"
+                  style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px solid ${pendingImage ? "#8C1C2E" : "#D4D1CA"}`, background: pendingImage ? "rgba(140,28,46,0.08)" : "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={pendingImage ? "#8C1C2E" : "#5A5248"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </button>
+                {/* Gallery button */}
+                <button
+                  type="button"
+                  onClick={openGallery}
+                  title="Choose from gallery"
+                  style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #D4D1CA", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}
+                >
+                  <GalleryIcon size={15} color="#5A5248" />
+                </button>
 
-            {/* + button for image upload */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              title="Upload photo or scan a label"
-              style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px solid ${pendingImage ? "#8C1C2E" : "#D4D1CA"}`, background: pendingImage ? "rgba(140,28,46,0.08)" : "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: pendingImage ? "#8C1C2E" : "#5A5248", fontSize: "1.3rem", fontWeight: 300, lineHeight: 1, transition: "all 0.15s" }}
-            >
-              +
-            </button>
-
-            <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={pendingImage ? "Add a message or just send…" : "Ask me anything about wine…"} disabled={isLoading} data-testid="sommy-input"
-              style={{ flex: 1, border: "1px solid #D4D1CA", borderRadius: 22, padding: "9px 15px", fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#1A1410", background: "white", outline: "none" }}
-              onFocus={e => { e.currentTarget.style.borderColor = "#8C1C2E"; }}
-              onBlur={e => { e.currentTarget.style.borderColor = "#D4D1CA"; }}
-            />
-            <button type="submit" disabled={isLoading || (!input.trim() && !pendingImage)} data-testid="sommy-send"
-              style={{ width: 36, height: 36, borderRadius: "50%", background: (isLoading || (!input.trim() && !pendingImage)) ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF", border: "none", cursor: (isLoading || (!input.trim() && !pendingImage)) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </button>
-          </form>
+                <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={pendingImage ? "Add a message or just send\u2026" : "Ask me anything about wine\u2026"} disabled={isLoading} data-testid="sommy-input"
+                  style={{ flex: 1, border: "1px solid #D4D1CA", borderRadius: 22, padding: "9px 15px", fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#1A1410", background: "white", outline: "none" }}
+                  onFocus={e => { e.currentTarget.style.borderColor = "#8C1C2E"; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = "#D4D1CA"; }}
+                />
+                <button type="submit" disabled={isLoading || (!input.trim() && !pendingImage)} data-testid="sommy-send"
+                  style={{ width: 36, height: 36, borderRadius: "50%", background: (isLoading || (!input.trim() && !pendingImage)) ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF", border: "none", cursor: (isLoading || (!input.trim() && !pendingImage)) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </form>
+            )}
+          </ImageCapture>
         </div>
       )}
     </>

@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { useLocation } from "wouter";
 import { directInsert, directDelete, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // ── Helpers ──
 
@@ -95,7 +96,6 @@ export default function Wishlist() {
   const { user } = useAuth();
   const { silentRefresh, wishlist: wishlistData } = useUserData();
   const [, setLocation] = useLocation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Wishlist local state
   const [wishlist, setWishlist] = useState<WishlistEntry[]>([]);
@@ -248,9 +248,6 @@ export default function Wishlist() {
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
 
-        {/* Hidden file input */}
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
-
         {/* Header */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>WINES TO TRY</div>
@@ -293,18 +290,29 @@ export default function Wishlist() {
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            <button onClick={() => fileInputRef.current?.click()} style={{
-              flex: 1, padding: "12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
-              background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-              color: "#8C1C2E", cursor: "pointer",
-            }}>Scan a label</button>
-            <button onClick={() => setShowForm(true)} style={{
-              flex: 1, padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
-              background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-              color: "#5A5248", cursor: "pointer",
-            }}>Add manually</button>
-          </div>
+          <ImageCapture onImageSelect={handleImageSelect}>
+            {({ openCamera, openGallery }) => (
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <button onClick={openCamera} style={{
+                  flex: 1, padding: "12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                  color: "#8C1C2E", cursor: "pointer",
+                }}>Scan a label</button>
+                <button onClick={openGallery} title="Choose from gallery" style={{
+                  width: 28, height: "auto", minHeight: 28, borderRadius: 14, border: "1.5px solid #EDEAE3",
+                  background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, alignSelf: "center",
+                }}>
+                  <GalleryIcon size={14} color="#5A5248" />
+                </button>
+                <button onClick={() => setShowForm(true)} style={{
+                  flex: 1, padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
+                  color: "#5A5248", cursor: "pointer",
+                }}>Add manually</button>
+              </div>
+            )}
+          </ImageCapture>
         )}
 
         {/* Empty state */}

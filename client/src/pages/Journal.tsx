@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 import { directInsert, directUpdate, directDelete, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 import { trackWineScan, trackWineLog, trackWishlistAdd, trackTastingComplete } from "@/lib/analytics";
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
+import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -585,8 +586,6 @@ export default function Journal() {
   const { user } = useAuth();
   const { silentRefresh } = useUserData();
   const [, setLocation] = useLocation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Auto-open log flow when arriving from nav with ?log=1
   // Also support ?name=...&region=... from wishlist "Tried it"
   useEffect(() => {
@@ -1122,9 +1121,6 @@ export default function Journal() {
         </div>
 
 
-        {/* Hidden file input */}
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
-
         {/* ── Sign-in prompt ── */}
         {!user && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
@@ -1140,68 +1136,90 @@ export default function Journal() {
 
         {/* ── Step: Choose method ── */}
         {step === "choose" && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{
-                background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
-                cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
-              }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(140,28,46,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>
-                  +
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
-                    Snap or upload a label
+          <ImageCapture onImageSelect={handleImageSelect}>
+            {({ openCamera, openGallery }) => (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+                    <button onClick={openCamera} style={{
+                      flex: 1, background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
+                      cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
+                    }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(140,28,46,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>
+                        +
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
+                          Scan a label
+                        </div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
+                          Sommy will identify and describe it
+                        </div>
+                      </div>
+                    </button>
+                    <button onClick={openGallery} title="Choose from gallery" style={{
+                      width: 28, height: "auto", minHeight: 28, borderRadius: 14, border: "1.5px solid #EDEAE3",
+                      background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0, alignSelf: "center",
+                    }}>
+                      <GalleryIcon size={14} color="#5A5248" />
+                    </button>
                   </div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
-                    Sommy will identify and describe it
+                  <button onClick={() => setStep("manual")} style={{
+                    background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
+                    cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
+                  }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(90,82,72,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0, fontFamily: "'Jost', sans-serif", color: "#5A5248" }}>
+                      Aa
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
+                        Log manually
+                      </div>
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
+                        Type the wine name and details yourself
+                      </div>
+                    </div>
+                  </button>
+                  <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+                    <button onClick={() => { setTastingMode(true); openCamera(); }} style={{
+                      flex: 1, background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
+                      cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
+                    }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(140,28,46,0.04)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 2h8l4 10H4L8 2z" />
+                          <path d="M12 12v8" />
+                          <path d="M8 22h8" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
+                          Tasting mode
+                        </div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
+                          Taste along and compare notes with Sommy
+                        </div>
+                      </div>
+                    </button>
+                    <button onClick={() => { setTastingMode(true); openGallery(); }} title="Choose from gallery" style={{
+                      width: 28, height: "auto", minHeight: 28, borderRadius: 14, border: "1.5px solid #EDEAE3",
+                      background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0, alignSelf: "center",
+                    }}>
+                      <GalleryIcon size={14} color="#5A5248" />
+                    </button>
                   </div>
                 </div>
-              </button>
-              <button onClick={() => setStep("manual")} style={{
-                background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
-                cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
-              }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(90,82,72,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0, fontFamily: "'Jost', sans-serif", color: "#5A5248" }}>
-                  Aa
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
-                    Log manually
-                  </div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
-                    Type the wine name and details yourself
-                  </div>
-                </div>
-              </button>
-              <button onClick={() => { setTastingMode(true); fileInputRef.current?.click(); }} style={{
-                background: "white", border: "1.5px solid #EDEAE3", borderRadius: 14, padding: "22px 20px",
-                cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14,
-              }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(140,28,46,0.04)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M8 2h8l4 10H4L8 2z" />
-                    <path d="M12 12v8" />
-                    <path d="M8 22h8" />
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410" }}>
-                    Tasting mode
-                  </div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
-                    Taste along and compare notes with Sommy
-                  </div>
-                </div>
-              </button>
-            </div>
-            <button onClick={resetFlow} style={{
-              width: "100%", padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10,
-              background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
-            }}>
-              Cancel
-            </button>
-          </div>
+                <button onClick={resetFlow} style={{
+                  width: "100%", padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10,
+                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
+                }}>
+                  Cancel
+                </button>
+              </div>
+            )}
+          </ImageCapture>
         )}
 
         {/* ── Step: Scanning ── */}

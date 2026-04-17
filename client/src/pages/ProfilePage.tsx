@@ -29,7 +29,11 @@ const LEVELS = [
 const OFFSET = "52px"; // topbar only (no sub-nav)
 
 export default function ProfilePage() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
+  const [localCountry, setLocalCountry] = useState<string | null>(null);
+  const [localCurrency, setLocalCurrency] = useState<string | null>(null);
+  const displayCountry = localCountry ?? profile?.base_country ?? "";
+  const displayCurrency = localCurrency ?? profile?.currency_code ?? "USD";
   const { stats, preferences, recentTopics, completedGuideIds, goals, countriesExplored, dataLoading, savePreferences, refresh, silentRefresh } = useUserData();
   const [, setLocation] = useLocation();
 
@@ -487,11 +491,13 @@ export default function ProfilePage() {
             <div>
               <label style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#5A5248", display: "block", marginBottom: 6 }}>LOCATION</label>
               <select
-                value={profile?.base_country || ""}
+                value={displayCountry}
                 onChange={async (e) => {
                   if (!user) return;
+                  const val = e.target.value;
+                  setLocalCountry(val || null);
                   try {
-                    await directUpdate("user_profiles", user.id, { base_country: e.target.value || null });
+                    await directUpdate("user_profiles", user.id, { base_country: val || null });
                     await refreshProfile();
                   } catch {}
                 }}
@@ -504,11 +510,13 @@ export default function ProfilePage() {
             <div>
               <label style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#5A5248", display: "block", marginBottom: 6 }}>CURRENCY</label>
               <select
-                value={profile?.currency_code || "USD"}
+                value={displayCurrency}
                 onChange={async (e) => {
                   if (!user) return;
+                  const val = e.target.value;
+                  setLocalCurrency(val);
                   try {
-                    await directUpdate("user_profiles", user.id, { currency_code: e.target.value });
+                    await directUpdate("user_profiles", user.id, { currency_code: val });
                     await refreshProfile();
                   } catch {}
                 }}

@@ -189,23 +189,27 @@ export default function VintageGuide() {
 
       {/* Controls */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div ref={yearRowRef} className="vg-year-row" style={{
-          display: "flex", gap: 6, overflowX: "auto", flex: 1, paddingBottom: 2,
-          scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory",
-        }}>
-          {YEARS.map(year => (
-            <button key={year} onClick={() => handleYearClick(year)} style={{
-              fontFamily: "'Geist Mono', monospace", fontSize: "11px",
-              fontWeight: selectedYear === year ? 700 : 500,
-              color: selectedYear === year ? "#F7F4EF" : "#5A5248",
-              background: selectedYear === year ? "#8C1C2E" : "#fff",
-              border: `1px solid ${selectedYear === year ? "#8C1C2E" : "#EDEAE3"}`,
-              borderRadius: 14, padding: "8px 14px", minHeight: 36, minWidth: 52,
-              cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-              transition: "all 0.15s ease", scrollSnapAlign: "center",
-            }}>{year}</button>
-          ))}
-        </div>
+        {/* Year pills — only in chart view (table has its own header row) */}
+        {viewMode === "chart" && (
+          <div ref={yearRowRef} className="vg-year-row" style={{
+            display: "flex", gap: 6, overflowX: "auto", flex: 1, paddingBottom: 2,
+            scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory",
+          }}>
+            {YEARS.map(year => (
+              <button key={year} onClick={() => handleYearClick(year)} style={{
+                fontFamily: "'Geist Mono', monospace", fontSize: "11px",
+                fontWeight: selectedYear === year ? 700 : 500,
+                color: selectedYear === year ? "#F7F4EF" : "#5A5248",
+                background: selectedYear === year ? "#8C1C2E" : "#fff",
+                border: `1px solid ${selectedYear === year ? "#8C1C2E" : "#EDEAE3"}`,
+                borderRadius: 14, padding: "8px 14px", minHeight: 36, minWidth: 52,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s ease", scrollSnapAlign: "center",
+              }}>{year}</button>
+            ))}
+          </div>
+        )}
+        {viewMode === "table" && <div style={{ flex: 1 }} />}
         <div style={{ display: "flex", background: "#fff", border: "1px solid #EDEAE3", borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
           {(["chart", "table"] as ViewMode[]).map(mode => (
             <button key={mode} onClick={() => setViewMode(mode)} style={{
@@ -277,12 +281,12 @@ export default function VintageGuide() {
                     borderBottom: "2px solid #EDEAE3", minWidth: 120,
                   }}>Region</th>
                   {YEARS.map(year => (
-                    <th key={year} onClick={() => setSelectedYear(year)} style={{
-                      padding: "10px 2px", textAlign: "center", fontWeight: year === selectedYear ? 700 : 500,
-                      fontSize: "10px", color: year === selectedYear ? "#8C1C2E" : "#5A5248",
-                      borderBottom: "2px solid #EDEAE3", cursor: "pointer",
-                      background: year === selectedYear ? "rgba(140,28,46,0.10)" : "#F7F4EF",
-                      whiteSpace: "nowrap", transition: "all 0.15s ease", minWidth: 38,
+                    <th key={year} style={{
+                      padding: "10px 2px", textAlign: "center", fontWeight: 600,
+                      fontSize: "10px", color: "#5A5248",
+                      borderBottom: "2px solid #EDEAE3",
+                      background: "#F7F4EF",
+                      whiteSpace: "nowrap", minWidth: 38,
                     }}>{year}</th>
                   ))}
                 </tr>
@@ -316,7 +320,7 @@ export default function VintageGuide() {
                             <td key={year} style={{
                               padding: "4px 2px", textAlign: "center", borderBottom: "1px solid #F0EDE6",
                               position: "relative",
-                              background: isExpanded ? "rgba(140,28,46,0.10)" : year === selectedYear ? "rgba(140,28,46,0.04)" : "transparent",
+                              background: isExpanded ? "rgba(140,28,46,0.10)" : "transparent",
                             }}>
                               <button
                                 ref={el => { if (el) cellRefs.current.set(cellKey, el); }}

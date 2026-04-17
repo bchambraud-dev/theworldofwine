@@ -109,7 +109,7 @@ export default function AcademyHub() {
               Vintage Guide
             </div>
             <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "rgba(247,244,239,0.7)" }}>
-              How each year shaped the wine &mdash; scores, maturity, and commentary for 13 regions
+              How each year shaped the wine &mdash; scores, maturity, and commentary for 60 regions
             </div>
           </div>
           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", color: "rgba(247,244,239,0.5)", letterSpacing: "0.1em", flexShrink: 0 }}>EXPLORE &rarr;</span>

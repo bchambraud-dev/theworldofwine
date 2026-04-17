@@ -84,7 +84,7 @@ function BookmarkIcon({ size = 16, filled = false, color = "#8C1C2E" }: { size?:
   );
 }
 
-const OFFSET = "calc(52px + 4px + 42px)"; // topbar + journey sub-nav
+const OFFSET = "52px"; // topbar only (no sub-nav)
 
 const mono = (size = "0.6rem"): React.CSSProperties => ({
   fontFamily: "'Geist Mono', monospace", fontSize: size,

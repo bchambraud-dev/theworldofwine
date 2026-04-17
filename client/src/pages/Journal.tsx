@@ -579,7 +579,7 @@ function sourceLabel(source: string | null): string {
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-const OFFSET = "calc(52px + 4px + 42px)"; // topbar + journey sub-nav
+const OFFSET = "52px"; // topbar only (no sub-nav)
 
 export default function Journal() {
   const { user } = useAuth();
@@ -1105,9 +1105,9 @@ export default function Journal() {
         {/* ── Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
-            <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>YOUR COLLECTION</div>
+            <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>WINES YOU'VE TASTED AND YOUR NOTES</div>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400, color: "#1A1410", margin: 0 }}>
-              Wine Journal
+              My Experiences
             </h1>
           </div>
           {step === "idle" && user && (

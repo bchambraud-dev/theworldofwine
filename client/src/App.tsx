@@ -67,31 +67,35 @@ import ProfilePage from "@/pages/ProfilePage";
 import Cellar from "@/pages/Cellar";
 import WishlistPage from "@/pages/Wishlist";
 
-type NavTab = "map" | "journeys" | "academy" | "list" | "news" | "journey";
+type NavTab = "map" | "academy" | "list" | "news" | "cellar" | "experiences" | "wishlist";
 
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
-  { key: "journeys", label: "JOURNEYS", href: "/journeys" },
   { key: "academy", label: "GUIDES", href: "/guides" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
-  { key: "journey", label: "MY JOURNEY", href: "/journey/profile" },
+];
+
+const personalTabs: { key: NavTab; label: string; href: string }[] = [
+  { key: "cellar", label: "MY CELLAR", href: "/journey/cellar" },
+  { key: "experiences", label: "MY EXPERIENCES", href: "/journey/journal" },
+  { key: "wishlist", label: "MY WISHLIST", href: "/journey/wishlist" },
 ];
 
 function getActiveTab(path: string): NavTab | null {
   if (path === "/explore/list") return "list";
   if (path.startsWith("/explore")) return "map";
-  if (path.startsWith("/journey/")) return "journey";
-  if (path === "/journey") return "journey";
-  if (path.startsWith("/journeys")) return "journeys";
-  if (path.startsWith("/journal")) return "journey";
+  if (path.startsWith("/journey/cellar")) return "cellar";
+  if (path.startsWith("/journey/journal")) return "experiences";
+  if (path.startsWith("/journey/wishlist")) return "wishlist";
+  if (path.startsWith("/journal")) return "experiences";
   if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
   if (path.startsWith("/news")) return "news";
   return null;
 }
 
 function NavBar() {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -181,12 +185,29 @@ function NavBar() {
             </Link>
           ))}
 
+          {/* Divider between main and personal tabs */}
+          {user && (
+            <>
+              <div style={{ width: 1, height: 16, background: "#EDEAE3", margin: "0 6px", flexShrink: 0 }} />
+              {personalTabs.map((tab) => (
+                <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
+                  <button
+                    className={`nav-btn ${activeTab === tab.key ? "active" : ""}`}
+                    data-testid={`nav-${tab.key}`}
+                  >
+                    {tab.label}
+                  </button>
+                </Link>
+              ))}
+            </>
+          )}
+
           {/* User avatar / sign in */}
           {user ? (
             <div style={{ position: "relative", marginLeft: 4 }}>
               <Link href="/journey/profile" style={{ textDecoration: "none" }}>
               <button
-                title="Your journey"
+                title="My profile"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
               >
                 {(profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)) ? (
@@ -274,6 +295,7 @@ function NavBar() {
 
         {/* Nav links */}
         <nav className="mobile-menu-nav">
+          {/* LOG A WINE button */}
           <button
             className="mobile-menu-link"
             onClick={() => handleNavLink(user ? "/journey/journal?log=1" : "/sign-in")}
@@ -286,6 +308,11 @@ function NavBar() {
               textAlign: "center", width: "100%",
             }}
           >+ LOG A WINE</button>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+
+          {/* Main nav tabs */}
           {navTabs.map((tab) => (
             <button
               key={tab.key}
@@ -297,35 +324,54 @@ function NavBar() {
             </button>
           ))}
 
-          {/* Auth */}
-          <div style={{ borderTop: "1px solid var(--border-c, #D4D1CA)", marginTop: 8, paddingTop: 8 }}>
-            {user ? (
+          {/* Personal section (logged in) */}
+          {user && (
+            <>
+              <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+              {personalTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  className={`mobile-menu-link ${activeTab === tab.key ? "active" : ""}`}
+                  onClick={() => handleNavLink(tab.href)}
+                  data-testid={`mobile-nav-${tab.key}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
               <button
                 className="mobile-menu-link"
                 onClick={() => handleNavLink("/journey/profile")}
                 data-testid="mobile-nav-profile"
-                style={{ display: "flex", alignItems: "center", gap: 10 }}
               >
-                {(profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)) ? (
-                  <img src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string)} alt="" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }} />
-                ) : (
-                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#8C1C2E", display: "flex", alignItems: "center", justifyContent: "center", color: "#F7F4EF", fontSize: "0.6rem", fontWeight: 500 }}>
-                    {(profile?.display_name || user.email || "?")[0].toUpperCase()}
-                  </div>
-                )}
-                MY JOURNEY
+                MY PROFILE
               </button>
-            ) : (
-              <button
-                className="mobile-menu-link"
-                onClick={() => handleNavLink("/sign-in")}
-                data-testid="mobile-nav-sign-in"
-                style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}
-              >
-                SIGN IN
-              </button>
-            )}
-          </div>
+            </>
+          )}
+
+          {/* Auth */}
+          <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+          {user ? (
+            <button
+              className="mobile-menu-link"
+              onClick={async () => {
+                await signOut();
+                setMenuOpen(false);
+              }}
+              data-testid="mobile-nav-signout"
+              style={{ color: "#5A5248" }}
+            >
+              Sign out
+            </button>
+          ) : (
+            <button
+              className="mobile-menu-link"
+              onClick={() => handleNavLink("/sign-in")}
+              data-testid="mobile-nav-sign-in"
+              style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}
+            >
+              SIGN IN
+            </button>
+          )}
         </nav>
       </div>
     </>

@@ -114,6 +114,35 @@ export default function AcademyHub() {
           </div>
           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", color: "rgba(247,244,239,0.5)", letterSpacing: "0.1em", flexShrink: 0 }}>EXPLORE &rarr;</span>
         </button>
+        <button
+          onClick={() => setLocation("/journeys")}
+          data-testid="journeys-cta"
+          style={{
+            width: "100%",
+            padding: "20px 24px",
+            background: "linear-gradient(135deg, #5A3E7A 0%, #3D2A56 100%)",
+            borderRadius: 14,
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            transition: "transform 0.15s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.01)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.15rem", fontWeight: 400, color: "#F7F4EF", marginBottom: 4 }}>
+              Wine Journeys
+            </div>
+            <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "rgba(247,244,239,0.7)" }}>
+              Curated wine journeys through the world's greatest regions
+            </div>
+          </div>
+          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", color: "rgba(247,244,239,0.5)", letterSpacing: "0.1em", flexShrink: 0 }}>EXPLORE &rarr;</span>
+        </button>
       </section>
 
       {/* Guides */}

@@ -24,7 +24,7 @@ const LEVELS = [
   { key: "expert",       label: "Expert",       desc: "Serious about wine" },
 ];
 
-const OFFSET = "calc(52px + 4px + 42px)"; // topbar + journey sub-nav
+const OFFSET = "52px"; // topbar only (no sub-nav)
 
 export default function ProfilePage() {
   const { user, profile, signOut } = useAuth();

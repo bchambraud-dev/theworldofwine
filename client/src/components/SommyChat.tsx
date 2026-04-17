@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
-import { directInsert } from "@/lib/supabaseDirectFetch";
+import { directInsert, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
@@ -50,9 +50,11 @@ function classifyTastingNote(note: string) {
 interface Message {
   role: "user" | "assistant";
   content: string;
-  imagePreview?: string; // data URL for display
+  imagePreview?: string; // data URL for display (current session)
+  imageUrl?: string;     // stored URL from Supabase Storage (persisted)
   wineCard?: WineCard;
   wishlistAdded?: string[]; // wine names added to wishlist from this message
+  fromHistory?: boolean; // true if loaded from DB (don't re-save)
 }
 
 interface WineCard {
@@ -194,18 +196,39 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
     historyLoaded.current = user.id;
 
     const init = async () => {
-      // Step 1: load history
-      const { data: history } = await supabase
-        .from("sommy_conversations")
-        .select("role, content")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
+      // Step 1: load history via directSelect (avoids auth lock)
+      try {
+        const rows = await directSelect<any>(
+          "sommy_conversations",
+          `select=id,role,content,image_url,created_at&user_id=eq.${user.id}&order=created_at.desc&limit=30`
+        );
 
-      if (history && history.length > 0) {
-        // Has history — restore it, no greeting needed
-        setMessages([...history].reverse().map(r => ({ role: r.role as "user" | "assistant", content: r.content })));
-        return;
+        if (rows && rows.length > 0) {
+          const history: Message[] = rows.reverse().map((row: any) => {
+            const msg: Message = {
+              role: row.role as "user" | "assistant",
+              content: row.content,
+              imageUrl: row.image_url || undefined,
+              fromHistory: true,
+            };
+            // Re-parse wine cards and wishlist blocks from stored raw content
+            if (row.role === "assistant") {
+              // Strip PROFILE_UPDATE for display
+              let displayText = row.content.replace(/\[PROFILE_UPDATE\][\s\S]*?\[\/PROFILE_UPDATE\]/, "").trim();
+              const { blocks } = parseWishlistBlocks(displayText);
+              const cleanAfterWishlist = displayText.replace(/WISHLIST_ADD_START[\s\S]*?WISHLIST_ADD_END\n?/g, "").trim();
+              const { card, prose } = parseWineCard(cleanAfterWishlist);
+              msg.content = prose;
+              if (card) msg.wineCard = card;
+              if (blocks.length > 0) msg.wishlistAdded = blocks.map(b => b.name);
+            }
+            return msg;
+          });
+          setMessages(history);
+          return;
+        }
+      } catch (e) {
+        console.error("History load error:", e);
       }
 
       // Step 2: no history — first-ever session. Use a reliable personalised
@@ -273,10 +296,36 @@ The more you share — what you enjoy, what you've tried, even what you definite
     if ((!text.trim() && !imageOverride && !pendingImage) || isLoading) return;
     const img = imageOverride || pendingImage;
     const userText = text.trim() || "What wine is this? Tell me about it.";
+    // Upload image to Supabase Storage for persistence (fire in background)
+    let storedImageUrl: string | undefined;
+    if (img && user) {
+      try {
+        const token = getAccessToken();
+        if (token) {
+          const byteString = atob(img.data);
+          const bytes = new Uint8Array(byteString.length);
+          for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i);
+          const blob = new Blob([bytes], { type: img.mediaType });
+          const path = `${user.id}/chat-${Date.now()}.jpg`;
+          const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/wine-labels/${path}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, apikey: ANON_KEY, "Content-Type": img.mediaType },
+            body: blob,
+          });
+          if (uploadRes.ok) {
+            storedImageUrl = `${SUPABASE_URL}/storage/v1/object/public/wine-labels/${path}`;
+          }
+        }
+      } catch (e) {
+        console.error("Image upload error:", e);
+      }
+    }
+
     const userMessage: Message = {
       role: "user",
       content: userText,
       imagePreview: img?.preview,
+      imageUrl: storedImageUrl,
     };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
@@ -319,7 +368,6 @@ The more you share — what you enjoy, what you've tried, even what you definite
       }
       // Include cellar data so Sommy can suggest pairings from owned wines
       try {
-        const { directSelect } = await import("@/lib/supabaseDirectFetch");
         const cellarWines = await directSelect<any>("wine_cellar", `select=wine_name,producer,vintage,region,grapes,style,quantity,drink_from,drink_peak_start,drink_peak_end,drink_until,status&user_id=eq.${user!.id}&status=eq.active`, 5000);
         if (cellarWines.length > 0) {
           const now = new Date().getFullYear();
@@ -444,12 +492,14 @@ The more you share — what you enjoy, what you've tried, even what you definite
           }
         }
 
-        // Fire-and-forget save — do NOT await to avoid blocking the loading state
+        // Fire-and-forget save — store raw content so wine cards can be re-parsed on reload
         if (user) {
-          supabase.from("sommy_conversations").insert([
-            { user_id: user.id, role: "user", content: userText, has_image: !!img },
-            { user_id: user.id, role: "assistant", content: prose, has_image: false },
-          ]).then(({ error }) => { if (error) console.error("Sommy save error:", error.message); }).catch(console.error);
+          const rows = [
+            { user_id: user.id, role: "user", content: userText, has_image: !!img, image_url: storedImageUrl || null },
+            { user_id: user.id, role: "assistant", content: data.text, has_image: false, image_url: null },
+          ];
+          Promise.all(rows.map(r => directInsert("sommy_conversations", r)))
+            .catch(e => console.error("Sommy save error:", e));
         }
       } else if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: data.error }]);
@@ -532,10 +582,10 @@ The more you share — what you enjoy, what you've tried, even what you definite
             {/* Messages */}
             {messages.map((msg, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start", gap: 8 }}>
-                {/* Image preview */}
-                {msg.imagePreview && (
+                {/* Image preview (current session base64 or stored URL) */}
+                {(msg.imagePreview || msg.imageUrl) && (
                   <div style={{ maxWidth: "85%", borderRadius: 12, overflow: "hidden", border: "1px solid #D4D1CA" }}>
-                    <img src={msg.imagePreview} alt="Wine label" style={{ width: "100%", height: "auto", display: "block", maxHeight: 200, objectFit: "cover" }} />
+                    <img src={msg.imagePreview || msg.imageUrl} alt="Wine label" style={{ width: "100%", height: "auto", display: "block", maxHeight: 200, objectFit: "cover" }} />
                   </div>
                 )}
 

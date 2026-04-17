@@ -311,6 +311,27 @@ The more you share — what you enjoy, what you've tried, even what you definite
       if (stats.wines > 0 || stats.regions > 0) {
         profileParts.push(`Stats: ${stats.wines} wines logged, ${stats.regions} regions explored, ${stats.guides} guides read`);
       }
+      // Include cellar data so Sommy can suggest pairings from owned wines
+      try {
+        const { directSelect } = await import("@/lib/supabaseDirectFetch");
+        const cellarWines = await directSelect<any>("wine_cellar", `select=wine_name,producer,vintage,region,grapes,style,quantity,drink_from,drink_peak_start,drink_peak_end,drink_until,status&user_id=eq.${user!.id}&status=eq.active`, 5000);
+        if (cellarWines.length > 0) {
+          const now = new Date().getFullYear();
+          const cellarLines = cellarWines.slice(0, 10).map((w: any) => {
+            const parts = [w.wine_name];
+            if (w.vintage) parts[0] += ` ${w.vintage}`;
+            if (w.producer) parts.push(w.producer);
+            if (w.region) parts.push(w.region);
+            if (w.quantity > 1) parts.push(`x${w.quantity}`);
+            if (w.drink_from && w.drink_until) {
+              const status = now < w.drink_from ? "aging" : now >= w.drink_peak_start && now <= w.drink_peak_end ? "peak" : now >= w.drink_from ? "ready" : "past peak";
+              parts.push(`[${status}]`);
+            }
+            return `- ${parts.join(" | ")}`;
+          });
+          profileParts.push(`Wine Cellar (${cellarWines.reduce((s: number, w: any) => s + (w.quantity || 1), 0)} bottles):\n${cellarLines.join("\n")}`);
+        }
+      } catch { /* cellar fetch failed silently */ }
       const userProfile = profileParts.length > 0 ? `[User Profile]\n${profileParts.join("\n")}` : "";
       const fullContext = [userProfile, context].filter(Boolean).join("\n\n");
       const contextualText = fullContext ? `${fullContext}\n\n${userText}` : userText;

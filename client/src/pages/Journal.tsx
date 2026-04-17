@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
-import { useUserData, type WishlistEntry } from "@/lib/useUserData";
+import { useUserData } from "@/lib/useUserData";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
 import { directInsert, directUpdate, directDelete, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
@@ -51,7 +51,6 @@ interface ParsedCard {
 type SortField = "date" | "rating" | "price";
 type LogStep = "idle" | "choose" | "manual" | "scanning" | "review" | "achievement"
   | "tasting_look" | "tasting_smell" | "tasting_taste" | "tasting_take" | "tasting_reveal" | "tasting_edit";
-type JournalTab = "journal" | "wishlist";
 
 // Compress phone camera images (3-5MB) down to ~150KB before upload/API call
 function compressImage(dataUrl: string, maxDim = 800, quality = 0.75): Promise<string> {
@@ -580,23 +579,28 @@ function sourceLabel(source: string | null): string {
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-const OFFSET = "calc(52px + 4px)"; // topbar only (filter bar hidden on this page)
+const OFFSET = "calc(52px + 4px + 42px)"; // topbar + journey sub-nav
 
 export default function Journal() {
   const { user } = useAuth();
-  const { silentRefresh, wishlist: wishlistData } = useUserData();
+  const { silentRefresh } = useUserData();
   const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<JournalTab>("journal");
-
   // Auto-open log flow when arriving from nav with ?log=1
+  // Also support ?name=...&region=... from wishlist "Tried it"
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("log") === "1" && user) {
-      setStep("choose");
-      // Clean the URL param so refreshing doesn't re-trigger
+      const prefillName = params.get("name") || "";
+      const prefillRegion = params.get("region") || "";
+      if (prefillName) {
+        setManualName(prefillName);
+        setManualRegion(prefillRegion);
+        setStep("manual");
+      } else {
+        setStep("choose");
+      }
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [user]);
@@ -608,22 +612,8 @@ export default function Journal() {
   const [sortBy, setSortBy] = useState<SortField>("date");
   const [saveError, setSaveError] = useState("");
 
-  // Wishlist local state (mirrors useUserData but allows local mutations)
-  const [wishlist, setWishlist] = useState<WishlistEntry[]>([]);
-  useEffect(() => { setWishlist(wishlistData); }, [wishlistData]);
-
-  // Wishlist manual add form
-  const [showWishlistForm, setShowWishlistForm] = useState(false);
-  const [wishlistName, setWishlistName] = useState("");
-  const [wishlistWhy, setWishlistWhy] = useState("");
-  const [wishlistSaving, setWishlistSaving] = useState(false);
-
-  // Wishlist scan state
-  const [wishlistScanning, setWishlistScanning] = useState(false);
-
   // Delete confirmation
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmDeleteWishlistId, setConfirmDeleteWishlistId] = useState<string | null>(null);
 
   // Edit mode
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -746,30 +736,6 @@ export default function Journal() {
         setCardData(card);
         setSommyProse(prose);
 
-        // If scanning for wishlist, save directly and stay on wishlist tab
-        if (wishlistScanning && card) {
-          try {
-            await directInsert("wine_wishlist", {
-              user_id: user!.id,
-              wine_name: card.name,
-              producer: card.producer || null,
-              region: card.region || null,
-              grapes: card.grapes || null,
-              style: card.style || null,
-              price_estimate: card.price || null,
-              why: prose ? prose.slice(0, 200) : null,
-              source: "scan",
-            });
-            silentRefresh();
-            await load();
-          } catch (err) {
-            console.error("Wishlist scan save error:", err);
-          }
-          setWishlistScanning(false);
-          setStep("idle");
-          return;
-        }
-
         if (tastingMode) {
           setStep("tasting_look");
         } else {
@@ -779,12 +745,10 @@ export default function Journal() {
         // Fallback to manual
         setStep("manual");
         setTastingMode(false);
-        setWishlistScanning(false);
       }
     } catch (e) {
       console.error("Scan error:", e);
       setStep("manual");
-      setWishlistScanning(false);
     } finally {
       setScanning(false);
     }
@@ -1113,65 +1077,6 @@ export default function Journal() {
     }
   };
 
-  // ── Wishlist: manual add ──────────────────────────────────────────────────
-
-  const addToWishlist = async () => {
-    if (!user || !wishlistName.trim()) return;
-    setWishlistSaving(true);
-    try {
-      await directInsert("wine_wishlist", {
-        user_id: user.id,
-        wine_name: wishlistName.trim(),
-        why: wishlistWhy.trim() || null,
-        source: "manual",
-      });
-      setWishlistName("");
-      setWishlistWhy("");
-      setShowWishlistForm(false);
-      silentRefresh();
-      // Optimistically add to local state
-      const newEntry: WishlistEntry = {
-        id: crypto.randomUUID(),
-        wine_name: wishlistName.trim(),
-        producer: null,
-        region: null,
-        grapes: null,
-        style: null,
-        price_estimate: null,
-        why: wishlistWhy.trim() || null,
-        source: "manual",
-        created_at: new Date().toISOString(),
-      };
-      setWishlist(prev => [newEntry, ...prev]);
-    } catch (e: any) {
-      console.error("Wishlist add error:", e);
-    } finally {
-      setWishlistSaving(false);
-    }
-  };
-
-  // ── Wishlist: delete ──────────────────────────────────────────────────────
-
-  const deleteWishlistItem = async (id: string) => {
-    try {
-      await directDelete("wine_wishlist", id);
-      setWishlist(prev => prev.filter(w => w.id !== id));
-      setConfirmDeleteWishlistId(null);
-      silentRefresh();
-    } catch (e) {
-      console.error("Wishlist delete error:", e);
-    }
-  };
-
-  // ── Wishlist: "Tried it" → pre-fill journal log ──────────────────────────
-
-  const triedIt = (entry: WishlistEntry) => {
-    setActiveTab("journal");
-    setStep("manual");
-    setManualName(entry.wine_name);
-    setManualRegion(entry.region || "");
-  };
-
   // ── Detail expand ───────────────────────────────────────────────────────────
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -1205,7 +1110,7 @@ export default function Journal() {
               Wine Journal
             </h1>
           </div>
-          {step === "idle" && user && activeTab === "journal" && (
+          {step === "idle" && user && (
             <button onClick={() => setStep("choose")} style={{
               padding: "9px 18px", border: "none", borderRadius: 20,
               background: "#8C1C2E", color: "#F7F4EF",
@@ -1216,46 +1121,6 @@ export default function Journal() {
           )}
         </div>
 
-        {/* ── Tabs ── */}
-        {user && step === "idle" && (
-          <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "1.5px solid #EDEAE3" }}>
-            <button
-              onClick={() => setActiveTab("journal")}
-              style={{
-                padding: "10px 20px", background: "none", border: "none", cursor: "pointer",
-                fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.1em", textTransform: "uppercase",
-                color: activeTab === "journal" ? "#8C1C2E" : "#D4D1CA",
-                borderBottom: activeTab === "journal" ? "2px solid #8C1C2E" : "2px solid transparent",
-                marginBottom: -1.5,
-              }}
-            >
-              Journal
-            </button>
-            <button
-              onClick={() => setActiveTab("wishlist")}
-              style={{
-                padding: "10px 20px", background: "none", border: "none", cursor: "pointer",
-                fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.1em", textTransform: "uppercase",
-                color: activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA",
-                borderBottom: activeTab === "wishlist" ? "2px solid #8C1C2E" : "2px solid transparent",
-                marginBottom: -1.5,
-                display: "flex", alignItems: "center", gap: 6,
-              }}
-            >
-              <BookmarkIcon size={12} filled={activeTab === "wishlist"} color={activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA"} />
-              Wishlist
-              {wishlist.length > 0 && (
-                <span style={{
-                  background: activeTab === "wishlist" ? "#8C1C2E" : "#D4D1CA",
-                  color: "#F7F4EF", borderRadius: 8, padding: "1px 6px",
-                  fontSize: "0.52rem", fontWeight: 400, lineHeight: 1.4,
-                }}>
-                  {wishlist.length}
-                </span>
-              )}
-            </button>
-          </div>
-        )}
 
         {/* Hidden file input */}
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} style={{ display: "none" }} />
@@ -1907,9 +1772,7 @@ export default function Journal() {
           </div>
         )}
 
-        {/* ═══════════════ JOURNAL TAB ═══════════════ */}
-        {activeTab === "journal" && (
-          <>
+        {/* ═══════════════ JOURNAL CONTENT ═══════════════ */}
             {/* ── Sort chips ── */}
             {step === "idle" && !loading && wines.length > 1 && (
               <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
@@ -2260,151 +2123,6 @@ export default function Journal() {
                 })}
               </div>
             )}
-          </>
-        )}
-
-        {/* ═══════════════ WISHLIST TAB ═══════════════ */}
-        {activeTab === "wishlist" && step === "idle" && user && (
-          <>
-            {/* Add button / form */}
-            {showWishlistForm ? (
-              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
-                <div style={{ ...mono(), marginBottom: 12 }}>ADD TO WISHLIST</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
-                  <input placeholder="Wine name *" value={wishlistName} onChange={e => setWishlistName(e.target.value)} style={inputStyle} />
-                  <textarea placeholder="Notes — why do you want to try this? (optional)" value={wishlistWhy} onChange={e => setWishlistWhy(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical" }} />
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { setShowWishlistForm(false); setWishlistName(""); setWishlistWhy(""); }} style={{
-                    flex: 1, padding: "10px", border: "1px solid #EDEAE3", borderRadius: 10, background: "white",
-                    fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248", cursor: "pointer",
-                  }}>Cancel</button>
-                  <button onClick={addToWishlist} disabled={wishlistSaving || !wishlistName.trim()} style={{
-                    flex: 1, padding: "10px", border: "none", borderRadius: 10,
-                    background: wishlistSaving || !wishlistName.trim() ? "#D4D1CA" : "#8C1C2E", color: "#F7F4EF",
-                    fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-                    cursor: wishlistSaving || !wishlistName.trim() ? "default" : "pointer",
-                  }}>{wishlistSaving ? "Adding..." : "Add to wishlist"}</button>
-                </div>
-              </div>
-            ) : (scanning && wishlistScanning) ? (
-              <div style={{
-                width: "100%", padding: "20px", border: "1.5px solid #EDEAE3", borderRadius: 12,
-                background: "white", textAlign: "center", marginBottom: 16,
-              }}>
-                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400, color: "#8C1C2E", marginBottom: 6 }}>
-                  Sommy is reading the label...
-                </div>
-                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248" }}>
-                  This will be saved to your wishlist
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                <button onClick={() => {
-                  setWishlistScanning(true);
-                  fileInputRef.current?.click();
-                }} style={{
-                  flex: 1, padding: "12px", border: "1.5px dashed #8C1C2E", borderRadius: 12,
-                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-                  color: "#8C1C2E", cursor: "pointer",
-                }}>
-                  Scan a label
-                </button>
-                <button onClick={() => setShowWishlistForm(true)} style={{
-                  flex: 1, padding: "12px", border: "1.5px dashed #EDEAE3", borderRadius: 12,
-                  background: "white", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400,
-                  color: "#5A5248", cursor: "pointer",
-                }}>
-                  Add manually
-                </button>
-              </div>
-            )}
-
-            {/* Empty state */}
-            {wishlist.length === 0 && (
-              <div style={{ textAlign: "center", padding: "48px 20px" }}>
-                <BookmarkIcon size={28} color="#D4D1CA" />
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.1rem", fontWeight: 400, color: "#1A1410", marginTop: 12, marginBottom: 8 }}>
-                  Nothing here yet
-                </div>
-                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.6 }}>
-                  Save wines you want to try from Sommy's recommendations, or add them manually above.
-                </p>
-              </div>
-            )}
-
-            {/* Wishlist cards */}
-            {wishlist.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {wishlist.map(entry => (
-                  <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "14px 16px" }}>
-                    {/* Wine name + producer */}
-                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
-                      {entry.wine_name}
-                    </div>
-                    {(entry.producer || entry.region) && (
-                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginBottom: 8 }}>
-                        {[entry.producer, entry.region].filter(Boolean).join(" · ")}
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-                      {entry.grapes && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
-                      {entry.style && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
-                      {entry.price_estimate && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
-                    </div>
-
-                    {/* Why text */}
-                    {entry.why && (
-                      <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 8px", fontStyle: "italic" }}>
-                        "{entry.why}"
-                      </p>
-                    )}
-
-                    {/* Source badge */}
-                    <div style={{ ...mono("0.48rem"), color: "#D4D1CA", marginBottom: 10 }}>
-                      {sourceLabel(entry.source).toUpperCase()}
-                    </div>
-
-                    {/* Actions */}
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <button onClick={() => triedIt(entry)} style={{
-                        padding: "6px 14px", border: "1.5px solid #8C1C2E", borderRadius: 8, background: "white",
-                        fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em",
-                        color: "#8C1C2E", cursor: "pointer",
-                      }}>
-                        TRIED IT
-                      </button>
-                      {confirmDeleteWishlistId === entry.id ? (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#5A5248" }}>Remove?</span>
-                          <button onClick={() => setConfirmDeleteWishlistId(null)} style={{
-                            background: "none", border: "1px solid #EDEAE3", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
-                            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#5A5248",
-                          }}>CANCEL</button>
-                          <button onClick={() => deleteWishlistItem(entry.id)} style={{
-                            background: "#8C1C2E", border: "none", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
-                            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#F7F4EF",
-                          }}>REMOVE</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => setConfirmDeleteWishlistId(entry.id)} style={{
-                          background: "none", border: "none", cursor: "pointer",
-                          fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-                          letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
-                        }}>
-                          REMOVE
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
 
       </div>
     </div>

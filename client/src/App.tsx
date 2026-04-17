@@ -62,8 +62,12 @@ import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
+import JourneyLayout from "@/components/JourneyLayout";
+import ProfilePage from "@/pages/ProfilePage";
+import Cellar from "@/pages/Cellar";
+import WishlistPage from "@/pages/Wishlist";
 
-type NavTab = "map" | "journeys" | "academy" | "list" | "news" | "journal";
+type NavTab = "map" | "journeys" | "academy" | "list" | "news" | "journey";
 
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
@@ -71,20 +75,22 @@ const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "academy", label: "GUIDES", href: "/guides" },
   { key: "list", label: "LIST", href: "/explore/list" },
   { key: "news", label: "NEWS", href: "/news" },
+  { key: "journey", label: "MY JOURNEY", href: "/journey/profile" },
 ];
 
 function getActiveTab(path: string): NavTab | null {
   if (path === "/explore/list") return "list";
   if (path.startsWith("/explore")) return "map";
-  if (path.startsWith("/journey")) return "journeys";
+  if (path.startsWith("/journey/")) return "journey";
+  if (path === "/journey") return "journey";
   if (path.startsWith("/journeys")) return "journeys";
-  if (path.startsWith("/journal")) return "journal";
+  if (path.startsWith("/journal")) return "journey";
   if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
   if (path.startsWith("/news")) return "news";
   return null;
 }
 
-function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
+function NavBar() {
   const { user, profile } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -152,9 +158,9 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
 
         {/* Desktop nav tabs */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          <Link href={user ? "/journal?log=1" : "/sign-in"} style={{ textDecoration: "none", marginRight: 4 }}>
+          <Link href={user ? "/journey/journal?log=1" : "/sign-in"} style={{ textDecoration: "none", marginRight: 4 }}>
             <button
-              className={`nav-btn ${activeTab === "journal" ? "active" : ""}`}
+              className="nav-btn"
               data-testid="nav-log-wine"
               style={{
                 background: "#8C1C2E", color: "#F7F4EF",
@@ -178,8 +184,8 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
           {/* User avatar / sign in */}
           {user ? (
             <div style={{ position: "relative", marginLeft: 4 }}>
+              <Link href="/journey/profile" style={{ textDecoration: "none" }}>
               <button
-                onClick={onProfileOpen}
                 title="Your journey"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 6 }}
               >
@@ -191,6 +197,7 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
                   </div>
                 )}
               </button>
+              </Link>
             </div>
           ) : (
             <Link href="/sign-in" style={{ textDecoration: "none", marginLeft: 4 }}>
@@ -269,7 +276,7 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
         <nav className="mobile-menu-nav">
           <button
             className="mobile-menu-link"
-            onClick={() => handleNavLink(user ? "/journal?log=1" : "/sign-in")}
+            onClick={() => handleNavLink(user ? "/journey/journal?log=1" : "/sign-in")}
             data-testid="mobile-nav-log-wine"
             style={{
               background: "#8C1C2E", color: "#F7F4EF",
@@ -295,7 +302,7 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
             {user ? (
               <button
                 className="mobile-menu-link"
-                onClick={() => { setMenuOpen(false); onProfileOpen(); }}
+                onClick={() => handleNavLink("/journey/profile")}
                 data-testid="mobile-nav-profile"
                 style={{ display: "flex", alignItems: "center", gap: 10 }}
               >
@@ -325,6 +332,13 @@ function NavBar({ onProfileOpen }: { onProfileOpen: () => void }) {
   );
 }
 
+// Redirect helper for wouter
+function Redirect({ to }: { to: string }) {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation(to, { replace: true }); }, [to, setLocation]);
+  return null;
+}
+
 function AppRouter() {
   return (
     <Switch>
@@ -335,7 +349,16 @@ function AppRouter() {
       <Route path="/explore" component={Explore} />
       <Route path="/explore/list" component={Explore} />
       <Route path="/journeys" component={JourneysBrowse} />
+      {/* My Journey section — specific routes before the :id wildcard */}
+      <Route path="/journey/profile">{() => <JourneyLayout><ProfilePage /></JourneyLayout>}</Route>
+      <Route path="/journey/cellar">{() => <JourneyLayout><Cellar /></JourneyLayout>}</Route>
+      <Route path="/journey/journal">{() => <JourneyLayout><Journal /></JourneyLayout>}</Route>
+      <Route path="/journey/wishlist">{() => <JourneyLayout><WishlistPage /></JourneyLayout>}</Route>
+      {/* Learning journey player (e.g. /journey/abc123) */}
       <Route path="/journey/:id" component={JourneyPlayer} />
+      <Route path="/journey"><Redirect to="/journey/profile" /></Route>
+      {/* Backward compat: /journal → /journey/journal */}
+      <Route path="/journal"><Redirect to="/journey/journal" /></Route>
       <Route path="/guides" component={AcademyHub} />
       <Route path="/guides/grapes/:id" component={GrapeDetail} />
       <Route path="/guides/flavourmap/:view?" component={FlavourMap} />
@@ -349,7 +372,6 @@ function AppRouter() {
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
-      <Route path="/journal" component={Journal} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
@@ -376,7 +398,7 @@ function GlobalFilterBar() {
 
 function App() {
   const [sommyOpen, setSommyOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  // Profile panel no longer used (profile is now a full page at /journey/profile)
   const toggleSommy = useCallback(() => setSommyOpen(o => !o), []);
 
   // Auto-open Sommy after onboarding
@@ -397,11 +419,11 @@ function App() {
         <Router>
           <UserDataProvider>
             <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
-              <NavBar onProfileOpen={() => setProfileOpen(true)} />
+              <NavBar />
               <GlobalFilterBar />
               <AppRouter />
               <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
-              <ProfilePanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
+              {/* ProfilePanel kept as component file but no longer rendered here — profile is at /journey/profile */}
             </div>
           </UserDataProvider>
         </Router>

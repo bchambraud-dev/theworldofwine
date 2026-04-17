@@ -266,12 +266,12 @@ export default function VintageGuide() {
       {/* ═══════ TABLE VIEW ═══════ */}
       {viewMode === "table" && (
         <div style={{ background: "#fff", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden", position: "relative" }}>
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ overflow: "auto", WebkitOverflowScrolling: "touch", maxHeight: "calc(100vh - 200px)" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'Geist Mono', monospace", fontSize: "11px", minWidth: 700 }}>
-              <thead>
+              <thead style={{ position: "sticky", top: 0, zIndex: 4 }}>
                 <tr>
                   <th style={{
-                    position: "sticky", left: 0, background: "#F7F4EF", zIndex: 3,
+                    position: "sticky", left: 0, background: "#F7F4EF", zIndex: 5,
                     padding: "10px 8px", textAlign: "left", fontWeight: 700, fontSize: "10px",
                     letterSpacing: "0.06em", textTransform: "uppercase", color: "#5A5248",
                     borderBottom: "2px solid #EDEAE3", minWidth: 120,
@@ -281,7 +281,7 @@ export default function VintageGuide() {
                       padding: "10px 2px", textAlign: "center", fontWeight: year === selectedYear ? 700 : 500,
                       fontSize: "10px", color: year === selectedYear ? "#8C1C2E" : "#5A5248",
                       borderBottom: "2px solid #EDEAE3", cursor: "pointer",
-                      background: year === selectedYear ? "rgba(140,28,46,0.06)" : "transparent",
+                      background: year === selectedYear ? "rgba(140,28,46,0.10)" : "#F7F4EF",
                       whiteSpace: "nowrap", transition: "all 0.15s ease", minWidth: 38,
                     }}>{year}</th>
                   ))}

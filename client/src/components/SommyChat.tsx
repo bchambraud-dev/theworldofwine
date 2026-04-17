@@ -311,6 +311,12 @@ The more you share — what you enjoy, what you've tried, even what you definite
       if (stats.wines > 0 || stats.regions > 0) {
         profileParts.push(`Stats: ${stats.wines} wines logged, ${stats.regions} regions explored, ${stats.guides} guides read`);
       }
+      if (profile?.currency_code && profile.currency_code !== "USD") {
+        profileParts.push(`Currency: ${profile.currency_code} — always quote wine prices in this currency using the appropriate symbol`);
+      }
+      if (profile?.base_country) {
+        profileParts.push(`Based in: ${profile.base_country}`);
+      }
       // Include cellar data so Sommy can suggest pairings from owned wines
       try {
         const { directSelect } = await import("@/lib/supabaseDirectFetch");

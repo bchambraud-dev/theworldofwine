@@ -20,6 +20,8 @@ export interface UserProfile {
   avatar_url: string | null;
   experience_level: ExperienceLevel | null;
   onboarding_complete: boolean;
+  base_country: string | null;
+  currency_code: string | null;
   created_at: string;
 }
 

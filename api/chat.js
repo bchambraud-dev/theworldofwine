@@ -24,6 +24,8 @@ texture: [comma-separated mouthfeel descriptors, e.g. "Silky tannins, Full body,
 breathing: [concise decanting/breathing recommendation with brief reason, e.g. "Decant 1-2 hours — young tannins need time to soften and dark fruit to emerge" or "Drink now — light and aromatic, best enjoyed fresh" or "30 minutes in a wide glass — let the oak integrate"]
 WINE_CARD_END
 
+If the user has a currency preference in their profile, always quote wine prices in that currency using the appropriate symbol (e.g. S$45 for SGD, €30 for EUR, A$55 for AUD). If no preference is set, default to USD.
+
 [Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]
 
 UPDATING THE USER PROFILE:

@@ -4,6 +4,8 @@ import { useUserData } from "@/lib/useUserData";
 import { useLocation } from "wouter";
 import { guides } from "@/data/guides";
 import { WINE_COUNTRIES, COUNTRY_SUGGESTIONS } from "@/lib/countryFlags";
+import { CURRENCIES } from "@/lib/currencies";
+import { directUpdate } from "@/lib/supabaseDirectFetch";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -477,6 +479,46 @@ export default function ProfilePage() {
             </div>
           </>
         )}
+
+        {/* Settings */}
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5A5248", marginBottom: 12 }}>SETTINGS</div>
+          <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#5A5248", display: "block", marginBottom: 6 }}>LOCATION</label>
+              <select
+                value={profile?.base_country || ""}
+                onChange={async (e) => {
+                  if (!user) return;
+                  try {
+                    await directUpdate("user_profiles", user.id, { base_country: e.target.value || null });
+                    await refreshProfile();
+                  } catch {}
+                }}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #EDEAE3", borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", color: "#1A1410", background: "#F7F4EF", cursor: "pointer" }}
+              >
+                <option value="">Select your country</option>
+                {CURRENCIES.map(c => <option key={c.code} value={c.country}>{c.country}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#5A5248", display: "block", marginBottom: 6 }}>CURRENCY</label>
+              <select
+                value={profile?.currency_code || "USD"}
+                onChange={async (e) => {
+                  if (!user) return;
+                  try {
+                    await directUpdate("user_profiles", user.id, { currency_code: e.target.value });
+                    await refreshProfile();
+                  } catch {}
+                }}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #EDEAE3", borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", color: "#1A1410", background: "#F7F4EF", cursor: "pointer" }}
+              >
+                {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.code} — {c.name}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
 
         {/* Sign out */}
         <button onClick={handleSignOut} style={{

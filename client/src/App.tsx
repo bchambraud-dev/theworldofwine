@@ -338,8 +338,8 @@ function AppRouter() {
       <Route path="/journey/:id" component={JourneyPlayer} />
       <Route path="/guides" component={AcademyHub} />
       <Route path="/guides/grapes/:id" component={GrapeDetail} />
-      <Route path="/guides/flavourmap" component={FlavourMap} />
-      <Route path="/guides/vintages" component={VintageGuide} />
+      <Route path="/guides/flavourmap/:view?" component={FlavourMap} />
+      <Route path="/guides/vintages/:view?" component={VintageGuide} />
       <Route path="/guides/:guideId" component={GuideDetail} />
       <Route path="/quiz/:quizId" component={QuizPage} />
       <Route path="/news" component={News} />

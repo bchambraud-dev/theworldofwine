@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useCallback } from "react";
+import { useParams, useLocation } from "wouter";
 import { vintageData, vintageColor, vintageLabel, maturityLabel } from "@/data/vintages";
 import { vintageNotes } from "@/data/vintageCommentary";
 
@@ -120,7 +121,14 @@ const mono = (size = "10px"): React.CSSProperties => ({
 
 export default function VintageGuide() {
   const [selectedYear, setSelectedYear] = useState(2020);
-  const [viewMode, setViewMode] = useState<ViewMode>("chart");
+  const params = useParams<{ view?: string }>();
+  const [, setLocation] = useLocation();
+  const initialView = (params.view === "table" ? "table" : "chart") as ViewMode;
+  const [viewMode, setViewModeState] = useState<ViewMode>(initialView);
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    setLocation(`/guides/vintages/${mode}`, { replace: true });
+  };
   const [expandedCell, setExpandedCell] = useState<{ regionId: string; year: number } | null>(null);
   const yearRowRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Map<number, HTMLDivElement>>(new Map());

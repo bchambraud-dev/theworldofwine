@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { useLocation } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { flavourProfiles, type FlavourProfile } from "@/data/flavourProfiles";
 
 type Axis = "body" | "acidity" | "tannin" | "fruit" | "earthiness" | "sweetness";
@@ -34,8 +34,15 @@ function useIsMobile() {
 }
 
 export default function FlavourMap() {
+  const params = useParams<{ view?: string }>();
   const [, setLocation] = useLocation();
-  const [view, setView] = useState<ViewMode>("scatter");
+  const validViews: ViewMode[] = ["scatter", "radar", "proximity"];
+  const initialView = validViews.includes(params.view as ViewMode) ? (params.view as ViewMode) : "scatter";
+  const [view, setViewState] = useState<ViewMode>(initialView);
+  const setView = (mode: ViewMode) => {
+    setViewState(mode);
+    setLocation(`/guides/flavourmap/${mode}`, { replace: true });
+  };
   const [xAxis, setXAxis] = useState<Axis>("body");
   const [yAxis, setYAxis] = useState<Axis>("acidity");
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);

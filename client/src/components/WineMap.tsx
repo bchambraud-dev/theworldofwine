@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { regionBoundaries } from "@/data/regionBoundaries";
-import { vintageData, vintageColor, vintageLabel } from "@/data/vintages";
+import { vintageData, vintageColor, vintageLabel, VINTAGE_LEGEND } from "@/data/vintages";
 
 // MapLibre GL JS loaded from CDN (global `maplibregl`)
 declare const maplibregl: typeof import("maplibre-gl").default;
@@ -505,13 +505,7 @@ export default function WineMap({
         source: "vintage-overlay-src",
         paint: {
           "fill-color": ["coalesce", ["get", "fillColor"], "rgba(0,0,0,0)"],
-          "fill-opacity": [
-            "interpolate", ["linear"], ["zoom"],
-            2, 0.4,
-            4, 0.6,
-            6, 0.8,
-            8, 0.9,
-          ],
+          "fill-opacity": 0.9,
         },
         layout: { visibility: "none" },
       });
@@ -1031,19 +1025,13 @@ export default function WineMap({
           gap: 3,
           zIndex: 5,
         }}>
-          {[
-            { label: "Exceptional", score: 96 },
-            { label: "Excellent", score: 93 },
-            { label: "Good", score: 89 },
-            { label: "Average", score: 85 },
-            { label: "No data", score: null },
-          ].map(({ label, score }) => (
+          {VINTAGE_LEGEND.map(({ label, color }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{
                 width: 12,
                 height: 12,
                 borderRadius: 2,
-                background: vintageColor(score),
+                background: color,
                 border: "1px solid rgba(0,0,0,0.08)",
                 flexShrink: 0,
               }} />

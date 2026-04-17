@@ -345,14 +345,14 @@ export const vintageData: RegionVintages[] = [
   },
 ];
 
-// Helper: get the score colour for a given rating
+// Traffic light colour system — green (great) to red (poor)
 export function vintageColor(score: number | null): string {
-  if (score === null) return "rgba(90,82,72,0.15)";
-  if (score >= 96) return "rgba(140,28,46,0.85)";   // exceptional — deep wine
-  if (score >= 93) return "rgba(140,28,46,0.55)";   // excellent — medium wine
-  if (score >= 89) return "rgba(140,28,46,0.30)";   // good — light wine
-  if (score >= 85) return "rgba(90,82,72,0.25)";    // average — neutral
-  return "rgba(90,82,72,0.15)";                      // below average — faint
+  if (score === null) return "rgba(160,160,160,0.12)";
+  if (score >= 96) return "rgba(34,139,34,0.65)";     // exceptional — strong green
+  if (score >= 93) return "rgba(76,175,80,0.50)";      // excellent — green
+  if (score >= 89) return "rgba(205,185,50,0.45)";     // good — amber/gold
+  if (score >= 85) return "rgba(230,140,50,0.40)";     // average — orange
+  return "rgba(200,50,50,0.45)";                        // below average — red
 }
 
 export function vintageLabel(score: number | null): string {
@@ -363,6 +363,16 @@ export function vintageLabel(score: number | null): string {
   if (score >= 85) return "Average";
   return "Below average";
 }
+
+// Legend items for the heatmap
+export const VINTAGE_LEGEND = [
+  { label: "Exceptional", color: "rgba(34,139,34,0.65)" },
+  { label: "Excellent", color: "rgba(76,175,80,0.50)" },
+  { label: "Good", color: "rgba(205,185,50,0.45)" },
+  { label: "Average", color: "rgba(230,140,50,0.40)" },
+  { label: "Below avg", color: "rgba(200,50,50,0.45)" },
+  { label: "No data", color: "rgba(160,160,160,0.12)" },
+];
 
 export function maturityLabel(m: string | null): string {
   if (!m) return "";

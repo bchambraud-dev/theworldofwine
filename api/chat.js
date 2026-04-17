@@ -3,6 +3,88 @@ import Anthropic from "@anthropic-ai/sdk";
 // Increase Vercel function timeout to 60s (conversation history makes responses slower)
 export const config = { maxDuration: 60 };
 
+const SUPABASE_URL = "https://ycgxczvsxiilqzvyzpso.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc3NjEzMSwiZXhwIjoyMDg3MzUyMTMxfQ.JEXkuSX8vPCTMf8v5w1Wm5t-vIGMgYRLvPSQBgp5Vlk";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4";
+
+// ── Wine assessment cache ──────────────────────────────────────────────────
+function buildWineKey(name, vintage, producer) {
+  return [name, vintage, producer].filter(Boolean).join("|").toLowerCase().trim();
+}
+
+function parseWineCardFields(text) {
+  const match = text.match(/WINE_CARD_START\n([\s\S]*?)WINE_CARD_END/);
+  if (!match) return null;
+  const obj = {};
+  for (const line of match[1].split("\n")) {
+    const idx = line.indexOf(":");
+    if (idx > 0) obj[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+  }
+  return obj;
+}
+
+function rebuildWineCard(cached, userCurrency) {
+  // Rebuild WINE_CARD block from cached fields, adapting price to user currency
+  const price = userCurrency && userCurrency !== "USD" && cached.price_usd
+    ? cached.price_usd // Price is stored as text with USD — Sommy's prose will use user currency
+    : cached.price_usd || "";
+  return `WINE_CARD_START
+name: ${cached.wine_name || ""}
+producer: ${cached.producer || ""}
+vintage: ${cached.vintage || ""}
+region: ${cached.region || ""}
+grapes: ${cached.grapes || ""}
+style: ${cached.style || ""}
+price: ${price}
+nose: ${cached.nose || ""}
+palate: ${cached.palate || ""}
+texture: ${cached.texture || ""}
+breathing: ${cached.breathing || ""}
+WINE_CARD_END`;
+}
+
+async function getCachedAssessment(wineKey) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/wine_assessments?wine_key=eq.${encodeURIComponent(wineKey)}&select=*&limit=1`,
+      { headers: { Authorization: `Bearer ${SUPABASE_KEY}`, apikey: ANON_KEY } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows.length > 0 ? rows[0] : null;
+  } catch { return null; }
+}
+
+async function cacheAssessment(wineKey, fields) {
+  try {
+    const vintageNum = fields.vintage && fields.vintage !== "NV" ? parseInt(fields.vintage) : null;
+    await fetch(`${SUPABASE_URL}/rest/v1/wine_assessments`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        wine_key: wineKey,
+        wine_name: fields.name || null,
+        producer: fields.producer || null,
+        vintage: vintageNum,
+        region: fields.region || null,
+        grapes: fields.grapes || null,
+        style: fields.style || null,
+        price_usd: fields.price || null,
+        nose: fields.nose || null,
+        palate: fields.palate || null,
+        texture: fields.texture || null,
+        breathing: fields.breathing || null,
+      }),
+    });
+  } catch { /* cache write failure is non-critical */ }
+}
+
+// ── System prompt ──────────────────────────────────────────────────────────
 const SYSTEM = `You are Sommy, the AI sommelier for The World of Wine. You're a warm, knowledgeable friend who speaks directly to the person — first person, never third person. Warm, direct, approachable — never stuffy. You make wine feel accessible without dumbing it down. Keep responses concise — 2-4 short paragraphs max. Lead with the answer. Use concrete examples with specific regions, producers, and price ranges. Never use emojis. Never say "great question!" or start with "As a sommelier...". Speak naturally in flowing prose, not bullet points.
 
 WHEN ANALYSING A WINE LABEL IMAGE:
@@ -64,13 +146,13 @@ export default async function handler(req, res) {
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const isLabelScan = !!image;
 
     // Build the Anthropic messages — if an image is included, attach it to the last user message
     const anthropicMessages = messages.map((m, i) => {
       const isLast = i === messages.length - 1;
 
       if (isLast && image && m.role === "user") {
-        // Multi-modal message: image + text
         return {
           role: "user",
           content: [
@@ -100,10 +182,30 @@ export default async function handler(req, res) {
       messages: anthropicMessages,
     });
 
-    const text = response.content
+    let text = response.content
       .filter((b) => b.type === "text")
       .map((b) => b.text)
       .join("");
+
+    // ── Assessment caching ──────────────────────────────────────────────
+    if (isLabelScan) {
+      const fields = parseWineCardFields(text);
+      if (fields && fields.name) {
+        const wineKey = buildWineKey(fields.name, fields.vintage, fields.producer);
+
+        // Check cache
+        const cached = await getCachedAssessment(wineKey);
+        if (cached) {
+          // Replace WINE_CARD block with cached structured data
+          // Keep the prose (everything after WINE_CARD_END) fresh and personalised
+          const cardBlock = rebuildWineCard(cached);
+          text = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END/, cardBlock);
+        } else {
+          // Cache this new assessment for future scans
+          await cacheAssessment(wineKey, fields);
+        }
+      }
+    }
 
     return res.status(200).json({ text });
   } catch (e) {

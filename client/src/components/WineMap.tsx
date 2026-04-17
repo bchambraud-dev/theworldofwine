@@ -1010,7 +1010,7 @@ export default function WineMap({
         <div style={{
           position: "absolute",
           bottom: 28,
-          right: 10,
+          left: 10,
           background: "rgba(255,255,255,0.94)",
           border: "1px solid #EDEAE3",
           borderRadius: 8,

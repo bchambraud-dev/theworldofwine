@@ -219,7 +219,7 @@ function NavBar() {
           ) : (
             <Link href="/sign-in" style={{ textDecoration: "none", marginLeft: 4 }}>
               <button className="nav-btn" data-testid="nav-sign-in" style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}>
-                LOG IN
+                SIGN IN
               </button>
             </Link>
           )}
@@ -363,7 +363,7 @@ function NavBar() {
               data-testid="mobile-nav-sign-in"
               style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}
             >
-              LOG IN
+              SIGN IN
             </button>
           )}
         </nav>

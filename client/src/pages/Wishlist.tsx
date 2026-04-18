@@ -298,6 +298,119 @@ const mono = (size = "0.6rem"): React.CSSProperties => ({
 
 // ── Main Component ──
 
+// ── Retailer Search ─────────────────────────────────────────────────────────
+interface Retailer { name: string; url: string; note: string }
+
+function RetailerSearch({ wineName, country }: { wineName: string; country: string | null }) {
+  const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const search = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ wine: wineName });
+      if (country) params.set("country", country);
+      const res = await fetch(`/api/find-retailers?${params}`, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setRetailers(data.retailers || []);
+    } catch {
+      // Fallback to search links
+      setRetailers([
+        { name: "Vivino", url: `https://www.vivino.com/search/wines?q=${encodeURIComponent(wineName)}`, note: "Search and compare prices" },
+        { name: "Wine-Searcher", url: `https://www.wine-searcher.com/find/${encodeURIComponent(wineName)}`, note: "Price comparison across retailers" },
+      ]);
+    } finally {
+      setLoading(false);
+      setSearched(true);
+    }
+  };
+
+  if (!searched) {
+    return (
+      <button
+        onClick={search}
+        disabled={loading}
+        style={{
+          width: "100%", padding: "10px 12px", border: "1.5px dashed #EDEAE3", borderRadius: 8,
+          background: "#F7F4EF", cursor: loading ? "default" : "pointer",
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", fontWeight: 500,
+          letterSpacing: "0.08em", color: loading ? "#B0ADA6" : "#8C1C2E",
+          textTransform: "uppercase", display: "flex", alignItems: "center",
+          justifyContent: "center", gap: 8, transition: "all 0.15s",
+        }}
+      >
+        {loading ? (
+          <>
+            <svg width="12" height="12" viewBox="0 0 16 16" style={{ animation: "spin 0.8s linear infinite" }}>
+              <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="20 12" />
+            </svg>
+            Searching retailers...
+          </>
+        ) : (
+          <>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Find Retailers{country ? ` in ${country}` : ""}
+          </>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <div style={{ background: "#F7F4EF", borderRadius: 8, padding: "10px 12px" }}>
+      <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 8 }}>
+        RETAILERS{country ? ` IN ${country.toUpperCase()}` : ""}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {retailers.map((r, i) => (
+          <a
+            key={i}
+            href={r.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "8px 10px", background: "white", borderRadius: 6,
+              border: "1px solid #EDEAE3", textDecoration: "none",
+              transition: "border-color 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = "#8C1C2E")}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = "#EDEAE3")}
+          >
+            <div>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>
+                {r.name}
+              </div>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.68rem", fontWeight: 300, color: "#5A5248" }}>
+                {r.note}
+              </div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4D1CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </a>
+        ))}
+      </div>
+      <button
+        onClick={() => { setSearched(false); setRetailers([]); }}
+        style={{
+          marginTop: 8, background: "none", border: "none", padding: 0, cursor: "pointer",
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem", letterSpacing: "0.08em",
+          color: "#D4D1CA", textTransform: "uppercase",
+        }}
+      >
+        Search again
+      </button>
+    </div>
+  );
+}
+
 export default function Wishlist() {
   const { user, profile } = useAuth();
   const { silentRefresh, wishlist: wishlistData } = useUserData();
@@ -651,16 +764,8 @@ export default function Wishlist() {
                         </div>
                       )}
 
-                      {/* Where to find */}
-                      <div style={{ background: "#F7F4EF", borderRadius: 8, padding: "10px 12px" }}>
-                        <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>WHERE TO FIND</div>
-                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5 }}>
-                          {userCountry
-                            ? `Check local wine shops and importers in ${userCountry}`
-                            : "Check local wine shops and importers near you"}
-                        </div>
-                        <div style={{ ...mono("0.42rem"), color: "#D4D1CA", marginTop: 4 }}>BASED ON YOUR LOCATION</div>
-                      </div>
+                      {/* Find Retailers */}
+                      <RetailerSearch wineName={entry.wine_name + (entry.vintage ? ` ${entry.vintage}` : "")} country={userCountry} />
                     </div>
                   </div>
 

@@ -8,6 +8,7 @@ import {
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import { displayPriceSync, preloadRates, convertToUSD } from "@/lib/currencyConvert";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
+import LoginPrompt from "@/components/LoginPrompt";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -766,19 +767,7 @@ export default function Cellar() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (!user) {
-    return (
-      <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", fontWeight: 300, color: "#5A5248", marginBottom: 20 }}>
-            Sign in to manage your cellar.
-          </p>
-          <button onClick={() => setLocation("/sign-in")} style={{
-            padding: "10px 24px", border: "none", borderRadius: 20,
-            background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", cursor: "pointer",
-          }}>Sign in</button>
-        </div>
-      </div>
-    );
+    return <LoginPrompt title="Your wines, tracked" description="Log in to start building your cellar — drinking windows, market value, and Sommy's assessment for every bottle." />;
   }
 
   return (

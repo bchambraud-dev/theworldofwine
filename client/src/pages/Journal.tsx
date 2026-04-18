@@ -7,6 +7,7 @@ import { directInsert, directUpdate, directDelete, directSelect, getAccessToken,
 import { trackWineScan, trackWineLog, trackWishlistAdd, trackTastingComplete } from "@/lib/analytics";
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
+import LoginPrompt from "@/components/LoginPrompt";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -1097,6 +1098,10 @@ export default function Journal() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
+  if (!user) {
+    return <LoginPrompt title="Your tasting journey" description="Log in to record your wine experiences — tasting notes, photos, and Sommy's comparison for every bottle you open." />;
+  }
+
   return (
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
@@ -1120,19 +1125,6 @@ export default function Journal() {
           )}
         </div>
 
-
-        {/* ── Sign-in prompt ── */}
-        {!user && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", fontWeight: 300, color: "#5A5248", marginBottom: 20 }}>
-              Sign in to start logging wines.
-            </p>
-            <button onClick={() => setLocation("/sign-in")}
-              style={{ padding: "10px 24px", border: "none", borderRadius: 20, background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", cursor: "pointer" }}>
-              Sign in
-            </button>
-          </div>
-        )}
 
         {/* ── Step: Choose method ── */}
         {step === "choose" && (

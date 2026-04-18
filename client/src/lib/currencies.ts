@@ -6,14 +6,14 @@ export interface CurrencyOption {
 }
 
 export const CURRENCIES: CurrencyOption[] = [
-  { code: "SGD", symbol: "S$", name: "Singapore Dollar", country: "Singapore" },
   { code: "USD", symbol: "US$", name: "US Dollar", country: "United States" },
   { code: "EUR", symbol: "\u20ac", name: "Euro", country: "Eurozone" },
   { code: "GBP", symbol: "\u00a3", name: "British Pound", country: "United Kingdom" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar", country: "Australia" },
-  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar", country: "New Zealand" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar", country: "Canada" },
+  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar", country: "New Zealand" },
   { code: "CHF", symbol: "CHF", name: "Swiss Franc", country: "Switzerland" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar", country: "Singapore" },
   { code: "JPY", symbol: "\u00a5", name: "Japanese Yen", country: "Japan" },
   { code: "CNY", symbol: "\u00a5", name: "Chinese Yuan", country: "China" },
   { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar", country: "Hong Kong" },
@@ -30,10 +30,15 @@ export const CURRENCIES: CurrencyOption[] = [
   { code: "DKK", symbol: "kr", name: "Danish Krone", country: "Denmark" },
   { code: "NOK", symbol: "kr", name: "Norwegian Krone", country: "Norway" },
   { code: "AED", symbol: "AED", name: "UAE Dirham", country: "UAE" },
+  { code: "ILS", symbol: "\u20aa", name: "Israeli Shekel", country: "Israel" },
+  { code: "IDR", symbol: "Rp", name: "Indonesian Rupiah", country: "Indonesia" },
+  { code: "PHP", symbol: "\u20b1", name: "Philippine Peso", country: "Philippines" },
+  { code: "COP", symbol: "COL$", name: "Colombian Peso", country: "Colombia" },
+  { code: "PEN", symbol: "S/.", name: "Peruvian Sol", country: "Peru" },
 ];
 
 export function getCurrency(code: string): CurrencyOption {
-  return CURRENCIES.find(c => c.code === code) || CURRENCIES[1];
+  return CURRENCIES.find(c => c.code === code) || CURRENCIES[0];
 }
 
 export function formatPrice(amount: number, currencyCode: string): string {

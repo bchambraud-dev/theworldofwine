@@ -162,7 +162,7 @@ function NavBar() {
 
         {/* Desktop nav tabs */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          <Link href={user ? "/journey/journal?log=1" : "/sign-in"} style={{ textDecoration: "none", marginRight: 4 }}>
+          <Link href="/journey/journal?log=1" style={{ textDecoration: "none", marginRight: 4 }}>
             <button
               className="nav-btn"
               data-testid="nav-log-wine"
@@ -186,21 +186,17 @@ function NavBar() {
           ))}
 
           {/* Divider between main and personal tabs */}
-          {user && (
-            <>
-              <div style={{ width: 1, height: 16, background: "#EDEAE3", margin: "0 6px", flexShrink: 0 }} />
-              {personalTabs.map((tab) => (
-                <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
-                  <button
-                    className={`nav-btn ${activeTab === tab.key ? "active" : ""}`}
-                    data-testid={`nav-${tab.key}`}
-                  >
-                    {tab.label}
-                  </button>
-                </Link>
-              ))}
-            </>
-          )}
+          <div style={{ width: 1, height: 16, background: "#EDEAE3", margin: "0 6px", flexShrink: 0 }} />
+          {personalTabs.map((tab) => (
+            <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
+              <button
+                className={`nav-btn ${activeTab === tab.key ? "active" : ""}`}
+                data-testid={`nav-${tab.key}`}
+              >
+                {tab.label}
+              </button>
+            </Link>
+          ))}
 
           {/* User avatar / sign in */}
           {user ? (
@@ -223,7 +219,7 @@ function NavBar() {
           ) : (
             <Link href="/sign-in" style={{ textDecoration: "none", marginLeft: 4 }}>
               <button className="nav-btn" data-testid="nav-sign-in" style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}>
-                SIGN IN
+                LOG IN
               </button>
             </Link>
           )}
@@ -298,7 +294,7 @@ function NavBar() {
           {/* LOG A WINE button */}
           <button
             className="mobile-menu-link"
-            onClick={() => handleNavLink(user ? "/journey/journal?log=1" : "/sign-in")}
+            onClick={() => handleNavLink("/journey/journal?log=1")}
             data-testid="mobile-nav-log-wine"
             style={{
               background: "#8C1C2E", color: "#F7F4EF",
@@ -324,28 +320,26 @@ function NavBar() {
             </button>
           ))}
 
-          {/* Personal section (logged in) */}
+          {/* Personal section */}
+          <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+          {personalTabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={`mobile-menu-link ${activeTab === tab.key ? "active" : ""}`}
+              onClick={() => handleNavLink(tab.href)}
+              data-testid={`mobile-nav-${tab.key}`}
+            >
+              {tab.label}
+            </button>
+          ))}
           {user && (
-            <>
-              <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
-              {personalTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  className={`mobile-menu-link ${activeTab === tab.key ? "active" : ""}`}
-                  onClick={() => handleNavLink(tab.href)}
-                  data-testid={`mobile-nav-${tab.key}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-              <button
-                className="mobile-menu-link"
-                onClick={() => handleNavLink("/journey/profile")}
-                data-testid="mobile-nav-profile"
-              >
-                MY PROFILE
-              </button>
-            </>
+            <button
+              className="mobile-menu-link"
+              onClick={() => handleNavLink("/journey/profile")}
+              data-testid="mobile-nav-profile"
+            >
+              MY PROFILE
+            </button>
           )}
 
           {/* Auth */}
@@ -369,7 +363,7 @@ function NavBar() {
               data-testid="mobile-nav-sign-in"
               style={{ color: "var(--wine, #8C1C2E)", fontWeight: 500 }}
             >
-              SIGN IN
+              LOG IN
             </button>
           )}
         </nav>

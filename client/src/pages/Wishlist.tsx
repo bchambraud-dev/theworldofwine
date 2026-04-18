@@ -4,6 +4,7 @@ import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { useLocation } from "wouter";
 import { directInsert, directDelete } from "@/lib/supabaseDirectFetch";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
+import LoginPrompt from "@/components/LoginPrompt";
 
 // ── Helpers ──
 
@@ -643,19 +644,7 @@ export default function Wishlist() {
   };
 
   if (!user) {
-    return (
-      <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", fontWeight: 300, color: "#5A5248", marginBottom: 20 }}>
-            Sign in to see your wishlist.
-          </p>
-          <button onClick={() => setLocation("/sign-in")}
-            style={{ padding: "10px 24px", border: "none", borderRadius: 20, background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", cursor: "pointer" }}>
-            Sign in
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginPrompt title="Wines worth remembering" description="Log in to save wines you want to try — Sommy's tasting notes, readiness timeline, and where to find them." />;
   }
 
   return (

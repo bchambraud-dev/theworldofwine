@@ -6,6 +6,7 @@ import { guides } from "@/data/guides";
 import { WINE_COUNTRIES, COUNTRY_SUGGESTIONS } from "@/lib/countryFlags";
 import { CURRENCIES } from "@/lib/currencies";
 import { directUpdate } from "@/lib/supabaseDirectFetch";
+import LoginPrompt from "@/components/LoginPrompt";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -53,19 +54,7 @@ export default function ProfilePage() {
   }, [editingPrefs, profile, preferences]);
 
   if (!user) {
-    return (
-      <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.9rem", fontWeight: 300, color: "#5A5248", marginBottom: 20 }}>
-            Sign in to see your profile.
-          </p>
-          <button onClick={() => setLocation("/sign-in")}
-            style={{ padding: "10px 24px", border: "none", borderRadius: 20, background: "#8C1C2E", color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", cursor: "pointer" }}>
-            Sign in
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginPrompt title="Your wine profile" description="Log in to track your progress, set preferences, and let Sommy personalise your experience." />;
   }
 
   const handleSignOut = async () => {

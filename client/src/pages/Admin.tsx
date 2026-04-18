@@ -1139,19 +1139,38 @@ function SearchPerformance() {
 
   const organicPct = totalSessions > 0 ? Math.round((organicSessions / totalSessions) * 100) : 0;
 
-  if (error) {
+  if (error || (channelData.length === 0 && !loading)) {
     return (
       <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24 }}>
-        <div style={{ fontFamily: C.fontDisplay, fontSize: "1rem", fontWeight: 400, color: C.text, marginBottom: 12 }}>
+        <div style={{ fontFamily: C.fontDisplay, fontSize: "1rem", fontWeight: 400, color: C.text, marginBottom: 16 }}>
           Search Performance
         </div>
-        <div style={{
-          padding: 20, textAlign: "center", color: C.muted, fontSize: "0.78rem",
-          fontFamily: C.fontBody, fontWeight: 300,
-        }}>
-          <div style={{ marginBottom: 8 }}>Analytics data will appear here once GA4 starts collecting traffic.</div>
-          <div style={{ fontFamily: C.fontMono, fontSize: "0.55rem", color: C.muted, opacity: 0.7 }}>
-            GA4: G-S1NV61RQL2 via GTM-5WV2RXFM
+        <div style={{ padding: "12px 0" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+            {[
+              { label: "PROPERTY ID", value: "427569249" },
+              { label: "MEASUREMENT ID", value: "G-S1NV61RQL2" },
+              { label: "TAG MANAGER", value: "GTM-5WV2RXFM" },
+              { label: "STATUS", value: "Collecting" },
+            ].map(item => (
+              <div key={item.label} style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "8px 12px", background: C.bg, borderRadius: 6,
+              }}>
+                <span style={{ fontFamily: C.fontMono, fontSize: "0.48rem", fontWeight: 600, color: C.muted, letterSpacing: "0.04em" }}>
+                  {item.label}
+                </span>
+                <span style={{ fontFamily: C.fontMono, fontSize: "0.58rem", fontWeight: 500, color: C.text }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            padding: "14px 16px", background: C.goldBg, borderRadius: 8,
+            fontFamily: C.fontBody, fontSize: "0.72rem", fontWeight: 300, color: C.muted, lineHeight: 1.5,
+          }}>
+            Traffic breakdown and top pages will populate as GA4 collects data. To enable live reporting in this dashboard, a Google service account with Viewer access to this property is needed.
           </div>
         </div>
       </div>
@@ -1497,7 +1516,7 @@ export default function Admin() {
             <SectionLabel>Engagement</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 28 }}>
               <KpiCard label="WINES LOGGED" value={fmtNum(kpis.wines.total)} sub={`${kpis.wines.avgPerUser} avg/user`} delta={kpis.deltas?.wines} periodLabel={kpis.periodLabel} />
-              <KpiCard label="TASTING SESSIONS" value={fmtNum(kpis.tastings)} periodLabel={kpis.periodLabel} />
+              <KpiCard label="TASTING SESSIONS" value={fmtNum(kpis.tastings.total)} periodLabel={kpis.periodLabel} />
               <KpiCard label="CELLAR BOTTLES" value={fmtNum(kpis.cellarBottles)} delta={kpis.deltas?.cellar} periodLabel={kpis.periodLabel} />
               <KpiCard label="CELLAR VALUE" value={fmtUsd(kpis.cellarValue)} periodLabel={kpis.periodLabel} />
               <KpiCard label="WISHLIST ITEMS" value={fmtNum(kpis.wishlist.total)} delta={kpis.deltas?.wishlist} periodLabel={kpis.periodLabel} />

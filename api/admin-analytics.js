@@ -1,37 +1,27 @@
 // Vercel serverless function — proxies GA4 Data API for the admin dashboard.
-// Uses Google Analytics Data API v1 with the service account from GA4 property.
-// For now, returns graceful empty state — will populate once GA4 accumulates data.
+// GA4 Property ID: 427569249
+
+const GA4_PROPERTY_ID = "427569249";
+const GA4_API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport`;
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
 
-  // For now, return placeholder indicating GA4 is collecting data
-  // Once the property ID is confirmed, this will query the GA4 Data API
-  try {
-    const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID;
-    
-    if (!GA4_PROPERTY_ID) {
-      // Return a structured empty response — the frontend handles this gracefully
-      return res.status(200).json({
-        channelData: [],
-        topPages: [],
-        dailyTraffic: [],
-        totalSessions: 0,
-        organicSessions: 0,
-        status: "awaiting_data",
-        message: "GA4 is collecting data. Metrics will appear once traffic accumulates.",
-      });
-    }
+  // GA4 Data API requires OAuth2 or service account credentials.
+  // Until a service account is configured, return a structured empty state.
+  // To enable: set GA4_SERVICE_ACCOUNT_KEY env var in Vercel with the JSON key.
 
-    // TODO: Once GA4 property ID is set, query the Data API here
+  try {
     return res.status(200).json({
       channelData: [],
       topPages: [],
       dailyTraffic: [],
       totalSessions: 0,
       organicSessions: 0,
-      status: "awaiting_data",
+      propertyId: GA4_PROPERTY_ID,
+      status: "awaiting_credentials",
+      message: "GA4 property 427569249 configured. Add a service account key to enable live data.",
     });
   } catch (err) {
     console.error("admin-analytics error:", err);

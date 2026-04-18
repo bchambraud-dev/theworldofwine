@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { useLocation } from "wouter";
-import { directInsert, directDelete, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { directInsert, directDelete } from "@/lib/supabaseDirectFetch";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 
 // ── Helpers ──
@@ -30,6 +30,7 @@ interface ParsedCard {
   name: string; producer: string; vintage: string; region: string;
   grapes: string; style: string; price: string;
   nose: string; palate: string; texture: string; breathing: string;
+  drink_from: string; drink_peak_start: string; drink_peak_end: string; drink_until: string;
 }
 
 function parseWineCard(text: string): { card: ParsedCard | null; prose: string } {
@@ -63,6 +64,10 @@ function parseWineCard(text: string): { card: ParsedCard | null; prose: string }
       palate: card["palate"] || "",
       texture: card["texture"] || "",
       breathing: card["breathing"] || card["decant"] || "",
+      drink_from: card["drink from"] || card["drink_from"] || "",
+      drink_peak_start: card["drink peak start"] || card["drink_peak_start"] || card["peak start"] || "",
+      drink_peak_end: card["drink peak end"] || card["drink_peak_end"] || card["peak end"] || "",
+      drink_until: card["drink until"] || card["drink_until"] || "",
     },
     prose: proseLines.join("\n").trim(),
   };
@@ -71,29 +76,230 @@ function parseWineCard(text: string): { card: ParsedCard | null; prose: string }
 function sourceLabel(source: string | null): string {
   if (source === "sommy") return "Sommy recommended";
   if (source === "explore") return "Saved from explore";
+  if (source === "scan") return "Scanned label";
   if (source === "manual") return "Added manually";
   return "Added manually";
 }
 
 // ── Icons ──
 
-function BookmarkIcon({ size = 16, filled = false, color = "#8C1C2E" }: { size?: number; filled?: boolean; color?: string }) {
+function BookmarkIcon({ size = 16, color = "#8C1C2E" }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
 
-const OFFSET = "52px"; // topbar only (no sub-nav)
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      width={14} height={14} viewBox="0 0 24 24"
+      fill="none" stroke="#5A5248" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition: "transform 0.25s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+// ── Drinking Window Bar (matches Cellar.tsx) ──
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+function getPhase(entry: WishlistEntry): string {
+  if (!entry.drink_from) return "unknown";
+  if (CURRENT_YEAR < entry.drink_from) return "aging";
+  if (entry.drink_until && CURRENT_YEAR > entry.drink_until) return "past";
+  if (entry.drink_peak_start && entry.drink_peak_end && CURRENT_YEAR >= entry.drink_peak_start && CURRENT_YEAR <= entry.drink_peak_end) return "peak";
+  if (entry.drink_peak_end && entry.drink_until && CURRENT_YEAR > entry.drink_peak_end) return "soon";
+  return "ready";
+}
+
+function phaseLabel(phase: string): string {
+  if (phase === "aging") return "Hold";
+  if (phase === "ready") return "Ready";
+  if (phase === "peak") return "Peak";
+  if (phase === "soon") return "Drink Soon";
+  if (phase === "past") return "Past Peak";
+  return "";
+}
+
+function phaseColor(phase: string): string {
+  if (phase === "aging") return "#7A9AB5";
+  if (phase === "ready") return "#6B9E6B";
+  if (phase === "peak") return "#1F6B35";
+  if (phase === "soon") return "#C8962E";
+  if (phase === "past") return "#A67055";
+  return "#D4D1CA";
+}
+
+const BAR_HOLD = "#7A9AB5";
+const BAR_READY = "#6B9E6B";
+const BAR_PEAK = "#1F6B35";
+const BAR_SOON = "#C8962E";
+
+function ReadinessBar({ entry }: { entry: WishlistEntry }) {
+  const from = entry.drink_from;
+  const until = entry.drink_until;
+  if (!from || !until || until <= from) return null;
+
+  const peakStart = entry.drink_peak_start || from;
+  const peakEnd = entry.drink_peak_end || until;
+  const phase = getPhase(entry);
+  if (phase === "unknown") return null;
+
+  const isBefore = CURRENT_YEAR < from;
+  const isAfter = CURRENT_YEAR > until;
+
+  const holdYears = isBefore ? Math.min(from - CURRENT_YEAR, 6) : 0;
+  const pastYears = isAfter ? Math.min(CURRENT_YEAR - until, 4) : 0;
+  const windowSpan = until - from;
+  const totalSpan = holdYears + windowSpan + pastYears;
+
+  const holdPct = (holdYears / totalSpan) * 100;
+  const readyPct = ((peakStart - from) / totalSpan) * 100;
+  const peakPct = ((peakEnd - peakStart) / totalSpan) * 100;
+  const soonPct = ((until - peakEnd) / totalSpan) * 100;
+  const pastPct = (pastYears / totalSpan) * 100;
+
+  const nowOffset = isBefore
+    ? ((CURRENT_YEAR - (from - holdYears)) / totalSpan) * 100
+    : isAfter
+    ? ((holdYears + windowSpan + (CURRENT_YEAR - until)) / totalSpan) * 100
+    : ((holdYears + (CURRENT_YEAR - from)) / totalSpan) * 100;
+
+  const yearMarkers: { year: number; pct: number }[] = [];
+  if (holdYears > 0) yearMarkers.push({ year: from, pct: holdPct });
+  if (peakStart > from) yearMarkers.push({ year: peakStart, pct: holdPct + readyPct });
+  if (peakEnd < until) yearMarkers.push({ year: peakEnd, pct: holdPct + readyPct + peakPct });
+  if (pastYears > 0) yearMarkers.push({ year: until, pct: holdPct + readyPct + peakPct + soonPct });
+
+  const markerColor = phaseColor(phase);
+
+  return (
+    <div style={{ marginTop: 8, marginBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <span style={{ ...mono("0.48rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
+      </div>
+
+      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3" }}>
+        <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
+          {holdPct > 0 && (
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${holdPct}%`, background: BAR_HOLD, opacity: 0.5 }} />
+          )}
+          {readyPct > 0 && (
+            <div style={{ position: "absolute", left: `${holdPct}%`, top: 0, height: "100%", width: `${readyPct}%`, background: BAR_READY }} />
+          )}
+          <div style={{ position: "absolute", left: `${holdPct + readyPct}%`, top: 0, height: "100%", width: `${peakPct}%`, background: BAR_PEAK }} />
+          {soonPct > 0 && (
+            <div style={{ position: "absolute", left: `${holdPct + readyPct + peakPct}%`, top: 0, height: "100%", width: `${soonPct}%`, background: BAR_SOON }} />
+          )}
+          {pastPct > 0 && (
+            <div style={{ position: "absolute", left: `${holdPct + readyPct + peakPct + soonPct}%`, top: 0, height: "100%", width: `${pastPct}%`, background: "#A67055", opacity: 0.5 }} />
+          )}
+        </div>
+
+        {/* NOW marker */}
+        <div style={{
+          position: "absolute", left: `${Math.max(2, Math.min(98, nowOffset))}%`, top: -18,
+          transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
+          zIndex: 2,
+        }}>
+          <div style={{
+            fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+            color: "#FFFFFF", background: markerColor, borderRadius: 4,
+            padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+          }}>
+            NOW
+          </div>
+          <div style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: `4px solid ${markerColor}` }} />
+          <div style={{ width: 2, height: 8, background: markerColor, borderRadius: 1, marginTop: -1 }} />
+        </div>
+      </div>
+
+      <div style={{ position: "relative", height: 14, marginTop: 2 }}>
+        {yearMarkers.map((m, i) => (
+          <span key={i} style={{
+            position: "absolute", left: `${m.pct}%`, transform: "translateX(-50%)",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
+            color: "#B0ADA6", whiteSpace: "nowrap", top: 0,
+          }}>
+            {m.year}
+          </span>
+        ))}
+        <span style={{
+          position: "absolute", right: 0,
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
+          color: "#D4D1CA", top: 0,
+        }}>
+          {until + pastYears}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Tasting pills ──
+
+function tastingPillColor(note: string): { bg: string; fg: string } {
+  const n = note.toLowerCase();
+  // Fruit
+  if (/cherry|berry|plum|raspberry|strawberry|cassis|blackcurrant|fig|cranberry|apple|pear|peach|apricot|citrus|lemon|tropical|mango|melon|grapefruit|lychee|fruit/.test(n))
+    return { bg: "rgba(140,28,46,0.08)", fg: "#8C1C2E" };
+  // Floral
+  if (/rose|violet|floral|lavender|jasmine|blossom|honeysuckle/.test(n))
+    return { bg: "rgba(180,80,140,0.08)", fg: "#9A4D7A" };
+  // Earth
+  if (/earth|mushroom|truffle|soil|tobacco|leather|hay|forest|wet/.test(n))
+    return { bg: "rgba(90,82,72,0.08)", fg: "#5A5248" };
+  // Oak / spice
+  if (/oak|cedar|vanilla|toast|smoke|caramel|butter|spice|cinnamon|pepper|clove|nutmeg/.test(n))
+    return { bg: "rgba(160,120,60,0.10)", fg: "#8A6A30" };
+  // Mineral
+  if (/mineral|flint|chalk|slate|stone|graphite|salt/.test(n))
+    return { bg: "rgba(100,120,140,0.08)", fg: "#5A6A7A" };
+  // Default
+  return { bg: "rgba(90,82,72,0.06)", fg: "#5A5248" };
+}
+
+function TastingPills({ label, text }: { label: string; text: string }) {
+  const pills = text.split(",").map(s => s.trim()).filter(Boolean);
+  if (pills.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+        {pills.map((p, i) => {
+          const c = tastingPillColor(p);
+          return (
+            <span key={i} style={{
+              ...mono("0.5rem"), padding: "2px 8px", borderRadius: 5,
+              background: c.bg, color: c.fg,
+            }}>
+              {p.toUpperCase()}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Constants ──
+
+const OFFSET = "52px";
 
 const mono = (size = "0.6rem"): React.CSSProperties => ({
   fontFamily: "'Geist Mono', monospace", fontSize: size,
   letterSpacing: "0.12em", color: "#5A5248",
 });
 
+// ── Main Component ──
+
 export default function Wishlist() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { silentRefresh, wishlist: wishlistData } = useUserData();
   const [, setLocation] = useLocation();
 
@@ -112,6 +318,13 @@ export default function Wishlist() {
 
   // Delete confirmation
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Expand state
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string) => {
+    setExpandedId(prev => prev === id ? null : id);
+  };
 
   // Image handling for scan
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +371,16 @@ export default function Wishlist() {
               price_estimate: card.price || null,
               why: prose ? prose.slice(0, 200) : null,
               source: "scan",
+              vintage: card.vintage || null,
+              nose: card.nose || null,
+              palate: card.palate || null,
+              texture: card.texture || null,
+              breathing: card.breathing || null,
+              drink_from: card.drink_from ? parseInt(card.drink_from) : null,
+              drink_peak_start: card.drink_peak_start ? parseInt(card.drink_peak_start) : null,
+              drink_peak_end: card.drink_peak_end ? parseInt(card.drink_peak_end) : null,
+              drink_until: card.drink_until ? parseInt(card.drink_until) : null,
+              sommy_notes: prose || null,
             });
             silentRefresh();
           } catch (err) {
@@ -194,6 +417,9 @@ export default function Wishlist() {
         why: why.trim() || null,
         source: "manual",
         created_at: new Date().toISOString(),
+        vintage: null, nose: null, palate: null, texture: null, breathing: null,
+        drink_from: null, drink_peak_start: null, drink_peak_end: null, drink_until: null,
+        sommy_notes: null,
       };
       setWishlist(prev => [newEntry, ...prev]);
     } catch (e: any) {
@@ -209,16 +435,22 @@ export default function Wishlist() {
       await directDelete("wine_wishlist", id);
       setWishlist(prev => prev.filter(w => w.id !== id));
       setConfirmDeleteId(null);
+      if (expandedId === id) setExpandedId(null);
       silentRefresh();
     } catch (e) {
       console.error("Wishlist delete error:", e);
     }
   };
 
-  // "Tried it" → go to journal log
+  // "Tried it" -> go to journal log
   const triedIt = (entry: WishlistEntry) => {
     setLocation(`/journey/journal?log=1&name=${encodeURIComponent(entry.wine_name)}&region=${encodeURIComponent(entry.region || "")}`);
   };
+
+  const hasExpandableContent = (entry: WishlistEntry) =>
+    !!(entry.nose || entry.palate || entry.texture || entry.breathing || entry.drink_from || entry.sommy_notes);
+
+  const userCountry = profile?.base_country || null;
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 12px",
@@ -331,57 +563,137 @@ export default function Wishlist() {
         {/* Wishlist cards */}
         {wishlist.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {wishlist.map(entry => (
-              <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "14px 16px" }}>
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
-                  {entry.wine_name}
-                </div>
-                {(entry.producer || entry.region) && (
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginBottom: 8 }}>
-                    {[entry.producer, entry.region].filter(Boolean).join(" · ")}
-                  </div>
-                )}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-                  {entry.grapes && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
-                  {entry.style && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
-                  {entry.price_estimate && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
-                </div>
-                {entry.why && (
-                  <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 8px", fontStyle: "italic" }}>
-                    "{entry.why}"
-                  </p>
-                )}
-                <div style={{ ...mono("0.48rem"), color: "#D4D1CA", marginBottom: 10 }}>
-                  {sourceLabel(entry.source).toUpperCase()}
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <button onClick={() => triedIt(entry)} style={{
-                    padding: "6px 14px", border: "1.5px solid #8C1C2E", borderRadius: 8, background: "white",
-                    fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em",
-                    color: "#8C1C2E", cursor: "pointer",
-                  }}>TRIED IT</button>
-                  {confirmDeleteId === entry.id ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#5A5248" }}>Remove?</span>
-                      <button onClick={() => setConfirmDeleteId(null)} style={{
-                        background: "none", border: "1px solid #EDEAE3", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
-                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#5A5248",
-                      }}>CANCEL</button>
-                      <button onClick={() => deleteItem(entry.id)} style={{
-                        background: "#8C1C2E", border: "none", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
-                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#F7F4EF",
-                      }}>REMOVE</button>
+            {wishlist.map(entry => {
+              const isExpanded = expandedId === entry.id;
+              const canExpand = hasExpandableContent(entry);
+
+              return (
+                <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                  {/* Card header — clickable to expand */}
+                  <div
+                    onClick={() => canExpand && toggleExpand(entry.id)}
+                    style={{ padding: "14px 16px", cursor: canExpand ? "pointer" : "default" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
+                        {entry.wine_name}
+                        {entry.vintage && (
+                          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.78rem", fontWeight: 500, color: "#5A5248", marginLeft: 6 }}>
+                            {entry.vintage}
+                          </span>
+                        )}
+                      </div>
+                      {canExpand && <ChevronIcon open={isExpanded} />}
                     </div>
-                  ) : (
-                    <button onClick={() => setConfirmDeleteId(entry.id)} style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-                      letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
-                    }}>REMOVE</button>
-                  )}
+                    {(entry.producer || entry.region) && (
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", marginBottom: 8 }}>
+                        {[entry.producer, entry.region].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
+                      {entry.grapes && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
+                      {entry.style && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
+                      {entry.price_estimate && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
+                    </div>
+                    {entry.why && (
+                      <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 8px", fontStyle: "italic" }}>
+                        "{entry.why}"
+                      </p>
+                    )}
+                    <div style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>
+                      {sourceLabel(entry.source).toUpperCase()}
+                    </div>
+                  </div>
+
+                  {/* Expanded content */}
+                  <div style={{
+                    maxHeight: isExpanded ? 600 : 0,
+                    overflow: "hidden",
+                    transition: "max-height 0.35s ease",
+                  }}>
+                    <div style={{ borderTop: "1px solid #EDEAE3", padding: "14px 16px" }}>
+
+                      {/* Tasting notes */}
+                      {(entry.nose || entry.palate || entry.texture) && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div style={{ ...mono("0.48rem"), color: "#B0ADA6", marginBottom: 8, letterSpacing: "0.14em" }}>SOMMY'S TASTING NOTES</div>
+                          {entry.nose && <TastingPills label="Nose" text={entry.nose} />}
+                          {entry.palate && <TastingPills label="Palate" text={entry.palate} />}
+                          {entry.texture && <TastingPills label="Texture" text={entry.texture} />}
+                        </div>
+                      )}
+
+                      {/* Breathing */}
+                      {entry.breathing && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>BREATHING</div>
+                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5 }}>
+                            {entry.breathing}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Readiness bar */}
+                      {entry.drink_from && entry.drink_until && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>DRINKING WINDOW</div>
+                          <ReadinessBar entry={entry} />
+                        </div>
+                      )}
+
+                      {/* Sommy notes */}
+                      {entry.sommy_notes && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>SOMMY'S NOTES</div>
+                          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: 0 }}>
+                            {entry.sommy_notes}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Where to find */}
+                      <div style={{ background: "#F7F4EF", borderRadius: 8, padding: "10px 12px" }}>
+                        <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>WHERE TO FIND</div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5 }}>
+                          {userCountry
+                            ? `Check local wine shops and importers in ${userCountry}`
+                            : "Check local wine shops and importers near you"}
+                        </div>
+                        <div style={{ ...mono("0.42rem"), color: "#D4D1CA", marginTop: 4 }}>BASED ON YOUR LOCATION</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons — always visible */}
+                  <div style={{ padding: "0 16px 14px", display: "flex", gap: 8, alignItems: "center" }}>
+                    <button onClick={() => triedIt(entry)} style={{
+                      padding: "6px 14px", border: "1.5px solid #8C1C2E", borderRadius: 8, background: "white",
+                      fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em",
+                      color: "#8C1C2E", cursor: "pointer",
+                    }}>TRIED IT</button>
+                    {confirmDeleteId === entry.id ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#5A5248" }}>Remove?</span>
+                        <button onClick={() => setConfirmDeleteId(null)} style={{
+                          background: "none", border: "1px solid #EDEAE3", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                          fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#5A5248",
+                        }}>CANCEL</button>
+                        <button onClick={() => deleteItem(entry.id)} style={{
+                          background: "#8C1C2E", border: "none", borderRadius: 6, padding: "3px 10px", cursor: "pointer",
+                          fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", color: "#F7F4EF",
+                        }}>REMOVE</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDeleteId(entry.id)} style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+                        letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
+                      }}>REMOVE</button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

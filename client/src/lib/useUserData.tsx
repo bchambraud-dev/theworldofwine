@@ -52,6 +52,16 @@ export interface WishlistEntry {
   why: string | null;
   source: string | null;
   created_at: string;
+  vintage: string | null;
+  nose: string | null;
+  palate: string | null;
+  texture: string | null;
+  breathing: string | null;
+  drink_from: number | null;
+  drink_peak_start: number | null;
+  drink_peak_end: number | null;
+  drink_until: number | null;
+  sommy_notes: string | null;
 }
 
 interface UserDataContextType {
@@ -104,7 +114,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           directSelect("user_preferences", `select=preferred_types&user_id=eq.${uid}`),
           directSelect("user_goals", `select=id,title,target_count,current_count,completed&user_id=eq.${uid}&completed=eq.false&order=created_at.desc&limit=3`),
           directSelect("wine_journal", `select=id,wine_name,producer,vintage,region,grapes,style,notes,personal_rating,price_estimate,date_tasted&user_id=eq.${uid}&order=date_tasted.desc.nullslast&limit=8`),
-          directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at&user_id=eq.${uid}&order=created_at.desc`),
+          directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at,vintage,nose,palate,texture,breathing,drink_from,drink_peak_start,drink_peak_end,drink_until,sommy_notes&user_id=eq.${uid}&order=created_at.desc`),
           directSelect("wine_journal", `select=region&user_id=eq.${uid}`),
         ]);
 

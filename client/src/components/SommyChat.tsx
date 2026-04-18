@@ -291,6 +291,15 @@ The more you share — what you enjoy, what you've tried, even what you definite
         grapes: card.grapes || null,
         style: card.style || null,
         source: "sommy",
+        vintage: card.vintage || null,
+        nose: card.nose || null,
+        palate: card.palate || null,
+        texture: card.texture || null,
+        breathing: card.breathing || null,
+        drink_from: card.drink_from ? parseInt(card.drink_from) : null,
+        drink_peak_start: card.drink_peak_start ? parseInt(card.drink_peak_start) : null,
+        drink_peak_end: card.drink_peak_end ? parseInt(card.drink_peak_end) : null,
+        drink_until: card.drink_until ? parseInt(card.drink_until) : null,
       });
       setSavedWineCards(prev => new Set(prev).add(msgIdx));
       setToastMsg(`Added ${card.name} to your wishlist`);

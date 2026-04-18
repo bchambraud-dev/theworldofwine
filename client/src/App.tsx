@@ -458,7 +458,7 @@ function App() {
         <Toaster />
         <Router>
           <UserDataProvider>
-            <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }} data-testid="app-root">
+            <div style={{ minHeight: "100vh", width: "100%", overflowX: "hidden" }} data-testid="app-root">
               <NavBar />
               <GlobalFilterBar />
               <AppRouter />

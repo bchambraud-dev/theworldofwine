@@ -12,7 +12,7 @@ export default function Landing() {
 
   useSEO({
     title: "The World of Wine",
-    description: "Your AI sommelier, personal cellar, and wine education platform. Explore 280+ producers across 24 countries, guided tasting mode, vintage charts, and more.",
+    description: "Your pocket sommelier, personal cellar, and wine education platform. Explore 280+ producers across 24 countries, guided tasting mode, vintage charts, and more.",
     path: "/",
   });
   useStructuredData({
@@ -20,7 +20,7 @@ export default function Landing() {
     "@type": "WebSite",
     name: "The World of Wine",
     url: "https://theworldofwine.org",
-    description: "An interactive wine exploration platform with AI sommelier, cellar tracking, tasting mode, and vintage guides.",
+    description: "An interactive wine exploration platform with a personal sommelier, cellar tracking, tasting mode, and vintage guides.",
     potentialAction: { "@type": "SearchAction", target: "https://theworldofwine.org/explore?q={search_term_string}", "query-input": "required name=search_term_string" },
   });
 
@@ -342,7 +342,7 @@ export default function Landing() {
             The World of <span className="lp-hero-title-accent">Wine</span>
           </h1>
 
-          <p className="lp-hero-tagline">Your AI sommelier, personal cellar, and wine passport — in one place.</p>
+          <p className="lp-hero-tagline">Your pocket sommelier, personal cellar, and wine passport — in one place.</p>
 
           {/* Scroll cue */}
           <div className="lp-scroll-cue">

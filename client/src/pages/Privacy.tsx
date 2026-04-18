@@ -112,7 +112,7 @@ export default function Privacy() {
         <p style={s.p}>As you use the app, we also store:</p>
         <ul style={s.ul}>
           <li>Your wine preferences (experience level, preferred wine styles) set during onboarding or in your profile</li>
-          <li>Conversations you have with Sommy, our AI wine companion</li>
+          <li>Conversations you have with Sommy, your personal wine companion</li>
           <li>Wine regions and guides you explore</li>
           <li>Wines you log in your personal journal</li>
           <li>Goals you set within the app</li>

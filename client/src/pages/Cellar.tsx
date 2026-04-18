@@ -164,65 +164,109 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
 
   const peakStart = wine.drink_peak_start || from;
   const peakEnd = wine.drink_peak_end || until;
-  const span = until - from;
-  const nowPos = Math.max(0, Math.min(1, (CURRENT_YEAR - from) / span));
-
-  // Segment percentages
-  const readyPct = ((peakStart - from) / span) * 100;
-  const peakPct = ((peakEnd - peakStart) / span) * 100;
-  const soonPct = ((until - peakEnd) / span) * 100;
-
   const phase = getWinePhase(wine);
+  if (phase === "consumed" || phase === "gifted" || phase === "unknown") return null;
+
+  const isBefore = CURRENT_YEAR < from;
+  const isAfter = CURRENT_YEAR > until;
+
+  // Extended span includes hold/past tails
+  const holdYears = isBefore ? Math.min(from - CURRENT_YEAR, 6) : 0;
+  const pastYears = isAfter ? Math.min(CURRENT_YEAR - until, 4) : 0;
+  const windowSpan = until - from;
+  const totalSpan = holdYears + windowSpan + pastYears;
+
+  // Percentages of the total bar
+  const holdPct = (holdYears / totalSpan) * 100;
+  const readyPct = ((peakStart - from) / totalSpan) * 100;
+  const peakPct = ((peakEnd - peakStart) / totalSpan) * 100;
+  const soonPct = ((until - peakEnd) / totalSpan) * 100;
+  const pastPct = (pastYears / totalSpan) * 100;
+
+  // NOW position on the full bar
+  const nowOffset = isBefore
+    ? ((CURRENT_YEAR - (from - holdYears)) / totalSpan) * 100
+    : isAfter
+    ? ((holdYears + windowSpan + (CURRENT_YEAR - until)) / totalSpan) * 100
+    : ((holdYears + (CURRENT_YEAR - from)) / totalSpan) * 100;
+
+  // Key year positions for labels below the bar
+  const yearMarkers: { year: number; pct: number; label?: string }[] = [];
+  if (holdYears > 0) yearMarkers.push({ year: from, pct: holdPct, label: "Ready" });
+  if (peakStart > from) yearMarkers.push({ year: peakStart, pct: holdPct + readyPct, label: "Peak" });
+  if (peakEnd < until) yearMarkers.push({ year: peakEnd, pct: holdPct + readyPct + peakPct });
+  if (pastYears > 0) yearMarkers.push({ year: until, pct: holdPct + readyPct + peakPct + soonPct });
+
+  const markerColor = phaseColor(phase);
 
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-        <span style={{ ...mono("0.48rem"), color: phaseColor(phase) }}>{phaseLabel(phase).toUpperCase()}</span>
-        <span style={{ ...mono("0.44rem"), color: "#D4D1CA" }}>{from}–{until}</span>
+    <div style={{ marginTop: 8, marginBottom: 4 }}>
+      {/* Phase label — with extra bottom margin so NOW pill doesn't collide */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <span style={{ ...mono("0.48rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
       </div>
-      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 16 }}>
-        {/* Bar segments (clipped) */}
+
+      {/* Bar */}
+      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3" }}>
         <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
-          {/* Ready segment — sage green */}
-          {readyPct > 0 && (
-            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${readyPct}%`, background: BAR_READY }} />
+          {/* Hold tail — slate blue */}
+          {holdPct > 0 && (
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${holdPct}%`, background: BAR_HOLD, opacity: 0.5 }} />
           )}
-          {/* Peak segment — deep emerald */}
-          <div style={{ position: "absolute", left: `${readyPct}%`, top: 0, height: "100%", width: `${peakPct}%`, background: BAR_PEAK }} />
-          {/* Drink soon segment — warm gold */}
+          {/* Ready — sage green */}
+          {readyPct > 0 && (
+            <div style={{ position: "absolute", left: `${holdPct}%`, top: 0, height: "100%", width: `${readyPct}%`, background: BAR_READY }} />
+          )}
+          {/* Peak — deep emerald */}
+          <div style={{ position: "absolute", left: `${holdPct + readyPct}%`, top: 0, height: "100%", width: `${peakPct}%`, background: BAR_PEAK }} />
+          {/* Drink soon — warm gold */}
           {soonPct > 0 && (
-            <div style={{ position: "absolute", left: `${readyPct + peakPct}%`, top: 0, height: "100%", width: `${soonPct}%`, background: BAR_SOON }} />
+            <div style={{ position: "absolute", left: `${holdPct + readyPct + peakPct}%`, top: 0, height: "100%", width: `${soonPct}%`, background: BAR_SOON }} />
+          )}
+          {/* Past tail — muted terracotta */}
+          {pastPct > 0 && (
+            <div style={{ position: "absolute", left: `${holdPct + readyPct + peakPct + soonPct}%`, top: 0, height: "100%", width: `${pastPct}%`, background: "#A67055", opacity: 0.5 }} />
           )}
         </div>
-        {/* NOW marker — color matches current phase */}
-        {(() => {
-          const markerColor = phaseColor(phase);
-          const isBefore = CURRENT_YEAR < from;
-          const isAfter = until && CURRENT_YEAR > until;
-          const markerLeft = isBefore ? -6 : isAfter ? "calc(100% + 6px)" : `${nowPos * 100}%`;
-          if (phase === "consumed" || phase === "gifted" || phase === "unknown") return null;
-          return (
-            <div style={{
-              position: "absolute", left: markerLeft, top: -18,
-              transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
-              zIndex: 2,
-            }}>
-              <div style={{
-                fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
-                color: "#FFFFFF", background: markerColor, borderRadius: 4,
-                padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-              }}>
-                NOW
-              </div>
-              <div style={{
-                width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
-                borderTop: `4px solid ${markerColor}`,
-              }} />
-              <div style={{ width: 2, height: 8, background: markerColor, borderRadius: 1, marginTop: -1 }} />
-            </div>
-          );
-        })()}
+
+        {/* NOW marker */}
+        <div style={{
+          position: "absolute", left: `${Math.max(2, Math.min(98, nowOffset))}%`, top: -18,
+          transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
+          zIndex: 2,
+        }}>
+          <div style={{
+            fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+            color: "#FFFFFF", background: markerColor, borderRadius: 4,
+            padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+          }}>
+            NOW
+          </div>
+          <div style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: `4px solid ${markerColor}` }} />
+          <div style={{ width: 2, height: 8, background: markerColor, borderRadius: 1, marginTop: -1 }} />
+        </div>
+      </div>
+
+      {/* Year markers below the bar */}
+      <div style={{ position: "relative", height: 14, marginTop: 2 }}>
+        {yearMarkers.map((m, i) => (
+          <span key={i} style={{
+            position: "absolute", left: `${m.pct}%`, transform: "translateX(-50%)",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
+            color: "#B0ADA6", whiteSpace: "nowrap", top: 0,
+          }}>
+            {m.year}
+          </span>
+        ))}
+        {/* End year on the right */}
+        <span style={{
+          position: "absolute", right: 0,
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
+          color: "#D4D1CA", top: 0,
+        }}>
+          {until + pastYears}
+        </span>
       </div>
     </div>
   );

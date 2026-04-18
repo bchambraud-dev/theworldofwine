@@ -1148,8 +1148,8 @@ function SearchPerformance() {
         <div style={{ padding: "12px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {[
-              { label: "PROPERTY ID", value: "427569249" },
-              { label: "MEASUREMENT ID", value: "G-S1NV61RQL2" },
+              { label: "PROPERTY ID", value: "pending" },
+              { label: "MEASUREMENT ID", value: "G-6SWJXEKF4Y" },
               { label: "TAG MANAGER", value: "GTM-5WV2RXFM" },
               { label: "STATUS", value: "Collecting" },
             ].map(item => (

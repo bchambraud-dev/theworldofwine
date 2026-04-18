@@ -1,7 +1,7 @@
 // Vercel serverless function — proxies GA4 Data API for the admin dashboard.
 // GA4 Property ID: 427569249
 
-const GA4_PROPERTY_ID = "427569249";
+const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID || "";
 const GA4_API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport`;
 
 export default async function handler(req, res) {
@@ -19,9 +19,9 @@ export default async function handler(req, res) {
       dailyTraffic: [],
       totalSessions: 0,
       organicSessions: 0,
-      propertyId: GA4_PROPERTY_ID,
+      propertyId: GA4_PROPERTY_ID || "pending",
       status: "awaiting_credentials",
-      message: "GA4 property 427569249 configured. Add a service account key to enable live data.",
+      message: "GA4 configured via GTM. Set GA4_PROPERTY_ID env var in Vercel to enable live reporting.",
     });
   } catch (err) {
     console.error("admin-analytics error:", err);

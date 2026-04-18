@@ -567,9 +567,9 @@ export default function Landing() {
             {/* Cellar card mockup — 3 prestigious wines with real labels */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2028\u20132060", readyPct: 8, peakPct: 52, soonPct: 40, nowPos: 0.05, img: "/wines/lafite.jpg" },
-                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2024\u20132038", readyPct: 22, peakPct: 48, soonPct: 30, nowPos: 0.28, img: "/wines/domperignon.jpg" },
-                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2026\u20132042", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.10, img: "/wines/sassicaia.jpg" },
+                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2030\u20132060", phase: "HOLD", phaseColor: "#B8963E", readyPct: 15, peakPct: 50, soonPct: 35, nowBefore: true, img: "/wines/lafite.jpg" },
+                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2023\u20132038", phase: "PEAK", phaseColor: "#4A7A52", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.25, img: "/wines/domperignon.jpg" },
+                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2028\u20132045", phase: "HOLD", phaseColor: "#B8963E", readyPct: 18, peakPct: 48, soonPct: 34, nowBefore: true, img: "/wines/sassicaia.jpg" },
               ].map((w, i) => (
                 <div key={i} style={{
                   background: "#FFFFFF", border: "1px solid #EDEAE3", borderRadius: 12,
@@ -591,7 +591,7 @@ export default function Landing() {
                       {/* Readiness bar */}
                       <div>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-                          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4A7A52" }}>PEAK</span>
+                          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: w.phaseColor }}>{w.phase}</span>
                           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem", color: "#D4D1CA" }}>{w.window}</span>
                         </div>
                         <div style={{ position: "relative", height: 6, borderRadius: 3, overflow: "visible", background: "#EDEAE3" }}>
@@ -599,9 +599,9 @@ export default function Landing() {
                           <div style={{ position: "absolute", left: `${w.readyPct}%`, top: 0, height: "100%", width: `${w.peakPct}%`, background: "#2E6538" }} />
                           <div style={{ position: "absolute", left: `${w.readyPct + w.peakPct}%`, top: 0, height: "100%", width: `${w.soonPct}%`, background: "#C8962E", borderRadius: "0 3px 3px 0" }} />
                           {/* NOW marker */}
-                          <div style={{ position: "absolute", left: `${w.nowPos * 100}%`, top: -5, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
-                            <div style={{ fontSize: "0.38rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: "#1A1410", borderRadius: 2, padding: "1px 3px", lineHeight: 1.1, marginBottom: 1 }}>NOW</div>
-                            <div style={{ width: 2.5, height: 10, background: "#1A1410", borderRadius: 1 }} />
+                          <div style={{ position: "absolute", left: w.nowBefore ? -4 : `${(w.nowPos || 0) * 100}%`, top: -5, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
+                            <div style={{ fontSize: "0.38rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: w.nowBefore ? "#B0ADA6" : "#1A1410", borderRadius: 2, padding: "1px 3px", lineHeight: 1.1, marginBottom: 1 }}>NOW</div>
+                            <div style={{ width: 2.5, height: 10, background: w.nowBefore ? "#B0ADA6" : "#1A1410", borderRadius: 1 }} />
                           </div>
                         </div>
                       </div>

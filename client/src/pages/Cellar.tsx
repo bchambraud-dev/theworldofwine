@@ -301,10 +301,16 @@ export default function Cellar() {
   const [wines, setWines] = useState<CellarWine[]>([]);
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<CellarGoals | null>(null);
-  // Persist assessment across page navigation using module-level cache
-  const [healthText, setHealthText] = useState(() => cellarHealthCache.text);
+  // Persist assessment: module cache for navigation, DB for app restarts
+  const [healthText, setHealthTextRaw] = useState(() => cellarHealthCache.text);
   const [healthCollapsed, setHealthCollapsed] = useState(() => cellarHealthCache.collapsed);
   const [cachedWineFingerprint, setCachedWineFingerprint] = useState(() => cellarHealthCache.fingerprint);
+  const [dbLoaded, setDbLoaded] = useState(false);
+
+  const setHealthText = useCallback((text: string) => {
+    setHealthTextRaw(text);
+    cellarHealthCache.text = text;
+  }, []);
 
   // Sync health state to module-level cache
   useEffect(() => { cellarHealthCache.text = healthText; }, [healthText]);
@@ -405,6 +411,23 @@ export default function Cellar() {
 
   useEffect(() => { preloadRates(); loadCellar(); loadGoals(); }, [loadCellar, loadGoals]);
 
+  // Load persisted assessment from DB on first mount (only if module cache is empty)
+  useEffect(() => {
+    if (cellarHealthCache.text || !user) { setDbLoaded(true); return; }
+    (async () => {
+      try {
+        const rows = await directSelect("user_profiles", `id=eq.${user.id}&select=cellar_assessment,cellar_assessment_fingerprint`);
+        if (rows?.[0]?.cellar_assessment) {
+          setHealthText(rows[0].cellar_assessment);
+          setCachedWineFingerprint(rows[0].cellar_assessment_fingerprint || "");
+          cellarHealthCache.fingerprint = rows[0].cellar_assessment_fingerprint || "";
+          setHealthCollapsed(true); // collapsed by default on app restart
+        }
+      } catch { /* non-critical */ }
+      setDbLoaded(true);
+    })();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Cellar Health ──────────────────────────────────────────────────────────
 
   const fetchHealth = useCallback(async () => {
@@ -427,26 +450,37 @@ export default function Cellar() {
       });
       if (res.ok) {
         const data = await res.json();
-        setHealthText(data.assessment || "");
+        const text = data.assessment || "";
+        setHealthText(text);
+        // Persist to DB
+        if (user && text) {
+          const fp = wines.filter(w => w.status === "active").map(w => `${w.wine_name}|${w.quantity}`).sort().join(",");
+          directUpdate("user_profiles", user.id, {
+            cellar_assessment: text,
+            cellar_assessment_fingerprint: fp,
+            cellar_assessment_at: new Date().toISOString(),
+          }).catch(() => {});
+        }
       }
     } catch (e) {
       console.error("Health fetch error:", e);
     } finally {
       setHealthLoading(false);
     }
-  }, [goals, wines]);
+  }, [goals, wines, user]);
 
   useEffect(() => {
-    if (!goals || wines.length === 0) return;
+    if (!goals || wines.length === 0 || !dbLoaded) return;
     // Create a fingerprint of cellar contents to detect changes
     const activeNames = wines.filter(w => w.status === "active").map(w => `${w.wine_name}|${w.quantity}`).sort().join(",");
-    const fingerprint = `${activeNames}|${wines.length}`;
-    // Only fetch if cellar changed or no assessment yet
-    if (fingerprint !== cachedWineFingerprint || !healthText) {
+    const fingerprint = activeNames;
+    // Only fetch if cellar contents actually changed
+    if (fingerprint !== cachedWineFingerprint) {
       setCachedWineFingerprint(fingerprint);
-      if (!healthText || fingerprint !== cachedWineFingerprint) fetchHealth();
+      cellarHealthCache.fingerprint = fingerprint;
+      fetchHealth();
     }
-  }, [goals, wines.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [goals, wines.length, dbLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Image handling ─────────────────────────────────────────────────────────
 

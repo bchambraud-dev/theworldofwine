@@ -681,7 +681,7 @@
   z-index: 600;
   overflow: hidden;
 }
-.side-panel.open { transform: translateX(0); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.side-panel.open { transform: translateX(0); }
 
 @media (max-width: 640px) {
   .side-panel {
@@ -695,7 +695,7 @@
     transform: translateY(100%);
     z-index: 900;
   }
-  .side-panel.open { transform: translateY(0); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .side-panel.open { transform: translateY(0); }
   .progress-badge { display: none; }
 }
 
@@ -772,8 +772,10 @@
 .sp-body {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* critical for flex child to scroll properly */
 }
 .sp-body::-webkit-scrollbar { width: 4px; }
 .sp-body::-webkit-scrollbar-thumb { background: var(--border2-c); border-radius: 2px; }

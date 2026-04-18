@@ -567,9 +567,9 @@ export default function Landing() {
             {/* Cellar card mockup — 3 prestigious wines with real labels */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2030\u20132060", phase: "HOLD", phaseColor: "#7A9AB5", readyPct: 15, peakPct: 50, soonPct: 35, nowBefore: true, img: "/wines/lafite.jpg" },
-                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2023\u20132038", phase: "PEAK", phaseColor: "#1F6B35", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.25, img: "/wines/domperignon.jpg" },
-                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2028\u20132045", phase: "HOLD", phaseColor: "#7A9AB5", readyPct: 18, peakPct: 48, soonPct: 34, nowBefore: true, img: "/wines/sassicaia.jpg" },
+                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2030\u20132060", phase: "HOLD", phaseColor: "#7A9AB5", holdPct: 12, readyPct: 13, peakPct: 44, soonPct: 31, nowPct: 5, img: "/wines/lafite.jpg" },
+                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2025\u20132045", phase: "READY", phaseColor: "#6B9E6B", holdPct: 0, readyPct: 25, peakPct: 45, soonPct: 30, nowPct: 8, img: "/wines/sassicaia.jpg" },
+                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2023\u20132038", phase: "PEAK", phaseColor: "#1F6B35", holdPct: 0, readyPct: 15, peakPct: 50, soonPct: 35, nowPct: 30, img: "/wines/domperignon.jpg" },
               ].map((w, i) => (
                 <div key={i} style={{
                   background: "#FFFFFF", border: "1px solid #EDEAE3", borderRadius: 12,
@@ -594,14 +594,15 @@ export default function Landing() {
                           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: w.phaseColor }}>{w.phase}</span>
                           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem", color: "#D4D1CA" }}>{w.window}</span>
                         </div>
-                        <div style={{ position: "relative", height: 7, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 12 }}>
+                        <div style={{ position: "relative", height: 7, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 14 }}>
                           <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
-                            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${w.readyPct}%`, background: "#6B9E6B" }} />
-                            <div style={{ position: "absolute", left: `${w.readyPct}%`, top: 0, height: "100%", width: `${w.peakPct}%`, background: "#1F6B35" }} />
-                            <div style={{ position: "absolute", left: `${w.readyPct + w.peakPct}%`, top: 0, height: "100%", width: `${w.soonPct}%`, background: "#C8962E" }} />
+                            {w.holdPct > 0 && <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${w.holdPct}%`, background: "#7A9AB5", opacity: 0.5 }} />}
+                            <div style={{ position: "absolute", left: `${w.holdPct}%`, top: 0, height: "100%", width: `${w.readyPct}%`, background: "#6B9E6B" }} />
+                            <div style={{ position: "absolute", left: `${w.holdPct + w.readyPct}%`, top: 0, height: "100%", width: `${w.peakPct}%`, background: "#1F6B35" }} />
+                            <div style={{ position: "absolute", left: `${w.holdPct + w.readyPct + w.peakPct}%`, top: 0, height: "100%", width: `${w.soonPct}%`, background: "#C8962E" }} />
                           </div>
                           {/* NOW marker — color matches phase */}
-                          <div style={{ position: "absolute", left: w.nowBefore ? -4 : `${(w.nowPos || 0) * 100}%`, top: -14, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
+                          <div style={{ position: "absolute", left: `${Math.max(3, Math.min(97, w.nowPct))}%`, top: -15, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
                             <div style={{ fontSize: "0.4rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: w.phaseColor, borderRadius: 3, padding: "1.5px 5px", lineHeight: 1.2, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }}>NOW</div>
                             <div style={{ width: 0, height: 0, borderLeft: "3px solid transparent", borderRight: "3px solid transparent", borderTop: `3px solid ${w.phaseColor}` }} />
                             <div style={{ width: 1.5, height: 6, background: w.phaseColor, borderRadius: 1, marginTop: -0.5 }} />

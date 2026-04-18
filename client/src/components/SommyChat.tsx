@@ -68,6 +68,10 @@ interface WineCard {
   palate: string;
   texture: string;
   breathing: string;
+  drink_from: string;
+  drink_peak_start: string;
+  drink_peak_end: string;
+  drink_until: string;
 }
 
 interface WishlistBlock {
@@ -101,6 +105,10 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     breathing: get("breathing"),
     grapes: get("grapes"),
     style: get("style"),
+    drink_from: get("drink_from"),
+    drink_peak_start: get("drink_peak_start"),
+    drink_peak_end: get("drink_peak_end"),
+    drink_until: get("drink_until"),
   };
 
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
@@ -669,6 +677,60 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         </div>
                       </div>
                     )}
+                    {/* Readiness bar */}
+                    {(() => {
+                      const df = parseInt(msg.wineCard.drink_from);
+                      const du = parseInt(msg.wineCard.drink_until);
+                      if (!df || !du || du <= df) return null;
+                      const ps = parseInt(msg.wineCard.drink_peak_start) || df;
+                      const pe = parseInt(msg.wineCard.drink_peak_end) || du;
+                      const now = new Date().getFullYear();
+                      const isBefore = now < df;
+                      const isAfter = now > du;
+                      const holdYrs = isBefore ? Math.min(df - now, 6) : 0;
+                      const pastYrs = isAfter ? Math.min(now - du, 4) : 0;
+                      const winSpan = du - df;
+                      const total = holdYrs + winSpan + pastYrs;
+                      const hPct = (holdYrs / total) * 100;
+                      const rPct = ((ps - df) / total) * 100;
+                      const pPct = ((pe - ps) / total) * 100;
+                      const sPct = ((du - pe) / total) * 100;
+                      const paPct = (pastYrs / total) * 100;
+                      const nowPct = isBefore ? ((now - (df - holdYrs)) / total) * 100
+                        : isAfter ? ((holdYrs + winSpan + (now - du)) / total) * 100
+                        : ((holdYrs + (now - df)) / total) * 100;
+                      const phase = isBefore ? "hold" : isAfter ? "past" : (now >= ps && now <= pe) ? "peak" : (now > pe) ? "soon" : "ready";
+                      const phColors: Record<string, string> = { hold: "#7A9AB5", ready: "#6B9E6B", peak: "#1F6B35", soon: "#C8962E", past: "#A67055" };
+                      const phLabels: Record<string, string> = { hold: "Hold", ready: "Ready", peak: "Peak", soon: "Drink Soon", past: "Past Peak" };
+                      const mc = phColors[phase];
+                      return (
+                        <div style={{ padding: "10px 14px 12px", borderTop: "1px solid #EDEAE3" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: mc }}>{phLabels[phase]}</span>
+                          </div>
+                          <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3" }}>
+                            <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
+                              {hPct > 0 && <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${hPct}%`, background: "#7A9AB5", opacity: 0.5 }} />}
+                              {rPct > 0 && <div style={{ position: "absolute", left: `${hPct}%`, top: 0, height: "100%", width: `${rPct}%`, background: "#6B9E6B" }} />}
+                              <div style={{ position: "absolute", left: `${hPct + rPct}%`, top: 0, height: "100%", width: `${pPct}%`, background: "#1F6B35" }} />
+                              {sPct > 0 && <div style={{ position: "absolute", left: `${hPct + rPct + pPct}%`, top: 0, height: "100%", width: `${sPct}%`, background: "#C8962E" }} />}
+                              {paPct > 0 && <div style={{ position: "absolute", left: `${hPct + rPct + pPct + sPct}%`, top: 0, height: "100%", width: `${paPct}%`, background: "#A67055", opacity: 0.5 }} />}
+                            </div>
+                            <div style={{ position: "absolute", left: `${Math.max(3, Math.min(97, nowPct))}%`, top: -16, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
+                              <div style={{ fontSize: "0.46rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: mc, borderRadius: 4, padding: "2px 5px", lineHeight: 1.2, boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>NOW</div>
+                              <div style={{ width: 0, height: 0, borderLeft: "3.5px solid transparent", borderRight: "3.5px solid transparent", borderTop: `3.5px solid ${mc}` }} />
+                              <div style={{ width: 2, height: 7, background: mc, borderRadius: 1, marginTop: -0.5 }} />
+                            </div>
+                          </div>
+                          <div style={{ position: "relative", height: 14, marginTop: 2 }}>
+                            {hPct > 0 && <span style={{ position: "absolute", left: `${hPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{df}</span>}
+                            {ps > df && <span style={{ position: "absolute", left: `${hPct + rPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{ps}</span>}
+                            {pe < du && <span style={{ position: "absolute", left: `${hPct + rPct + pPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{pe}</span>}
+                            <span style={{ position: "absolute", right: 0, fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#D4D1CA" }}>{du}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 

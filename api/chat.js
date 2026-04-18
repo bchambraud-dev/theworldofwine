@@ -40,6 +40,10 @@ nose: ${cached.nose || ""}
 palate: ${cached.palate || ""}
 texture: ${cached.texture || ""}
 breathing: ${cached.breathing || ""}
+drink_from: ${cached.drink_from || ""}
+drink_peak_start: ${cached.drink_peak_start || ""}
+drink_peak_end: ${cached.drink_peak_end || ""}
+drink_until: ${cached.drink_until || ""}
 WINE_CARD_END`;
 }
 
@@ -79,6 +83,10 @@ async function cacheAssessment(wineKey, fields) {
         palate: fields.palate || null,
         texture: fields.texture || null,
         breathing: fields.breathing || null,
+        drink_from: fields.drink_from ? parseInt(fields.drink_from) : null,
+        drink_peak_start: fields.drink_peak_start ? parseInt(fields.drink_peak_start) : null,
+        drink_peak_end: fields.drink_peak_end ? parseInt(fields.drink_peak_end) : null,
+        drink_until: fields.drink_until ? parseInt(fields.drink_until) : null,
       }),
     });
   } catch { /* cache write failure is non-critical */ }
@@ -104,6 +112,10 @@ nose: [comma-separated aromas — everything you'd smell: fruit, floral, earth, 
 palate: [comma-separated flavours you'd taste on the palate, e.g. "Blackberry, Plum, Dark chocolate, Espresso, Black pepper"]
 texture: [comma-separated mouthfeel descriptors, e.g. "Silky tannins, Full body, Bright acidity, Long finish"]
 breathing: [concise decanting/breathing recommendation with brief reason, e.g. "Decant 1-2 hours — young tannins need time to soften and dark fruit to emerge" or "Drink now — light and aromatic, best enjoyed fresh" or "30 minutes in a wide glass — let the oak integrate"]
+drink_from: [earliest year the wine will be enjoyable, e.g. "2026"]
+drink_peak_start: [year the wine enters its peak drinking window, e.g. "2030"]
+drink_peak_end: [year the peak window ends and the wine starts to decline, e.g. "2040"]
+drink_until: [latest year the wine should be consumed by, e.g. "2050"]
 WINE_CARD_END
 
 If the user has a currency preference in their profile, always quote wine prices in that currency using the appropriate symbol (e.g. S$45 for SGD, €30 for EUR, A$55 for AUD). If no preference is set, default to USD.

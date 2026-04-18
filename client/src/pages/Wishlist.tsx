@@ -751,9 +751,9 @@ export default function Wishlist() {
 
                   {/* Expanded content */}
                   <div style={{
-                    maxHeight: isExpanded ? 600 : 0,
+                    maxHeight: isExpanded ? 1200 : 0,
                     overflow: "hidden",
-                    transition: "max-height 0.35s ease",
+                    transition: "max-height 0.4s ease",
                   }}>
                     <div style={{ borderTop: "1px solid #EDEAE3", padding: "14px 16px" }}>
 

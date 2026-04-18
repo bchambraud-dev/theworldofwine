@@ -23,17 +23,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const searchPrompt = `Search for where to buy the wine "${wine}" in ${location}. I need ACTUAL product pages from real online wine retailers — not guesses.
+    const searchPrompt = `I need to find where to buy a specific wine online. Search for ACTUAL product pages where I can purchase this wine.
 
-Search for: "${wine}" buy ${location}
+Wine: "${wine}"
+Location: ${location}
 
-For each result you find that is a real product page (not a generic homepage or blog), extract:
-- The retailer name
-- The exact product page URL
-- The price if visible
-- Brief availability note
+Please search for:
+1. "${wine}" buy online ${location}
+2. "${wine}" wine shop ${location}
+3. "${wine}" price ${location}
 
-Return ONLY a JSON object like this (no markdown, no explanation):
+For each real product page you find (NOT blog posts, NOT review sites, NOT generic homepages), extract:
+- Retailer name
+- Exact product page URL
+- Price if visible
+- Brief note
+
+Return ONLY a JSON object (no markdown):
 {
   "found": [
     { "name": "Retailer Name", "url": "https://exact-product-page-url", "note": "S$XX - In stock" }
@@ -41,11 +47,12 @@ Return ONLY a JSON object like this (no markdown, no explanation):
   "search_quality": "good" or "limited" or "none"
 }
 
-Rules:
-- Only include results where you found an ACTUAL product page URL for this specific wine
-- Do NOT fabricate or guess URLs — if you can't find a real link, return an empty array
-- If the wine name is ambiguous, include the closest matches
-- Maximum 5 results, sorted by relevance`;
+CRITICAL RULES:
+- ONLY include URLs you actually found in search results — NEVER fabricate or guess a URL
+- Include results from any country that ships to ${location}, not just retailers physically in ${location}
+- Wine-specific e-commerce sites count (e.g. wine.delivery, wineconnection.com.sg, vivino.com product pages)
+- If a search result is a product page for this exact wine, include it
+- Maximum 5 results`;
 
     const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -57,7 +64,7 @@ Rules:
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 600,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
         messages: [{ role: "user", content: searchPrompt }],
       }),
     });

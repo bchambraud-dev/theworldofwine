@@ -567,9 +567,11 @@ export default function Landing() {
             {/* Cellar card mockup — matches actual My Cellar UI */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { name: "Indulgence Port", producer: "Croft", flag: "\ud83c\uddf5\ud83c\uddf9", region: "Port, Portugal", price: "S$108", window: "2024\u20132055", readyPct: 5, peakPct: 55, soonPct: 40, nowPos: 0.07 },
-                { name: "Museum Collection", producer: "Ktima Gerovassiliou", flag: "\ud83c\uddec\ud83c\uddf7", region: "Northern Greece", price: "S$83", window: "2024\u20132030", readyPct: 30, peakPct: 45, soonPct: 25, nowPos: 0.35 },
-                { name: "Mo\u00ebt Imp\u00e9rial Brut", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", price: "S$121", window: "2024\u20132030", readyPct: 25, peakPct: 45, soonPct: 30, nowPos: 0.38 },
+                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2028\u20132060", readyPct: 8, peakPct: 52, soonPct: 40, nowPos: 0.05 },
+                { name: "Penfolds Grange 2017", producer: "Penfolds", flag: "\ud83c\udde6\ud83c\uddfa", region: "South Australia", paid: "S$680", value: "S$950", window: "2025\u20132050", readyPct: 12, peakPct: 50, soonPct: 38, nowPos: 0.06 },
+                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2026\u20132042", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.10 },
+                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2024\u20132038", readyPct: 22, peakPct: 48, soonPct: 30, nowPos: 0.28 },
+                { name: "Opus One 2019", producer: "Opus One Winery", flag: "\ud83c\uddfa\ud83c\uddf8", region: "Napa Valley, California", paid: "S$560", value: "S$680", window: "2027\u20132045", readyPct: 10, peakPct: 52, soonPct: 38, nowPos: 0.07 },
               ].map((w, i) => (
                 <div key={i} style={{
                   background: "#FFFFFF", border: "1px solid #EDEAE3", borderRadius: 12,
@@ -586,7 +588,9 @@ export default function Landing() {
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                         <span style={{ fontSize: "0.8rem" }}>{w.flag}</span>
                         <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.68rem", fontWeight: 300, color: "#5A5248" }}>{w.region}</span>
-                        <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", fontWeight: 500, color: "#4A7A52" }}>est. {w.price}</span>
+                        <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", fontWeight: 500, color: "#5A5248" }}>{w.paid}</span>
+                        <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", color: "#D4D1CA" }}>&rarr;</span>
+                        <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", fontWeight: 600, color: "#4A7A52" }}>{w.value}</span>
                       </div>
                       {/* Readiness bar */}
                       <div>
@@ -620,56 +624,16 @@ export default function Landing() {
       <div className="lp-section-white">
         <div className="lp-section">
           <div className="lp-map-layout">
-            {/* Map visual on LEFT (flipped layout) */}
+            {/* Map preview on LEFT — actual screenshot of the interactive map */}
             <div style={{
-              background: "#FFFFFF", border: "1px solid #EDEAE3", borderRadius: 12,
-              padding: 24, position: "relative", minHeight: 300,
-              boxShadow: "0 4px 24px rgba(0,0,0,0.04)", overflow: "hidden",
+              borderRadius: 12, overflow: "hidden",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.08)", border: "1px solid #EDEAE3",
             }}>
-              {/* Simplified Europe outline */}
-              <svg viewBox="0 0 400 320" width="100%" height="100%" style={{ position: "absolute", inset: 0, padding: 16 }}>
-                {/* Simplified European country outlines */}
-                <path d="M120,180 L130,160 L145,155 L155,165 L170,160 L180,170 L175,185 L185,200 L175,215 L160,210 L145,218 L130,210 L120,195Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M155,165 L170,160 L185,150 L200,155 L210,165 L215,180 L205,190 L195,185 L185,200 L175,185 L180,170Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M210,165 L225,155 L240,160 L245,175 L235,185 L220,180 L215,180Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M185,150 L200,140 L215,138 L230,142 L240,148 L240,160 L225,155 L210,165 L200,155Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M95,165 L110,155 L120,160 L120,180 L110,185 L100,180Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M240,160 L255,155 L270,160 L275,175 L265,185 L250,180 L245,175Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M200,140 L210,130 L220,128 L235,135 L230,142 L215,138Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M245,175 L265,185 L270,200 L260,220 L245,215 L240,200 L235,185Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                <path d="M145,218 L155,225 L170,235 L165,250 L150,255 L140,245 L135,230Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-                {/* UK */}
-                <path d="M125,120 L135,115 L140,125 L138,140 L130,145 L122,135Z" fill="#F0EDE6" stroke="#E0DDD4" strokeWidth="0.8" />
-              </svg>
-              {/* Producer pins on Europe */}
-              {[
-                { x: "28%", y: "55%", label: "Bordeaux" },
-                { x: "38%", y: "48%", label: "Burgundy" },
-                { x: "35%", y: "40%", label: "Champagne" },
-                { x: "30%", y: "62%", label: "Languedoc" },
-                { x: "24%", y: "58%", label: "Rioja" },
-                { x: "48%", y: "55%", label: "Piedmont" },
-                { x: "52%", y: "62%", label: "Tuscany" },
-                { x: "45%", y: "48%", label: "Mosel" },
-                { x: "58%", y: "50%", label: "Wachau" },
-                { x: "42%", y: "52%", label: "Rhone" },
-                { x: "55%", y: "68%", label: "Sicily" },
-                { x: "62%", y: "60%", label: "Naoussa" },
-                { x: "22%", y: "70%", label: "Douro" },
-                { x: "32%", y: "36%", label: "Loire" },
-              ].map((p, i) => (
-                <div key={i} style={{ position: "absolute", left: p.x, top: p.y }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#8C1C2E", boxShadow: "0 0 6px rgba(140,28,46,0.35)" }} />
-                  <div style={{
-                    position: "absolute", left: 12, top: -2,
-                    fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", fontWeight: 500,
-                    color: "#5A5248", letterSpacing: "0.04em", whiteSpace: "nowrap",
-                  }}>{p.label}</div>
-                </div>
-              ))}
-              <div style={{ position: "absolute", bottom: 12, right: 16, fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", fontWeight: 600, color: "#D4D1CA", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                Europe · 14 regions shown
-              </div>
+              <img
+                src="/map-preview.png"
+                alt="Interactive wine map of Europe showing producer clusters across Bordeaux, Burgundy, Tuscany, Rioja, and more"
+                style={{ width: "100%", height: "auto", display: "block" }}
+              />
             </div>
             {/* Text on RIGHT */}
             <div>

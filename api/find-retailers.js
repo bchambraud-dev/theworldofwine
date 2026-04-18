@@ -28,10 +28,10 @@ export default async function handler(req, res) {
 Wine: "${wine}"
 Location: ${location}
 
-Please search for:
-1. "${wine}" buy online ${location}
-2. "${wine}" wine shop ${location}
-3. "${wine}" price ${location}
+Please search for these queries (try ALL of them):
+1. ${wine} buy ${location}
+2. ${wine} wine shop online
+3. ${wine} price wine retailer
 
 For each real product page you find (NOT blog posts, NOT review sites, NOT generic homepages), extract:
 - Retailer name

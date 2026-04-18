@@ -796,7 +796,7 @@ export default function Wishlist() {
                       )}
 
                       {/* Find Retailers */}
-                      <RetailerSearch wineName={entry.wine_name + (entry.vintage ? ` ${entry.vintage}` : "")} country={userCountry} />
+                      <RetailerSearch wineName={[entry.wine_name, entry.producer, entry.vintage].filter(Boolean).join(" ")} country={userCountry} />
                     </div>
                   </div>
 

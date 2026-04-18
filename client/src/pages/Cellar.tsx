@@ -290,6 +290,9 @@ function Stars({ value, onChange, size = "1rem" }: { value: number; onChange?: (
 
 // ── Main Component ──────────────────────────────────────────────────────────────
 
+// Module-level cache survives component unmount/remount (page navigation)
+const cellarHealthCache = { text: "", fingerprint: "", collapsed: false };
+
 export default function Cellar() {
   const { user, profile } = useAuth();
   const [, setLocation] = useLocation();
@@ -298,9 +301,15 @@ export default function Cellar() {
   const [wines, setWines] = useState<CellarWine[]>([]);
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<CellarGoals | null>(null);
-  const [healthText, setHealthText] = useState("");
-  const [healthCollapsed, setHealthCollapsed] = useState(false);
-  const [cachedWineFingerprint, setCachedWineFingerprint] = useState("");
+  // Persist assessment across page navigation using module-level cache
+  const [healthText, setHealthText] = useState(() => cellarHealthCache.text);
+  const [healthCollapsed, setHealthCollapsed] = useState(() => cellarHealthCache.collapsed);
+  const [cachedWineFingerprint, setCachedWineFingerprint] = useState(() => cellarHealthCache.fingerprint);
+
+  // Sync health state to module-level cache
+  useEffect(() => { cellarHealthCache.text = healthText; }, [healthText]);
+  useEffect(() => { cellarHealthCache.fingerprint = cachedWineFingerprint; }, [cachedWineFingerprint]);
+  useEffect(() => { cellarHealthCache.collapsed = healthCollapsed; }, [healthCollapsed]);
 
   // UI state
   const [filter, setFilter] = useState<FilterKey>("all");

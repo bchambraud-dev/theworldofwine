@@ -377,9 +377,22 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
       >
         {loading ? (
           <>
-            <svg width="12" height="12" viewBox="0 0 16 16" style={{ animation: "spin 0.8s linear infinite" }}>
-              <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="20 12" />
-            </svg>
+            <style>{`
+              @keyframes drop-pulse {
+                0%, 100% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.15); opacity: 1; }
+              }
+              @keyframes drop-ring {
+                0% { transform: scale(0.8); opacity: 0.6; }
+                100% { transform: scale(1.8); opacity: 0; }
+              }
+            `}</style>
+            <div style={{ position: "relative", width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ position: "absolute", width: 12, height: 12, borderRadius: "50%", border: "1.5px solid #8C1C2E", animation: "drop-ring 1.2s ease-out infinite" }} />
+              <svg width="12" height="12" viewBox="0 0 24 24" style={{ animation: "drop-pulse 1.2s ease-in-out infinite" }}>
+                <path d="M12 2C12 2 6 10 6 14a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#8C1C2E" />
+              </svg>
+            </div>
             Searching for this bottle...
           </>
         ) : (

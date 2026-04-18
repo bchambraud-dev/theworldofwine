@@ -140,6 +140,14 @@ grapes: [grape varieties]
 style: [style description]
 price: [price range]
 why: [your 1-sentence reason for recommending this]
+nose: [comma-separated aromas]
+palate: [comma-separated flavours]
+texture: [comma-separated mouthfeel]
+breathing: [decanting recommendation]
+drink_from: [year]
+drink_peak_start: [year]
+drink_peak_end: [year]
+drink_until: [year]
 WISHLIST_ADD_END
 
 You can include multiple WISHLIST blocks if recommending several wines. Only add this block when the user explicitly asks to save/shortlist/remember a wine — not for every recommendation.`;

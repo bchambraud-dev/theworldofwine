@@ -53,7 +53,7 @@ interface Message {
   imagePreview?: string; // data URL for display (current session)
   imageUrl?: string;     // stored URL from Supabase Storage (persisted)
   wineCard?: WineCard;
-  wishlistAdded?: string[]; // wine names added to wishlist from this message
+  wishlistSuggestions?: WishlistBlock[]; // parsed suggestions for user to save
   fromHistory?: boolean; // true if loaded from DB (don't re-save)
 }
 
@@ -82,6 +82,14 @@ interface WishlistBlock {
   style: string;
   price: string;
   why: string;
+  nose: string;
+  palate: string;
+  texture: string;
+  breathing: string;
+  drink_from: string;
+  drink_peak_start: string;
+  drink_peak_end: string;
+  drink_until: string;
 }
 
 function parseWineCard(text: string): { card: WineCard | null; prose: string } {
@@ -133,6 +141,14 @@ function parseWishlistBlocks(text: string): { blocks: WishlistBlock[]; cleanText
       style: get("style"),
       price: get("price"),
       why: get("why"),
+      nose: get("nose"),
+      palate: get("palate"),
+      texture: get("texture"),
+      breathing: get("breathing"),
+      drink_from: get("drink_from"),
+      drink_peak_start: get("drink_peak_start"),
+      drink_peak_end: get("drink_peak_end"),
+      drink_until: get("drink_until"),
     });
   }
   const cleanText = text.replace(/WISHLIST_ADD_START[\s\S]*?WISHLIST_ADD_END\n?/g, "").trim();
@@ -175,6 +191,8 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const [pendingImage, setPendingImage] = useState<{ data: string; mediaType: string; preview: string } | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [savedWineCards, setSavedWineCards] = useState<Set<number>>(new Set());
+  // Track saved wishlist suggestions by "msgIdx-blockIdx" key
+  const [savedSuggestions, setSavedSuggestions] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
@@ -228,7 +246,7 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
               const { card, prose } = parseWineCard(cleanAfterWishlist);
               msg.content = prose;
               if (card) msg.wineCard = card;
-              if (blocks.length > 0) msg.wishlistAdded = blocks.map(b => b.name);
+              if (blocks.length > 0) msg.wishlistSuggestions = blocks;
             }
             return msg;
           });
@@ -306,6 +324,38 @@ The more you share — what you enjoy, what you've tried, even what you definite
       silentRefresh();
     } catch (e) {
       console.error("Wishlist save error:", e);
+    }
+  }, [user, silentRefresh]);
+
+  // Save a wishlist suggestion (from WISHLIST_ADD block) when user clicks bookmark
+  const saveWishlistSuggestion = useCallback(async (wb: WishlistBlock, msgIdx: number, blockIdx: number) => {
+    if (!user) return;
+    const key = `${msgIdx}-${blockIdx}`;
+    try {
+      await directInsert("wine_wishlist", {
+        user_id: user.id,
+        wine_name: wb.name,
+        producer: wb.producer || null,
+        region: wb.region || null,
+        grapes: wb.grapes || null,
+        style: wb.style || null,
+        price_estimate: wb.price || null,
+        why: wb.why || null,
+        source: "sommy",
+        nose: wb.nose || null,
+        palate: wb.palate || null,
+        texture: wb.texture || null,
+        breathing: wb.breathing || null,
+        drink_from: wb.drink_from ? parseInt(wb.drink_from) : null,
+        drink_peak_start: wb.drink_peak_start ? parseInt(wb.drink_peak_start) : null,
+        drink_peak_end: wb.drink_peak_end ? parseInt(wb.drink_peak_end) : null,
+        drink_until: wb.drink_until ? parseInt(wb.drink_until) : null,
+        sommy_notes: wb.why || null,
+      });
+      setSavedSuggestions(prev => new Set(prev).add(key));
+      silentRefresh();
+    } catch (e) {
+      console.error("Wishlist suggestion save error:", e);
     }
   }, [user, silentRefresh]);
 
@@ -451,40 +501,12 @@ The more you share — what you enjoy, what you've tried, even what you definite
         const { blocks: wishlistBlocks, cleanText: afterWishlist } = parseWishlistBlocks(cleanText);
         cleanText = afterWishlist;
 
-        // Insert wishlist items
-        const addedNames: string[] = [];
-        if (wishlistBlocks.length > 0 && user) {
-          for (const wb of wishlistBlocks) {
-            if (!wb.name) continue;
-            try {
-              await directInsert("wine_wishlist", {
-                user_id: user.id,
-                wine_name: wb.name,
-                producer: wb.producer || null,
-                region: wb.region || null,
-                grapes: wb.grapes || null,
-                style: wb.style || null,
-                price_estimate: wb.price || null,
-                why: wb.why || null,
-                source: "sommy",
-              });
-              addedNames.push(wb.name);
-            } catch (e) {
-              console.error("Wishlist insert error:", e);
-            }
-          }
-          if (addedNames.length > 0) {
-            silentRefresh();
-            setToastMsg(`Added ${addedNames.join(", ")} to your wishlist`);
-          }
-        }
-
         const { card, prose } = parseWineCard(cleanText);
         setMessages(prev => [...prev, {
           role: "assistant",
           content: prose,
           wineCard: card || undefined,
-          wishlistAdded: addedNames.length > 0 ? addedNames : undefined,
+          wishlistSuggestions: wishlistBlocks.length > 0 ? wishlistBlocks : undefined,
         }]);
 
         // Apply profile update if Sommy detected clear user preferences
@@ -743,14 +765,73 @@ The more you share — what you enjoy, what you've tried, even what you definite
                   </div>
                 )}
 
-                {/* Wishlist confirmation inline */}
-                {msg.wishlistAdded && msg.wishlistAdded.length > 0 && (
-                  <div style={{
-                    background: "rgba(74,122,82,0.08)", borderRadius: 10, padding: "6px 12px",
-                    fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 400, color: "#4A7A52",
-                    maxWidth: "88%",
-                  }}>
-                    Added {msg.wishlistAdded.join(", ")} to your wishlist
+                {/* Wishlist suggestion cards */}
+                {msg.wishlistSuggestions && msg.wishlistSuggestions.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: "92%" }}>
+                    {msg.wishlistSuggestions.map((wb, j) => {
+                      const key = `${i}-${j}`;
+                      const isSaved = savedSuggestions.has(key);
+                      const country = wb.region ? regionToCountry(wb.region) : null;
+                      const code = country ? countryCode(country) : null;
+                      return (
+                        <div key={key} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                          <div style={{ padding: "10px 12px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.2 }}>{wb.name}</div>
+                              {wb.producer && <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>{wb.producer}</div>}
+                              {wb.region && (
+                                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", color: "#5A5248", marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+                                  {code && <img src={`https://flagcdn.com/32x24/${code.toLowerCase()}.png`} alt={country || ""} width={14} height={10} style={{ borderRadius: 1.5, objectFit: "cover", flexShrink: 0 }} />}
+                                  {wb.region}
+                                </div>
+                              )}
+                            </div>
+                            {user && (
+                              <button
+                                onClick={() => saveWishlistSuggestion(wb, i, j)}
+                                disabled={isSaved}
+                                title={isSaved ? "Saved to wishlist" : "Save to wishlist"}
+                                style={{
+                                  background: "none", border: "none", cursor: isSaved ? "default" : "pointer",
+                                  padding: 4, flexShrink: 0, marginTop: -2,
+                                  opacity: isSaved ? 1 : 0.65, transition: "opacity 0.15s",
+                                }}
+                                onMouseEnter={e => { if (!isSaved) e.currentTarget.style.opacity = "1"; }}
+                                onMouseLeave={e => { if (!isSaved) e.currentTarget.style.opacity = "0.65"; }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill={isSaved ? "#8C1C2E" : "none"} stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                          {(wb.grapes || wb.style || wb.price) && (
+                            <div style={{ padding: "0 12px 8px", display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              {[wb.grapes, wb.style, wb.price].filter(Boolean).map((pill, pi) => (
+                                <span key={pi} style={{
+                                  fontFamily: "'Jost', sans-serif", fontSize: "0.62rem", fontWeight: 400,
+                                  color: "#5A5248", background: "#F7F4EF", borderRadius: 6, padding: "2px 7px",
+                                }}>{pill}</span>
+                              ))}
+                            </div>
+                          )}
+                          {wb.why && (
+                            <div style={{ padding: "0 12px 10px", fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontStyle: "italic", color: "#5A5248", lineHeight: 1.4 }}>
+                              {wb.why}
+                            </div>
+                          )}
+                          {isSaved && (
+                            <div style={{
+                              padding: "5px 12px 8px", fontFamily: "'Jost', sans-serif", fontSize: "0.68rem",
+                              fontWeight: 400, color: "#4A7A52", display: "flex", alignItems: "center", gap: 4,
+                            }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4A7A52" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                              Saved to wishlist
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 

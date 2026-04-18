@@ -1,8 +1,53 @@
 // Vercel serverless function — searches the web for actual retailers selling a specific wine.
-// Uses Anthropic with web search tool to find real product pages, not guesses.
+// Uses lean prompt (2 web searches max) to minimize token cost.
+// Caches results in Supabase for 48 hours to avoid redundant searches.
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://ycgxczvsxiilqzvyzpso.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// ── Cache helpers ──────────────────────────────────────────────────────────
+async function getCachedRetailers(wineKey) {
+  if (!SUPABASE_KEY) return null;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/retailer_cache?wine_key=eq.${encodeURIComponent(wineKey)}&select=*&limit=1`,
+      { headers: { Authorization: `Bearer ${SUPABASE_KEY}`, apikey: SUPABASE_KEY } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows.length) return null;
+    const row = rows[0];
+    // Check if cache is fresh (48 hours)
+    const age = Date.now() - new Date(row.updated_at).getTime();
+    if (age > 48 * 60 * 60 * 1000) return null; // stale
+    return { retailers: row.retailers || [], fallbacks: row.fallbacks || [] };
+  } catch { return null; }
+}
+
+async function cacheRetailers(wineKey, retailers, fallbacks) {
+  if (!SUPABASE_KEY) return;
+  try {
+    // Upsert
+    await fetch(`${SUPABASE_URL}/rest/v1/retailer_cache`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: SUPABASE_KEY,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
+        wine_key: wineKey,
+        retailers: retailers,
+        fallbacks: fallbacks,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch { /* non-critical */ }
+}
+
+// ── Main handler ───────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -11,48 +56,32 @@ export default async function handler(req, res) {
   if (!wine) return res.status(400).json({ error: "wine parameter required" });
 
   const location = country || "Singapore";
+  const wineKey = `${wine}|${location}`.toLowerCase().replace(/\s+/g, " ").trim();
 
-  // Fallback search links — always useful
+  // Fallback links — always useful
   const fallbackLinks = [
     { name: "Vivino", url: `https://www.vivino.com/search/wines?q=${encodeURIComponent(wine)}`, note: "Search and compare prices globally" },
-    { name: "Wine-Searcher", url: `https://www.wine-searcher.com/find/${encodeURIComponent(wine)}/${encodeURIComponent(location).toLowerCase()}`, note: `Price comparison across ${location} retailers` },
+    { name: "Wine-Searcher", url: `https://www.wine-searcher.com/find/${encodeURIComponent(wine)}`, note: `Price comparison across ${location} retailers` },
   ];
 
+  // 1. Check cache first
+  const cached = await getCachedRetailers(wineKey);
+  if (cached) {
+    return res.status(200).json({
+      retailers: cached.retailers,
+      fallbacks: cached.fallbacks,
+      wine, country: location, fromCache: true,
+    });
+  }
+
+  // 2. No API key → return fallbacks only
   if (!ANTHROPIC_KEY) {
     return res.status(200).json({ retailers: [], fallbacks: fallbackLinks, wine, country: location });
   }
 
+  // 3. Live web search — lean prompt, 2 searches max
   try {
-    const searchPrompt = `I need to find where to buy a specific wine online. Search for ACTUAL product pages where I can purchase this wine.
-
-Wine: "${wine}"
-Location: ${location}
-
-Please search for these queries (try ALL of them):
-1. ${wine} buy ${location}
-2. ${wine} wine shop online
-3. ${wine} price wine retailer
-
-For each real product page you find (NOT blog posts, NOT review sites, NOT generic homepages), extract:
-- Retailer name
-- Exact product page URL
-- Price if visible
-- Brief note
-
-Return ONLY a JSON object (no markdown):
-{
-  "found": [
-    { "name": "Retailer Name", "url": "https://exact-product-page-url", "note": "S$XX - In stock" }
-  ],
-  "search_quality": "good" or "limited" or "none"
-}
-
-CRITICAL RULES:
-- ONLY include URLs you actually found in search results — NEVER fabricate or guess a URL
-- Include results from any country that ships to ${location}, not just retailers physically in ${location}
-- Wine-specific e-commerce sites count (e.g. wine.delivery, wineconnection.com.sg, vivino.com product pages)
-- If a search result is a product page for this exact wine, include it
-- Maximum 5 results`;
+    const prompt = `Search for: buy "${wine}" ${location} wine. Return JSON only: {"found":[{"name":"...","url":"...","note":"..."}],"search_quality":"good/limited/none"}. Only include REAL product page URLs from search results. Never fabricate URLs.`;
 
     const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -63,45 +92,47 @@ CRITICAL RULES:
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 600,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
-        messages: [{ role: "user", content: searchPrompt }],
+        max_tokens: 400,
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
 
     if (!apiRes.ok) {
-      const errText = await apiRes.text();
-      console.error("Anthropic error:", apiRes.status, errText);
+      const errBody = await apiRes.text().catch(() => "");
+      // Rate limit → return fallbacks gracefully
+      if (apiRes.status === 429) {
+        return res.status(200).json({
+          retailers: [], fallbacks: fallbackLinks,
+          wine, country: location, rateLimited: true,
+        });
+      }
+      console.error("Anthropic error:", apiRes.status, errBody.slice(0, 200));
       return res.status(200).json({ retailers: [], fallbacks: fallbackLinks, wine, country: location });
     }
 
     const data = await apiRes.json();
-
-    // Extract the final text response (after tool use)
     let resultText = "";
     for (const block of data.content) {
       if (block.type === "text") resultText += block.text;
     }
 
-    // Parse JSON from the response
-    let parsed;
+    let found = [];
     try {
       const jsonStr = resultText.trim().replace(/^```json\n?/, "").replace(/\n?```$/, "");
-      parsed = JSON.parse(jsonStr);
-    } catch {
-      // If parsing fails, return fallbacks
-      return res.status(200).json({ retailers: [], fallbacks: fallbackLinks, wine, country: location });
-    }
+      const parsed = JSON.parse(jsonStr);
+      found = (parsed.found || []).filter(r => r.url && r.name);
+    } catch { /* parsing failed, found stays empty */ }
 
-    const found = (parsed.found || []).filter(r => r.url && r.name);
-    const quality = parsed.search_quality || (found.length > 0 ? "good" : "none");
+    const resultFallbacks = found.length === 0 ? fallbackLinks : [];
+
+    // 4. Cache the results
+    await cacheRetailers(wineKey, found, resultFallbacks);
 
     return res.status(200).json({
       retailers: found,
-      fallbacks: quality === "none" || found.length === 0 ? fallbackLinks : [],
-      searchQuality: quality,
-      wine,
-      country: location,
+      fallbacks: resultFallbacks,
+      wine, country: location,
     });
   } catch (err) {
     console.error("find-retailers error:", err);

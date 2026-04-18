@@ -333,14 +333,37 @@ function RetailerLink({ r }: { r: Retailer }) {
   );
 }
 
+// Client-side rate limit: max 8 retailer searches per hour
+const SEARCH_LIMIT = 8;
+const SEARCH_WINDOW = 60 * 60 * 1000; // 1 hour
+let searchTimestamps: number[] = [];
+
+function canSearch(): boolean {
+  const now = Date.now();
+  searchTimestamps = searchTimestamps.filter(t => now - t < SEARCH_WINDOW);
+  return searchTimestamps.length < SEARCH_LIMIT;
+}
+function recordSearch() { searchTimestamps.push(Date.now()); }
+
 function RetailerSearch({ wineName, country }: { wineName: string; country: string | null }) {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
   const [fallbacks, setFallbacks] = useState<Retailer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [limited, setLimited] = useState(false);
 
   const search = async () => {
+    if (!canSearch()) {
+      setLimited(true);
+      setSearched(true);
+      setFallbacks([
+        { name: "Vivino", url: `https://www.vivino.com/search/wines?q=${encodeURIComponent(wineName)}`, note: "Search and compare prices" },
+        { name: "Wine-Searcher", url: `https://www.wine-searcher.com/find/${encodeURIComponent(wineName)}`, note: "Price comparison across retailers" },
+      ]);
+      return;
+    }
     setLoading(true);
+    recordSearch();
     try {
       const params = new URLSearchParams({ wine: wineName });
       if (country) params.set("country", country);
@@ -421,10 +444,12 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
       ) : (
         <>
           <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 6 }}>
-            NO DIRECT MATCHES FOUND
+            {limited ? "SEARCH LIMIT REACHED" : "NO DIRECT MATCHES FOUND"}
           </div>
           <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5, marginBottom: 8 }}>
-            Worth checking with reputable retailers{country ? ` in ${country}` : ""}.
+            {limited
+              ? "Try again in a bit. In the meantime, check these:"
+              : `Worth checking with reputable retailers${country ? ` in ${country}` : ""}.`}
           </div>
         </>
       )}

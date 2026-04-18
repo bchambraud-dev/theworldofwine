@@ -1663,6 +1663,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0;
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);

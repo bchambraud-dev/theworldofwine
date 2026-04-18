@@ -54,7 +54,7 @@ interface ParsedCard {
   grapes: string; style: string; price: string;
 }
 
-type FilterKey = "all" | "ready" | "peak" | "aging" | "consumed" | "gifted";
+type FilterKey = "all" | "aging" | "ready" | "peak" | "soon" | "past" | "consumed" | "gifted";
 type Step = "idle" | "scanning" | "form";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ function getWinePhase(w: CellarWine): string {
 
 function phaseLabel(phase: string): string {
   if (phase === "aging") return "Hold";
-  if (phase === "ready") return "Ready";
+  if (phase === "ready") return "Young";
   if (phase === "peak") return "Peak";
   if (phase === "soon") return "Drink Soon";
   if (phase === "past") return "Past Peak";
@@ -741,6 +741,8 @@ export default function Cellar() {
     if (filter === "ready") return phase === "ready";
     if (filter === "peak") return phase === "peak";
     if (filter === "aging") return phase === "aging";
+    if (filter === "soon") return phase === "soon";
+    if (filter === "past") return phase === "past";
     return true;
   });
 
@@ -792,7 +794,7 @@ export default function Cellar() {
             { label: "BOTTLES", value: totalBottles },
             { label: "VALUE", value: totalValue > 0 ? formatCellarPrice(totalValue, profile?.currency_code) : "–", sub: totalCost > 0 && totalValue > 0 ? `BASE ${formatCellarPrice(totalCost, profile?.currency_code)}  ${valueDelta >= 0 ? "+" : ""}${formatCellarPrice(Math.abs(valueDelta), profile?.currency_code)}` : undefined },
             { label: "REGIONS", value: uniqueRegions },
-            { label: "READY", value: readyCount },
+            { label: "YOUNG", value: readyCount },
           ].map(({ label, value, sub }: any, i: number) => (
             <div key={label} style={{
               padding: "12px 6px", textAlign: "center",
@@ -834,11 +836,13 @@ export default function Cellar() {
         {/* ── Filter chips ── */}
         {step === "idle" && wines.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-            {(["all", "ready", "peak", "aging", "consumed", "gifted"] as FilterKey[]).map(f => (
+            {(["all", "aging", "ready", "peak", "soon", "past", "consumed", "gifted"] as FilterKey[]).map(f => {
+              const labels: Record<string, string> = { all: "All", aging: "Aging", ready: "Young", peak: "Peak", soon: "Drink Soon", past: "Past Peak", consumed: "Consumed", gifted: "Gifted" };
+              return (
               <button key={f} onClick={() => setFilter(f)} style={chipStyle(filter === f)}>
-                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                {labels[f] || f}
               </button>
-            ))}
+            );})}
           </div>
         )}
 

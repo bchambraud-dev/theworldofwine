@@ -770,12 +770,10 @@
 }
 
 .sp-body {
-  flex: 1;
+  flex: 1 1 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* critical for flex child to scroll properly */
+  min-height: 0;
 }
 .sp-body::-webkit-scrollbar { width: 4px; }
 .sp-body::-webkit-scrollbar-thumb { background: var(--border2-c); border-radius: 2px; }

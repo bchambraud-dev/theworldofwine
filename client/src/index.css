@@ -681,7 +681,7 @@
   z-index: 600;
   overflow: hidden;
 }
-.side-panel.open { transform: translateX(0); }
+.side-panel.open { transform: translateX(0); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
 @media (max-width: 640px) {
   .side-panel {
@@ -693,8 +693,9 @@
     border-top: 1px solid var(--border-c);
     border-radius: var(--r) var(--r) 0 0;
     transform: translateY(100%);
+    z-index: 900;
   }
-  .side-panel.open { transform: translateY(0); }
+  .side-panel.open { transform: translateY(0); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .progress-badge { display: none; }
 }
 

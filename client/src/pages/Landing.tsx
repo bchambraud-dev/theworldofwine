@@ -564,24 +564,20 @@ export default function Landing() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
               </button>
             </div>
-            {/* Cellar card mockup — matches actual My Cellar UI */}
+            {/* Cellar card mockup — 3 prestigious wines with real labels */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2028\u20132060", readyPct: 8, peakPct: 52, soonPct: 40, nowPos: 0.05 },
-                { name: "Penfolds Grange 2017", producer: "Penfolds", flag: "\ud83c\udde6\ud83c\uddfa", region: "South Australia", paid: "S$680", value: "S$950", window: "2025\u20132050", readyPct: 12, peakPct: 50, soonPct: 38, nowPos: 0.06 },
-                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2026\u20132042", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.10 },
-                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2024\u20132038", readyPct: 22, peakPct: 48, soonPct: 30, nowPos: 0.28 },
-                { name: "Opus One 2019", producer: "Opus One Winery", flag: "\ud83c\uddfa\ud83c\uddf8", region: "Napa Valley, California", paid: "S$560", value: "S$680", window: "2027\u20132045", readyPct: 10, peakPct: 52, soonPct: 38, nowPos: 0.07 },
+                { name: "Ch\u00e2teau Lafite Rothschild 2018", producer: "Domaines Barons de Rothschild", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Pauillac, Bordeaux", paid: "S$980", value: "S$1,450", window: "2028\u20132060", readyPct: 8, peakPct: 52, soonPct: 40, nowPos: 0.05, img: "/wines/lafite.jpg" },
+                { name: "Dom P\u00e9rignon 2013", producer: "Mo\u00ebt & Chandon", flag: "\ud83c\uddeb\ud83c\uddf7", region: "Champagne, France", paid: "S$380", value: "S$490", window: "2024\u20132038", readyPct: 22, peakPct: 48, soonPct: 30, nowPos: 0.28, img: "/wines/domperignon.jpg" },
+                { name: "Sassicaia 2019", producer: "Tenuta San Guido", flag: "\ud83c\uddee\ud83c\uddf9", region: "Bolgheri, Tuscany", paid: "S$340", value: "S$420", window: "2026\u20132042", readyPct: 15, peakPct: 50, soonPct: 35, nowPos: 0.10, img: "/wines/sassicaia.jpg" },
               ].map((w, i) => (
                 <div key={i} style={{
                   background: "#FFFFFF", border: "1px solid #EDEAE3", borderRadius: 12,
-                  padding: "16px 18px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                  padding: "14px 16px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
                 }}>
                   <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    {/* Image placeholder */}
-                    <div style={{ width: 48, height: 64, borderRadius: 6, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4BFB6" strokeWidth="1.5"><path d="M12 2C7.58 2 4 5.58 4 10c0 7 8 12 8 12s8-5 8-12c0-4.42-3.58-8-8-8z"/></svg>
-                    </div>
+                    {/* Wine label image */}
+                    <img src={w.img} alt={w.name} style={{ width: 48, height: 48, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.88rem", fontWeight: 500, color: "#1A1410", marginBottom: 2 }}>{w.name}</div>
                       <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#8C1C2E", marginBottom: 4 }}>{w.producer}</div>

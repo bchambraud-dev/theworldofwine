@@ -5,6 +5,7 @@ import { journeys } from "@/data/journeys";
 import { grapes } from "@/data/grapes";
 import { useTrack } from "@/hooks/use-track";
 import { useActivity } from "@/hooks/use-activity";
+import { useSEO, useStructuredData } from "@/lib/useSEO";
 
 const categoryColors: Record<string, string> = {
   fundamentals: "var(--wine)",
@@ -20,6 +21,20 @@ export default function GuideDetail() {
 
   const guide = guides.find((g) => g.id === params?.guideId);
   const trackActivity = useActivity();
+
+  useSEO({
+    title: guide ? `${guide.title} — Wine Guide` : "Wine Guide",
+    description: guide?.description || (guide ? `Learn about ${guide.title} with The World of Wine's interactive guide.` : "Wine guide not found."),
+    path: guide ? `/guides/${guide.id}` : "/guides",
+    type: "article",
+  });
+  useStructuredData(guide ? {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: guide.title,
+    description: guide.description,
+    publisher: { "@type": "Organization", name: "The World of Wine", url: "https://theworldofwine.org" },
+  } : { "@context": "https://schema.org", "@type": "Article" });
 
   // Guide completion is now gated by passing the quiz.
   // trackActivity("guide_read") is called in QuizPage on perfect score.

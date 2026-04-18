@@ -2,6 +2,7 @@ import { useRoute, useLocation } from "wouter";
 import { grapes } from "@/data/grapes";
 import { wineRegions } from "@/data/regions";
 import { useTrack } from "@/hooks/use-track";
+import { useSEO } from "@/lib/useSEO";
 
 export default function GrapeDetail() {
   const [, params] = useRoute("/guides/grapes/:id");
@@ -9,6 +10,13 @@ export default function GrapeDetail() {
   const track = useTrack();
 
   const grape = grapes.find((g) => g.id === params?.id);
+
+  useSEO({
+    title: grape ? `${grape.name} Wine Guide — Flavour Profile & Regions` : "Grape Guide",
+    description: grape ? `Everything about ${grape.name}: flavour profile, best regions, food pairings, and notable producers.` : "Grape variety not found.",
+    path: grape ? `/guides/grapes/${grape.id}` : "/guides",
+    type: "article",
+  });
 
   if (!grape) {
     return (

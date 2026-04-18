@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { journeys } from "@/data/journeys";
 import { useTrack } from "@/hooks/use-track";
 import JourneyIcon from "@/components/JourneyIcon";
+import { useSEO } from "@/lib/useSEO";
 
 type CategoryFilter = "all" | "region" | "grape" | "style" | "theme";
 type DifficultyFilter = "all" | "beginner" | "intermediate" | "advanced";
@@ -12,6 +13,12 @@ export default function JourneysBrowse() {
   const track = useTrack();
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("all");
+
+  useSEO({
+    title: "Wine Journeys — Curated Regional Explorations",
+    description: "Guided wine journeys through the world's greatest regions. From Bordeaux to Barossa, explore producer stories and regional character.",
+    path: "/journeys",
+  });
 
   const filtered = journeys.filter((j) => {
     if (category !== "all" && j.category !== category) return false;

@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { vintageData, vintageColor, vintageLabel, maturityLabel } from "@/data/vintages";
 import { vintageNotes } from "@/data/vintageCommentary";
+import { useSEO } from "@/lib/useSEO";
 
 const YEARS = Array.from({ length: 14 }, (_, i) => 2023 - i).reverse(); // 2010-2023
 
@@ -120,6 +121,12 @@ const mono = (size = "10px"): React.CSSProperties => ({
 });
 
 export default function VintageGuide() {
+  useSEO({
+    title: "Wine Vintage Chart 2010-2023 — Quality Ratings by Region",
+    description: "Comprehensive vintage chart for 60 wine regions worldwide. Traffic-light quality ratings, maturity status, and commentary for every year from 2010 to 2023.",
+    path: "/guides/vintages/chart",
+  });
+
   const [selectedYear, setSelectedYear] = useState(2020);
   const params = useParams<{ view?: string }>();
   const [, setLocation] = useLocation();

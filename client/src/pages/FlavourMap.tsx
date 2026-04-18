@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { flavourProfiles, type FlavourProfile } from "@/data/flavourProfiles";
+import { useSEO } from "@/lib/useSEO";
 
 type Axis = "body" | "acidity" | "tannin" | "fruit" | "earthiness" | "sweetness";
 type ViewMode = "scatter" | "radar" | "proximity";
@@ -34,6 +35,12 @@ function useIsMobile() {
 }
 
 export default function FlavourMap() {
+  useSEO({
+    title: "Wine Flavour Map — Compare Grape Profiles",
+    description: "Interactive flavour map plotting 50 grape varieties by body, acidity, tannin, fruit, and sweetness. Compare profiles and discover new grapes.",
+    path: "/guides/flavourmap/scatter",
+  });
+
   const params = useParams<{ view?: string }>();
   const [, setLocation] = useLocation();
   const validViews: ViewMode[] = ["scatter", "radar", "proximity"];

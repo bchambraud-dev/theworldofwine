@@ -8,6 +8,7 @@ import { quizzes } from "@/data/quizzes";
 import { guides } from "@/data/guides";
 import { journeys } from "@/data/journeys";
 import ExpandableNewsCard from "@/components/ExpandableNewsCard";
+import { useSEO, useStructuredData } from "@/lib/useSEO";
 
 interface RegionDetailProps {
   region: WineRegion;
@@ -70,6 +71,19 @@ export default function RegionDetail({
   onClose,
   onSelectProducer,
 }: RegionDetailProps) {
+  useSEO({
+    title: `${region.name} Wine Guide — ${region.country}`,
+    description: `Explore ${region.name} wines: ${region.grapes?.slice(0, 3).join(", ")}. ${(region.facts?.[0] || "").slice(0, 120)}`,
+    path: `/explore/region/${region.id}`,
+  });
+  useStructuredData({
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: region.name,
+    description: region.description?.replace(/<[^>]+>/g, "").slice(0, 200),
+    geo: { "@type": "GeoCoordinates", latitude: region.lat, longitude: region.lng },
+    containedInPlace: { "@type": "Country", name: region.country },
+  });
   const [, setLocation] = useLocation();
   const regionProducers = producers.filter((p) => p.regionId === region.id);
   const regionNews = useMemo(

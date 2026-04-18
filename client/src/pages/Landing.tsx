@@ -9,6 +9,7 @@ import { guides } from "@/data/guides";
 import { newsItems } from "@/data/news";
 import JourneyIcon from "@/components/JourneyIcon";
 import { useTrack } from "@/hooks/use-track";
+import { useSEO, useStructuredData } from "@/lib/useSEO";
 
 const featuredJourneys = journeys.slice(0, 4);
 const featuredRegions = wineRegions.filter((r) =>
@@ -29,6 +30,20 @@ export default function Landing() {
   const { user, profile } = useAuth();
   const [goals, setGoals] = useState<any[]>([]);
   const [journalCount, setJournalCount] = useState(0);
+
+  useSEO({
+    title: "The World of Wine",
+    description: "Explore 280+ wine producers across 59 regions in 24 countries. Your AI sommelier Sommy guides you through tastings, tracks your cellar, and helps you discover your palate.",
+    path: "/",
+  });
+  useStructuredData({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "The World of Wine",
+    url: "https://theworldofwine.org",
+    description: "An interactive wine exploration platform with AI sommelier, cellar tracking, tasting mode, and vintage guides.",
+    potentialAction: { "@type": "SearchAction", target: "https://theworldofwine.org/explore?q={search_term_string}", "query-input": "required name=search_term_string" },
+  });
 
   useEffect(() => {
     if (!user) return;

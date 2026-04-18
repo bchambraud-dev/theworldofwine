@@ -5,6 +5,7 @@ import { grapes } from "@/data/grapes";
 import { quizzes } from "@/data/quizzes";
 import { useTrack } from "@/hooks/use-track";
 import GuideIcon from "@/components/GuideIcon";
+import { useSEO } from "@/lib/useSEO";
 
 const categoryColors: Record<string, string> = {
   fundamentals: "var(--wine)",
@@ -19,6 +20,12 @@ export default function AcademyHub() {
   const [, setLocation] = useLocation();
   const track = useTrack();
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
+
+  useSEO({
+    title: "Wine Guides — Learn About Wine",
+    description: "Free wine education guides covering grape varieties, tasting techniques, wine regions, and food pairing. Interactive quizzes to test your knowledge.",
+    path: "/guides",
+  });
 
   return (
     <div className="page-scroll" data-testid="academy-hub">

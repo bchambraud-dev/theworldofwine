@@ -5,6 +5,7 @@ import { producers as allProducers } from "@/data/producers";
 import { wineRegions } from "@/data/regions";
 import { newsItems } from "@/data/news";
 import ExpandableNewsCard from "@/components/ExpandableNewsCard";
+import { useSEO, useStructuredData } from "@/lib/useSEO";
 
 interface ProducerDetailProps {
   producer: Producer;
@@ -49,6 +50,21 @@ export default function ProducerDetail({
 }: ProducerDetailProps) {
   const [, setLocation] = useLocation();
   const region = wineRegions.find((r) => r.id === producer.regionId);
+
+  useSEO({
+    title: `${producer.name} — ${producer.country} Wine Producer`,
+    description: `${producer.name} in ${producer.regionId}. Known for: ${producer.flagshipWine}. ${producer.description?.replace(/<[^>]+>/g, "").slice(0, 150)}`,
+    path: `/explore/producer/${producer.id}`,
+  });
+  useStructuredData({
+    "@context": "https://schema.org",
+    "@type": "Winery",
+    name: producer.name,
+    description: producer.description?.replace(/<[^>]+>/g, "").slice(0, 300),
+    geo: { "@type": "GeoCoordinates", latitude: producer.lat, longitude: producer.lng },
+    address: { "@type": "PostalAddress", addressCountry: producer.country },
+    foundingDate: producer.founded,
+  });
   const price = priceLabels[producer.priceRange] || { label: "?", desc: "" };
   const producerNews = useMemo(
     () => newsItems.filter((n) => n.producerIds.includes(producer.id)).slice(0, 4),

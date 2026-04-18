@@ -6,6 +6,7 @@ import ProducerDetail from "@/components/ProducerDetail";
 import { useWineStore } from "@/lib/store";
 import { producers } from "@/data/producers";
 import { useToast } from "@/hooks/use-toast";
+import { useSEO } from "@/lib/useSEO";
 
 export default function Explore() {
   const [isListRoute] = useRoute("/explore/list");
@@ -17,6 +18,12 @@ export default function Explore() {
 
   const [vintageOn, setVintageOn] = useState(false);
   const [vintageYear, setVintageYear] = useState(2020);
+
+  useSEO({
+    title: "Wine Map — Explore Regions & Producers",
+    description: "Interactive wine map with 280+ producers across 59 regions in 24 countries. Filter by grape variety, wine style, price range, and flavour profile.",
+    path: "/explore",
+  });
 
   const isListView = isListRoute;
 

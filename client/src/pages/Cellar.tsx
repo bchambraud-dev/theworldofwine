@@ -299,6 +299,8 @@ export default function Cellar() {
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<CellarGoals | null>(null);
   const [healthText, setHealthText] = useState("");
+  const [healthCollapsed, setHealthCollapsed] = useState(false);
+  const [cachedWineFingerprint, setCachedWineFingerprint] = useState("");
 
   // UI state
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -426,7 +428,15 @@ export default function Cellar() {
   }, [goals, wines]);
 
   useEffect(() => {
-    if (goals && wines.length > 0 && !healthText) fetchHealth();
+    if (!goals || wines.length === 0) return;
+    // Create a fingerprint of cellar contents to detect changes
+    const activeNames = wines.filter(w => w.status === "active").map(w => `${w.wine_name}|${w.quantity}`).sort().join(",");
+    const fingerprint = `${activeNames}|${wines.length}`;
+    // Only fetch if cellar changed or no assessment yet
+    if (fingerprint !== cachedWineFingerprint || !healthText) {
+      setCachedWineFingerprint(fingerprint);
+      if (!healthText || fingerprint !== cachedWineFingerprint) fetchHealth();
+    }
   }, [goals, wines.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Image handling ─────────────────────────────────────────────────────────
@@ -725,10 +735,7 @@ export default function Cellar() {
   const totalCost = activeWines.reduce((s, w) => s + (w.purchase_price || 0) * w.quantity, 0);
   const valueDelta = totalValue - totalCost;
   const uniqueRegions = new Set(activeWines.map(w => w.region).filter(Boolean)).size;
-  const readyCount = activeWines.filter(w => {
-    const phase = getWinePhase(w);
-    return phase === "ready" || phase === "peak" || phase === "soon";
-  }).length;
+  const peakCount = activeWines.filter(w => getWinePhase(w) === "peak").length;
 
   // ── Filtered list ──────────────────────────────────────────────────────────
 
@@ -794,7 +801,7 @@ export default function Cellar() {
             { label: "BOTTLES", value: totalBottles },
             { label: "VALUE", value: totalValue > 0 ? formatCellarPrice(totalValue, profile?.currency_code) : "–", sub: totalCost > 0 && totalValue > 0 ? `BASE ${formatCellarPrice(totalCost, profile?.currency_code)}  ${valueDelta >= 0 ? "+" : ""}${formatCellarPrice(Math.abs(valueDelta), profile?.currency_code)}` : undefined },
             { label: "REGIONS", value: uniqueRegions },
-            { label: "YOUNG", value: readyCount },
+            { label: "PEAK", value: peakCount },
           ].map(({ label, value, sub }: any, i: number) => (
             <div key={label} style={{
               padding: "12px 6px", textAlign: "center",
@@ -813,23 +820,35 @@ export default function Cellar() {
           ))}
         </div>
 
-        {/* ── Cellar Health card ── */}
+        {/* ── Cellar Health card (collapsible) ── */}
         {healthText && step === "idle" && (
           <div style={{
             background: "rgba(140,28,46,0.03)", border: "1px solid rgba(140,28,46,0.12)",
-            borderRadius: 12, padding: "14px 16px", marginBottom: 16,
+            borderRadius: 12, padding: healthCollapsed ? "10px 16px" : "14px 16px", marginBottom: 16,
+            transition: "padding 0.2s ease",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>SOMMY'S CELLAR ASSESSMENT</div>
-              <button onClick={() => { setHealthText(""); fetchHealth(); }} style={{
-                background: "none", border: "none", cursor: "pointer",
-                ...mono("0.48rem"), color: "#8C1C2E",
-              }}>{healthLoading ? "..." : "REFRESH"}</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setHealthCollapsed(!healthCollapsed)}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>SOMMY'S CELLAR ASSESSMENT</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {!healthCollapsed && (
+                  <button onClick={(e) => { e.stopPropagation(); setHealthText(""); setCachedWineFingerprint(""); fetchHealth(); }} style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    ...mono("0.48rem"), color: "#8C1C2E",
+                  }}>{healthLoading ? "..." : "REFRESH"}</button>
+                )}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s", transform: healthCollapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
             </div>
-            <p style={{
-              fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300,
-              color: "#1A1410", lineHeight: 1.6, margin: 0,
-            }}>{healthText}</p>
+            <div style={{ maxHeight: healthCollapsed ? 0 : 400, overflow: "hidden", transition: "max-height 0.3s ease, margin 0.3s ease", marginTop: healthCollapsed ? 0 : 10 }}>
+              <p style={{
+                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300,
+                color: "#1A1410", lineHeight: 1.6, margin: 0,
+              }}>{healthText}</p>
+            </div>
           </div>
         )}
 

@@ -174,63 +174,72 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
         <span style={{ ...mono("0.48rem"), color: phaseColor(phase) }}>{phaseLabel(phase).toUpperCase()}</span>
         <span style={{ ...mono("0.44rem"), color: "#D4D1CA" }}>{from}–{until}</span>
       </div>
-      <div style={{ position: "relative", height: 6, borderRadius: 3, overflow: "hidden", background: "#EDEAE3" }}>
-        {/* Ready segment */}
-        {readyPct > 0 && (
+      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 14 }}>
+        {/* Bar segments (clipped) */}
+        <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
+          {readyPct > 0 && (
+            <div style={{
+              position: "absolute", left: 0, top: 0, height: "100%",
+              width: `${readyPct}%`, background: "#4A7A52",
+            }} />
+          )}
           <div style={{
-            position: "absolute", left: 0, top: 0, height: "100%",
-            width: `${readyPct}%`, background: "#4A7A52", borderRadius: "3px 0 0 3px",
+            position: "absolute", left: `${readyPct}%`, top: 0, height: "100%",
+            width: `${peakPct}%`, background: "#2E6538",
           }} />
-        )}
-        {/* Peak segment */}
-        <div style={{
-          position: "absolute", left: `${readyPct}%`, top: 0, height: "100%",
-          width: `${peakPct}%`, background: "#2E6538",
-        }} />
-        {/* Drink soon segment */}
-        {soonPct > 0 && (
-          <div style={{
-            position: "absolute", left: `${readyPct + peakPct}%`, top: 0, height: "100%",
-            width: `${soonPct}%`, background: "#C8962E", borderRadius: "0 3px 3px 0",
-          }} />
-        )}
-        {/* Now marker */}
+          {soonPct > 0 && (
+            <div style={{
+              position: "absolute", left: `${readyPct + peakPct}%`, top: 0, height: "100%",
+              width: `${soonPct}%`, background: "#C8962E",
+            }} />
+          )}
+        </div>
+        {/* Now marker - within range */}
         {CURRENT_YEAR >= from && CURRENT_YEAR <= until && (
           <div style={{
-            position: "absolute", left: `${nowPos * 100}%`, top: -4,
+            position: "absolute", left: `${nowPos * 100}%`, top: -16,
             transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
             zIndex: 2,
           }}>
             <div style={{
-              fontSize: "0.42rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
-              color: "#FFFFFF", background: "#1A1410", borderRadius: 3,
-              padding: "1px 4px", lineHeight: 1.2, whiteSpace: "nowrap",
-              marginBottom: 1,
+              fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+              color: "#FFFFFF", background: "#1A1410", borderRadius: 4,
+              padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
             }}>
               NOW
             </div>
             <div style={{
-              width: 3, height: 10, background: "#1A1410", borderRadius: 1.5,
-              boxShadow: "0 0 3px rgba(26,20,16,0.3)",
+              width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
+              borderTop: "4px solid #1A1410",
+            }} />
+            <div style={{
+              width: 2, height: 8, background: "#1A1410", borderRadius: 1,
+              marginTop: -1,
             }} />
           </div>
         )}
-        {/* Now marker if before range */}
+        {/* Now marker - before range */}
         {CURRENT_YEAR < from && (
           <div style={{
-            position: "absolute", left: -4, top: -4,
+            position: "absolute", left: -6, top: -16,
             transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
           }}>
             <div style={{
-              fontSize: "0.42rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
-              color: "#FFFFFF", background: "#B0ADA6", borderRadius: 3,
-              padding: "1px 4px", lineHeight: 1.2, whiteSpace: "nowrap",
-              marginBottom: 1,
+              fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+              color: "#FFFFFF", background: "#B0ADA6", borderRadius: 4,
+              padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
             }}>
               NOW
             </div>
             <div style={{
-              width: 3, height: 10, background: "#B0ADA6", borderRadius: 1.5,
+              width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
+              borderTop: "4px solid #B0ADA6",
+            }} />
+            <div style={{
+              width: 2, height: 8, background: "#B0ADA6", borderRadius: 1,
+              marginTop: -1,
             }} />
           </div>
         )}

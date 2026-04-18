@@ -197,17 +197,42 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
         {/* Now marker */}
         {CURRENT_YEAR >= from && CURRENT_YEAR <= until && (
           <div style={{
-            position: "absolute", left: `${nowPos * 100}%`, top: -2,
-            width: 2, height: 10, background: "#1A1410", borderRadius: 1,
-            transform: "translateX(-1px)",
-          }} />
+            position: "absolute", left: `${nowPos * 100}%`, top: -4,
+            transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
+            zIndex: 2,
+          }}>
+            <div style={{
+              fontSize: "0.42rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+              color: "#FFFFFF", background: "#1A1410", borderRadius: 3,
+              padding: "1px 4px", lineHeight: 1.2, whiteSpace: "nowrap",
+              marginBottom: 1,
+            }}>
+              NOW
+            </div>
+            <div style={{
+              width: 3, height: 10, background: "#1A1410", borderRadius: 1.5,
+              boxShadow: "0 0 3px rgba(26,20,16,0.3)",
+            }} />
+          </div>
         )}
         {/* Now marker if before range */}
         {CURRENT_YEAR < from && (
           <div style={{
-            position: "absolute", left: -4, top: -2,
-            width: 2, height: 10, background: "#B0ADA6", borderRadius: 1,
-          }} />
+            position: "absolute", left: -4, top: -4,
+            transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
+          }}>
+            <div style={{
+              fontSize: "0.42rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+              color: "#FFFFFF", background: "#B0ADA6", borderRadius: 3,
+              padding: "1px 4px", lineHeight: 1.2, whiteSpace: "nowrap",
+              marginBottom: 1,
+            }}>
+              NOW
+            </div>
+            <div style={{
+              width: 3, height: 10, background: "#B0ADA6", borderRadius: 1.5,
+            }} />
+          </div>
         )}
       </div>
     </div>

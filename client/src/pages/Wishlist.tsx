@@ -301,8 +301,41 @@ const mono = (size = "0.6rem"): React.CSSProperties => ({
 // ── Retailer Search ─────────────────────────────────────────────────────────
 interface Retailer { name: string; url: string; note: string }
 
+function RetailerLink({ r }: { r: Retailer }) {
+  return (
+    <a
+      href={r.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "8px 10px", background: "white", borderRadius: 6,
+        border: "1px solid #EDEAE3", textDecoration: "none",
+        transition: "border-color 0.15s",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "#8C1C2E")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = "#EDEAE3")}
+    >
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>
+          {r.name}
+        </div>
+        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.68rem", fontWeight: 300, color: "#5A5248", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {r.note}
+        </div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4D1CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginLeft: 8 }}>
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+        <polyline points="15 3 21 3 21 9" />
+        <line x1="10" y1="14" x2="21" y2="3" />
+      </svg>
+    </a>
+  );
+}
+
 function RetailerSearch({ wineName, country }: { wineName: string; country: string | null }) {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [fallbacks, setFallbacks] = useState<Retailer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -311,13 +344,14 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
     try {
       const params = new URLSearchParams({ wine: wineName });
       if (country) params.set("country", country);
-      const res = await fetch(`/api/find-retailers?${params}`, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(`/api/find-retailers?${params}`, { signal: AbortSignal.timeout(25000) });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setRetailers(data.retailers || []);
+      setFallbacks(data.fallbacks || []);
     } catch {
-      // Fallback to search links
-      setRetailers([
+      setRetailers([]);
+      setFallbacks([
         { name: "Vivino", url: `https://www.vivino.com/search/wines?q=${encodeURIComponent(wineName)}`, note: "Search and compare prices" },
         { name: "Wine-Searcher", url: `https://www.wine-searcher.com/find/${encodeURIComponent(wineName)}`, note: "Price comparison across retailers" },
       ]);
@@ -346,7 +380,7 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
             <svg width="12" height="12" viewBox="0 0 16 16" style={{ animation: "spin 0.8s linear infinite" }}>
               <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="20 12" />
             </svg>
-            Searching retailers...
+            Searching for this bottle...
           </>
         ) : (
           <>
@@ -362,43 +396,40 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
 
   return (
     <div style={{ background: "#F7F4EF", borderRadius: 8, padding: "10px 12px" }}>
-      <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 8 }}>
-        RETAILERS{country ? ` IN ${country.toUpperCase()}` : ""}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {retailers.map((r, i) => (
-          <a
-            key={i}
-            href={r.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "8px 10px", background: "white", borderRadius: 6,
-              border: "1px solid #EDEAE3", textDecoration: "none",
-              transition: "border-color 0.15s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = "#8C1C2E")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "#EDEAE3")}
-          >
-            <div>
-              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>
-                {r.name}
-              </div>
-              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.68rem", fontWeight: 300, color: "#5A5248" }}>
-                {r.note}
-              </div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4D1CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          </a>
-        ))}
-      </div>
+      {retailers.length > 0 ? (
+        <>
+          <div style={{ ...mono("0.46rem"), color: "#4A7A52", marginBottom: 8 }}>
+            FOUND {retailers.length} RETAILER{retailers.length > 1 ? "S" : ""}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {retailers.map((r, i) => <RetailerLink key={i} r={r} />)}
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 6 }}>
+            NO DIRECT MATCHES FOUND
+          </div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5, marginBottom: 8 }}>
+            Worth checking with reputable retailers{country ? ` in ${country}` : ""}.
+          </div>
+        </>
+      )}
+
+      {/* Fallback search links (only shown when no direct matches) */}
+      {fallbacks.length > 0 && (
+        <div style={{ marginTop: retailers.length > 0 ? 10 : 0 }}>
+          {retailers.length > 0 && (
+            <div style={{ ...mono("0.42rem"), color: "#D4D1CA", marginBottom: 6 }}>ALSO TRY</div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {fallbacks.map((r, i) => <RetailerLink key={i} r={r} />)}
+          </div>
+        </div>
+      )}
+
       <button
-        onClick={() => { setSearched(false); setRetailers([]); }}
+        onClick={() => { setSearched(false); setRetailers([]); setFallbacks([]); }}
         style={{
           marginTop: 8, background: "none", border: "none", padding: 0, cursor: "pointer",
           fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem", letterSpacing: "0.08em",

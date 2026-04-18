@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /auth/
+Disallow: /sign-in
+Disallow: /onboarding
+Disallow: /journey/
+
+Sitemap: https://theworldofwine.org/sitemap.xml

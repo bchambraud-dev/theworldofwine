@@ -130,24 +130,30 @@ function getWinePhase(w: CellarWine): string {
 }
 
 function phaseLabel(phase: string): string {
-  if (phase === "aging") return "Aging";
+  if (phase === "aging") return "Hold";
   if (phase === "ready") return "Ready";
   if (phase === "peak") return "Peak";
-  if (phase === "soon") return "Drink soon";
-  if (phase === "past") return "Past peak";
+  if (phase === "soon") return "Drink Soon";
+  if (phase === "past") return "Past Peak";
   if (phase === "consumed") return "Consumed";
   if (phase === "gifted") return "Gifted";
   return "";
 }
 
 function phaseColor(phase: string): string {
-  if (phase === "aging") return "#B0ADA6";
-  if (phase === "ready") return "#4A7A52";
-  if (phase === "peak") return "#2E6538";
-  if (phase === "soon") return "#C8962E";
-  if (phase === "past") return "#8C1C2E";
+  if (phase === "aging") return "#7A9AB5";   // slate blue — patience
+  if (phase === "ready") return "#6B9E6B";   // sage green — opening up
+  if (phase === "peak") return "#1F6B35";    // deep emerald — absolute best
+  if (phase === "soon") return "#C8962E";    // warm gold — act now
+  if (phase === "past") return "#A67055";    // muted terracotta — fading
   return "#D4D1CA";
 }
+
+// Bar segment colors
+const BAR_READY = "#6B9E6B";     // sage green
+const BAR_PEAK = "#1F6B35";      // deep emerald
+const BAR_SOON = "#C8962E";      // warm gold
+const BAR_HOLD = "#7A9AB5";      // slate blue
 
 // ── Drinking Window Bar ─────────────────────────────────────────────────────────
 
@@ -174,75 +180,49 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
         <span style={{ ...mono("0.48rem"), color: phaseColor(phase) }}>{phaseLabel(phase).toUpperCase()}</span>
         <span style={{ ...mono("0.44rem"), color: "#D4D1CA" }}>{from}–{until}</span>
       </div>
-      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 14 }}>
+      <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3", marginTop: 16 }}>
         {/* Bar segments (clipped) */}
         <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
+          {/* Ready segment — sage green */}
           {readyPct > 0 && (
-            <div style={{
-              position: "absolute", left: 0, top: 0, height: "100%",
-              width: `${readyPct}%`, background: "#4A7A52",
-            }} />
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${readyPct}%`, background: BAR_READY }} />
           )}
-          <div style={{
-            position: "absolute", left: `${readyPct}%`, top: 0, height: "100%",
-            width: `${peakPct}%`, background: "#2E6538",
-          }} />
+          {/* Peak segment — deep emerald */}
+          <div style={{ position: "absolute", left: `${readyPct}%`, top: 0, height: "100%", width: `${peakPct}%`, background: BAR_PEAK }} />
+          {/* Drink soon segment — warm gold */}
           {soonPct > 0 && (
-            <div style={{
-              position: "absolute", left: `${readyPct + peakPct}%`, top: 0, height: "100%",
-              width: `${soonPct}%`, background: "#C8962E",
-            }} />
+            <div style={{ position: "absolute", left: `${readyPct + peakPct}%`, top: 0, height: "100%", width: `${soonPct}%`, background: BAR_SOON }} />
           )}
         </div>
-        {/* Now marker - within range */}
-        {CURRENT_YEAR >= from && CURRENT_YEAR <= until && (
-          <div style={{
-            position: "absolute", left: `${nowPos * 100}%`, top: -16,
-            transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
-            zIndex: 2,
-          }}>
+        {/* NOW marker — color matches current phase */}
+        {(() => {
+          const markerColor = phaseColor(phase);
+          const isBefore = CURRENT_YEAR < from;
+          const isAfter = until && CURRENT_YEAR > until;
+          const markerLeft = isBefore ? -6 : isAfter ? "calc(100% + 6px)" : `${nowPos * 100}%`;
+          if (phase === "consumed" || phase === "gifted" || phase === "unknown") return null;
+          return (
             <div style={{
-              fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
-              color: "#FFFFFF", background: "#1A1410", borderRadius: 4,
-              padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+              position: "absolute", left: markerLeft, top: -18,
+              transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
+              zIndex: 2,
             }}>
-              NOW
+              <div style={{
+                fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
+                color: "#FFFFFF", background: markerColor, borderRadius: 4,
+                padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+              }}>
+                NOW
+              </div>
+              <div style={{
+                width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
+                borderTop: `4px solid ${markerColor}`,
+              }} />
+              <div style={{ width: 2, height: 8, background: markerColor, borderRadius: 1, marginTop: -1 }} />
             </div>
-            <div style={{
-              width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
-              borderTop: "4px solid #1A1410",
-            }} />
-            <div style={{
-              width: 2, height: 8, background: "#1A1410", borderRadius: 1,
-              marginTop: -1,
-            }} />
-          </div>
-        )}
-        {/* Now marker - before range */}
-        {CURRENT_YEAR < from && (
-          <div style={{
-            position: "absolute", left: -6, top: -16,
-            transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center",
-          }}>
-            <div style={{
-              fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700,
-              color: "#FFFFFF", background: "#B0ADA6", borderRadius: 4,
-              padding: "2px 6px", lineHeight: 1.2, whiteSpace: "nowrap",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-            }}>
-              NOW
-            </div>
-            <div style={{
-              width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent",
-              borderTop: "4px solid #B0ADA6",
-            }} />
-            <div style={{
-              width: 2, height: 8, background: "#B0ADA6", borderRadius: 1,
-              marginTop: -1,
-            }} />
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

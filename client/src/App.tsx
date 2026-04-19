@@ -33,6 +33,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 import { Toaster } from "@/components/ui/toaster";
+import AgeGate from "@/components/AgeGate";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import FilterBar from "@/components/FilterBar";
@@ -454,6 +455,7 @@ function App() {
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+      <AgeGate>
       <TooltipProvider>
         <Toaster />
         <Router>
@@ -468,6 +470,7 @@ function App() {
           </UserDataProvider>
         </Router>
       </TooltipProvider>
+      </AgeGate>
       </AuthProvider>
     </QueryClientProvider>
     </ErrorBoundary>

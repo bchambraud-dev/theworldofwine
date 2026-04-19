@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import type { Producer } from "@/data/producers";
 import { producers as allProducers } from "@/data/producers";
@@ -6,6 +6,64 @@ import { wineRegions } from "@/data/regions";
 import { newsItems } from "@/data/news";
 import ExpandableNewsCard from "@/components/ExpandableNewsCard";
 import { useSEO, useStructuredData } from "@/lib/useSEO";
+
+// ── Fun Facts component ────────────────────────────────────────────
+function FunFacts({ name }: { name: string }) {
+  const [facts, setFacts] = useState<string[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const load = async () => {
+    if (facts) { setOpen(!open); return; }
+    setLoading(true); setOpen(true);
+    try {
+      const res = await fetch(`/api/region-content?type=fun_facts&name=${encodeURIComponent(name)}`, { signal: AbortSignal.timeout(20000) });
+      const data = await res.json();
+      setFacts(data.content || []);
+    } catch { setFacts([]); }
+    setLoading(false);
+  };
+  return (
+    <div style={{ margin: "10px 0 6px" }}>
+      <button onClick={load} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1.5px solid #EDEAE3", borderRadius: 8, background: open ? "#F7F4EF" : "transparent", cursor: "pointer", fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", fontWeight: 500, letterSpacing: "0.06em", color: "#8C1C2E", textTransform: "uppercase" as const, transition: "all 0.15s" }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+        {loading ? "Loading..." : "Interesting Facts"}
+      </button>
+      {open && facts && facts.length > 0 && (
+        <div style={{ marginTop: 10, padding: "12px 14px", background: "rgba(140,28,46,0.03)", borderRadius: 10, borderLeft: "3px solid rgba(140,28,46,0.15)" }}>
+          <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
+            {facts.map((f, i) => (<li key={i} style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6 }}>{f}</li>))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Read More component ────────────────────────────────────────────
+function ReadMore({ name, context }: { name: string; context: string }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const load = async () => {
+    if (expanded) { setOpen(!open); return; }
+    setLoading(true); setOpen(true);
+    try {
+      const res = await fetch(`/api/region-content?type=read_more&name=${encodeURIComponent(name)}&context=${encodeURIComponent(context)}`, { signal: AbortSignal.timeout(25000) });
+      const data = await res.json();
+      setExpanded(data.content || null);
+    } catch { setExpanded(null); }
+    setLoading(false);
+  };
+  return (
+    <>
+      <button onClick={load} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#8C1C2E", marginTop: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
+        {loading ? "Expanding..." : open ? "Show less" : "Read more"}
+        {!loading && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>}
+      </button>
+      {open && expanded && (<div style={{ marginTop: 10, fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.7, whiteSpace: "pre-wrap" as const }}>{expanded}</div>)}
+    </>
+  );
+}
 
 interface ProducerDetailProps {
   producer: Producer;
@@ -145,6 +203,10 @@ export default function ProducerDetail({
 
         {/* Description */}
         <div className="producer-bio" dangerouslySetInnerHTML={{ __html: producer.description }} />
+        <div style={{ padding: "0 20px 12px", borderBottom: "1px solid var(--border-c)" }}>
+          <ReadMore name={producer.name} context={`${producer.name} is a wine producer in ${region?.name || producer.country}, established in ${producer.founded}. Known for ${producer.flagshipWine}.`} />
+          <FunFacts name={`${producer.name} winery in ${region?.name || producer.country}`} />
+        </div>
 
         {/* Stats */}
         <div className="producer-stats-row">

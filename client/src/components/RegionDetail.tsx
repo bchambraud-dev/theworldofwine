@@ -57,7 +57,7 @@ function ReadMore({ name, context }: { name: string; context: string }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const load = async () => {
-    if (expanded) { setOpen(!open); return; }
+    if (expanded) { setOpen(true); return; }
     setLoading(true); setOpen(true);
     try {
       const res = await fetch(`/api/region-content?type=read_more&name=${encodeURIComponent(name)}&context=${encodeURIComponent(context)}`, { signal: AbortSignal.timeout(25000) });
@@ -66,27 +66,26 @@ function ReadMore({ name, context }: { name: string; context: string }) {
     } catch { setExpanded(null); }
     setLoading(false);
   };
+  const linkStyle = {
+    background: "none" as const, border: "none" as const, padding: 0, cursor: "pointer" as const,
+    fontFamily: "inherit" as const, fontSize: "inherit" as const, fontWeight: 300 as const,
+    color: "#8C1C2E", display: "inline-flex" as const, alignItems: "center" as const, gap: 3,
+  };
+  const chevron = (up: boolean) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: up ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>
+  );
   return (
     <>
-      <button onClick={load} style={{
-        background: "none", border: "none", padding: 0, cursor: "pointer",
-        fontFamily: "'Jost', sans-serif", fontSize: "0.86rem", fontWeight: 300,
-        color: "#8C1C2E", display: "inline-flex", alignItems: "center", gap: 3,
-      }}>
-        {loading ? "expanding..." : open ? "Show less" : "...read more"}
-        {!loading && (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>
-        )}
-      </button>
+      {!open && !loading && <button onClick={load} style={linkStyle}>...read more {chevron(false)}</button>}
+      {loading && <span style={{ ...linkStyle, cursor: "default" }}>expanding...</span>}
       {open && expanded && (
-        <div style={{
-          fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
-          color: "var(--text2)", lineHeight: 1.7, marginTop: 12,
-          overflowWrap: "break-word" as const, wordBreak: "break-word" as const,
-        }}>
-          {expanded}
+        <div style={{ marginTop: 14 }}>
+          {expanded.split(/\n\n+/).filter((p: string) => p.trim()).map((p: string, i: number) => (
+            <p key={i} style={{ margin: i === 0 ? "0" : "14px 0 0" }}>{p.trim()}</p>
+          ))}
         </div>
       )}
+      {open && !loading && <button onClick={() => setOpen(false)} style={{ ...linkStyle, marginTop: 10 }}>Show less {chevron(true)}</button>}
     </>
   );
 }
@@ -243,9 +242,9 @@ export default function RegionDetail({
 
         {/* Description + Read More + Fun Facts */}
         <div className="sp-desc" style={{ borderBottom: "none", paddingBottom: 4 }} dangerouslySetInnerHTML={{ __html: region.description }} />
-        <div style={{ padding: "0 20px 16px", borderBottom: "1px solid var(--border-c)", overflowWrap: "break-word" as const, wordBreak: "break-word" as const }}>
-          <ReadMore name={region.name} context={region.description?.replace(/<[^>]+>/g, "").slice(0, 300)} />
-          <FunFacts name={region.name} />
+        <div style={{ padding: "0 20px 16px", borderBottom: "1px solid var(--border-c)", fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, lineHeight: 1.7, color: "var(--text2)", overflowWrap: "break-word" as const, wordBreak: "break-word" as const }}>
+          <ReadMore key={`rm-${region.id}`} name={region.name} context={region.description?.replace(/<[^>]+>/g, "").slice(0, 300)} />
+          <FunFacts key={`ff-${region.id}`} name={region.name} />
         </div>
 
         {/* Stats */}

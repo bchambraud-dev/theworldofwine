@@ -44,7 +44,7 @@ export default async function handler(req, res) {
   if (!type || !name) return res.status(400).json({ error: "type and name required" });
   if (!ANTHROPIC_KEY) return res.status(200).json({ content: null, error: "API key not configured" });
 
-  const cacheKey = `${type}|${name}`.toLowerCase();
+  const cacheKey = `${type}|v2|${name}`.toLowerCase();
 
   // Check cache first
   const cached = await getCached(cacheKey);
@@ -63,19 +63,23 @@ Rules:
 - Do NOT start with generic statements like "Did you know..."
 - Return ONLY a JSON array of strings, no markdown: ["fact 1", "fact 2", ...]`;
     } else if (type === "read_more") {
-      prompt = `You are Sommy, a knowledgeable wine companion. Expand on this description of "${name}":
+      prompt = `You are Sommy, a knowledgeable wine companion. The user just read this about "${name}":
 
 "${context || name}"
 
-Write 3-4 rich paragraphs covering:
-1. History and origins — how this region/producer came to be
-2. Terroir and what makes the wines distinctive
-3. Key wines or styles to know
-4. What to look for when buying or tasting
+Your job is to CONTINUE that text naturally — as if you're writing the next 3-4 paragraphs that follow directly from where it left off. Do NOT reintroduce the subject. Do NOT repeat what was already said. Do NOT start with the name of the region or producer as if starting fresh. Pick up the thread and go deeper.
 
-Tone: warm, authoritative, conversational. Write as Sommy speaking directly to the reader using "you" and "I". No corporate jargon. No emojis.
+Cover things like:
+- What makes the wines here distinctive (terroir, climate, winemaking philosophy)
+- Specific wines, vintages, or styles worth knowing
+- What to look for when buying or tasting
+- Any fascinating historical or cultural context not yet mentioned
 
-Return ONLY the expanded text as a plain string (no JSON, no markdown headers).`;
+Tone: warm, authoritative, conversational. Speak directly to the reader using "you" and "I". No corporate jargon. No emojis.
+
+IMPORTANT: Separate each paragraph with a blank line (double newline). Do NOT write one solid block of text.
+
+Return ONLY the continuation text as a plain string (no JSON, no markdown headers, no title).`;
     } else {
       return res.status(400).json({ error: "type must be fun_facts or read_more" });
     }

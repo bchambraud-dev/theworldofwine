@@ -3,7 +3,7 @@
 // Caches results in Supabase for 48 hours to avoid redundant searches.
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://ycgxczvsxiilqzvyzpso.supabase.co";
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://auth.theworldofwine.org";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Cache helpers ──────────────────────────────────────────────────────────

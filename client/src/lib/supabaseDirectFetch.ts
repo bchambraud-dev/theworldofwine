@@ -3,7 +3,7 @@
 // can hang indefinitely on ANY operation — reads AND writes. All Supabase calls
 // should go through raw fetch() to bypass the auth lock entirely.
 
-export const SUPABASE_URL = "https://ycgxczvsxiilqzvyzpso.supabase.co";
+export const SUPABASE_URL = "https://auth.theworldofwine.org";
 export const ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzYxMzEsImV4cCI6MjA4NzM1MjEzMX0.QMqRA-a89wOTNNOnc_zchjSnqQ9QDfbYWiXXcu-4dg4";
 

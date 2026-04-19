@@ -7,7 +7,7 @@ import { newsItems } from "@/data/news";
 import ExpandableNewsCard from "@/components/ExpandableNewsCard";
 import { useSEO, useStructuredData } from "@/lib/useSEO";
 
-// ── Fun Facts component ────────────────────────────────────────────
+// ── Fun Facts ──────────────────────────────────────────────────────
 function FunFacts({ name }: { name: string }) {
   const [facts, setFacts] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,23 +23,32 @@ function FunFacts({ name }: { name: string }) {
     setLoading(false);
   };
   return (
-    <div style={{ margin: "10px 0 6px" }}>
-      <button onClick={load} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1.5px solid #EDEAE3", borderRadius: 8, background: open ? "#F7F4EF" : "transparent", cursor: "pointer", fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", fontWeight: 500, letterSpacing: "0.06em", color: "#8C1C2E", textTransform: "uppercase" as const, transition: "all 0.15s" }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-        {loading ? "Loading..." : "Interesting Facts"}
+    <div style={{ marginTop: 16 }}>
+      <button onClick={load} style={{
+        display: "inline-flex", alignItems: "center", gap: 7, background: "none",
+        border: "none", cursor: "pointer", padding: 0,
+        fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", fontWeight: 500,
+        letterSpacing: "0.06em", color: "#8C1C2E", textTransform: "uppercase" as const,
+      }}>
+        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#8C1C2E", display: "inline-block" }} />
+        {loading ? "Loading..." : open ? "Hide Facts" : "Interesting Facts"}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>
       </button>
       {open && facts && facts.length > 0 && (
-        <div style={{ marginTop: 10, padding: "12px 14px", background: "rgba(140,28,46,0.03)", borderRadius: 10, borderLeft: "3px solid rgba(140,28,46,0.15)" }}>
-          <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column" as const, gap: 8 }}>
-            {facts.map((f, i) => (<li key={i} style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6 }}>{f}</li>))}
-          </ul>
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column" as const, gap: 10 }}>
+          {facts.map((f, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8C1C2E", marginTop: 7, flexShrink: 0 }} />
+              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6 }}>{f}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-// ── Read More component ────────────────────────────────────────────
+// ── Read More (inline continuation) ───────────────────────────────
 function ReadMore({ name, context }: { name: string; context: string }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,11 +65,25 @@ function ReadMore({ name, context }: { name: string; context: string }) {
   };
   return (
     <>
-      <button onClick={load} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#8C1C2E", marginTop: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
-        {loading ? "Expanding..." : open ? "Show less" : "Read more"}
-        {!loading && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>}
+      <button onClick={load} style={{
+        background: "none", border: "none", padding: 0, cursor: "pointer",
+        fontFamily: "'Jost', sans-serif", fontSize: "0.86rem", fontWeight: 300,
+        color: "#8C1C2E", display: "inline-flex", alignItems: "center", gap: 3,
+      }}>
+        {loading ? "expanding..." : open ? "Show less" : "...read more"}
+        {!loading && (
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9" /></svg>
+        )}
       </button>
-      {open && expanded && (<div style={{ marginTop: 10, fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.7, whiteSpace: "pre-wrap" as const }}>{expanded}</div>)}
+      {open && expanded && (
+        <div style={{
+          fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+          color: "var(--text2)", lineHeight: 1.7, marginTop: 12,
+          overflowWrap: "break-word" as const, wordBreak: "break-word" as const,
+        }}>
+          {expanded}
+        </div>
+      )}
     </>
   );
 }
@@ -201,9 +224,9 @@ export default function ProducerDetail({
           )}
         </div>
 
-        {/* Description */}
-        <div className="producer-bio" dangerouslySetInnerHTML={{ __html: producer.description }} />
-        <div style={{ padding: "0 20px 12px", borderBottom: "1px solid var(--border-c)" }}>
+        {/* Description + Read More + Fun Facts */}
+        <div className="producer-bio" style={{ borderBottom: "none", paddingBottom: 4 }} dangerouslySetInnerHTML={{ __html: producer.description }} />
+        <div style={{ padding: "0 20px 16px", borderBottom: "1px solid var(--border-c)", overflowWrap: "break-word" as const, wordBreak: "break-word" as const }}>
           <ReadMore name={producer.name} context={`${producer.name} is a wine producer in ${region?.name || producer.country}, established in ${producer.founded}. Known for ${producer.flagshipWine}.`} />
           <FunFacts name={`${producer.name} winery in ${region?.name || producer.country}`} />
         </div>

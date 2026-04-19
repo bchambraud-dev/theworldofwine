@@ -221,7 +221,6 @@ function classifyNote(note: string): string {
 const categoryLabelStyle: React.CSSProperties = {
   fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem",
   letterSpacing: "0.12em", color: "#7A7568", textTransform: "uppercase",
-  flexShrink: 0, paddingTop: 2,
 };
 
 function TastingPills({ nose, palate, texture }: {
@@ -235,20 +234,22 @@ function TastingPills({ nose, palate, texture }: {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {cats.map(cat => (
-        <div key={cat.label} style={{ display: "flex", alignItems: "flex-start", gap: 6, flexWrap: "wrap" }}>
-          <span style={categoryLabelStyle}>{cat.label}</span>
-          {cat.items.map((item, i) => {
-            const c = cat.colorize ? flavorColors[classifyNote(item)] || flavorColors.neutral : flavorColors.neutral;
-            return (
-              <span key={i} style={{
-                fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
-                letterSpacing: "0.08em", padding: "4px 10px",
-                background: c.bg, color: c.color,
-                border: `1px solid ${c.border}`,
-                borderRadius: 6, textTransform: "uppercase", whiteSpace: "nowrap",
-              }}>{item}</span>
-            );
-          })}
+        <div key={cat.label} style={{ marginBottom: 10 }}>
+          <div style={categoryLabelStyle}>{cat.label}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+            {cat.items.map((item, i) => {
+              const c = cat.colorize ? flavorColors[classifyNote(item)] || flavorColors.neutral : flavorColors.neutral;
+              return (
+                <span key={i} style={{
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                  letterSpacing: "0.08em", padding: "4px 10px",
+                  background: c.bg, color: c.color,
+                  border: `1px solid ${c.border}`,
+                  borderRadius: 6, textTransform: "uppercase", whiteSpace: "nowrap",
+                }}>{item}</span>
+              );
+            })}
+          </div>
         </div>
       ))}
     </div>
@@ -581,6 +582,9 @@ function sourceLabel(source: string | null): string {
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
+// Module-level cache survives component unmount/remount (page navigation)
+const journalComparisonCache = { seen: new Set<string>(), expanded: new Set<string>() };
+
 const OFFSET = "52px"; // topbar only (no sub-nav)
 
 export default function Journal() {
@@ -632,8 +636,13 @@ export default function Journal() {
 
   // Logging flow state machine
   const [step, setStep] = useState<LogStep>("idle");
-  const [comparisonSeen, setComparisonSeen] = useState<Set<string>>(new Set());
-  const [expandedComparisons, setExpandedComparisons] = useState<Set<string>>(new Set());
+  const [comparisonSeen, setComparisonSeen] = useState<Set<string>>(() => journalComparisonCache.seen);
+  const [expandedComparisons, setExpandedComparisons] = useState<Set<string>>(() => journalComparisonCache.expanded);
+
+  // Sync comparison state to module-level cache
+  useEffect(() => { journalComparisonCache.seen = comparisonSeen; }, [comparisonSeen]);
+  useEffect(() => { journalComparisonCache.expanded = expandedComparisons; }, [expandedComparisons]);
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<string>("image/jpeg");
@@ -1904,18 +1913,20 @@ export default function Journal() {
                               <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 8 }}>YOUR TASTING</div>
                               {/* Appearance */}
                               {((wine.tasting_data as any).appearance?.intensity || (wine.tasting_data as any).appearance?.hue) && (
-                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
-                                  <span style={{ ...mono("0.56rem"), color: "#7A7568" }}>APPEARANCE</span>
-                                  {(wine.tasting_data as any).appearance?.intensity && (
-                                    <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
-                                      {(wine.tasting_data as any).appearance.intensity}
-                                    </span>
-                                  )}
-                                  {(wine.tasting_data as any).appearance?.hue && (
-                                    <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
-                                      {(wine.tasting_data as any).appearance.hue}
-                                    </span>
-                                  )}
+                                <div style={{ marginBottom: 10 }}>
+                                  <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>APPEARANCE</div>
+                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {(wine.tasting_data as any).appearance?.intensity && (
+                                      <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
+                                        {(wine.tasting_data as any).appearance.intensity}
+                                      </span>
+                                    )}
+                                    {(wine.tasting_data as any).appearance?.hue && (
+                                      <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
+                                        {(wine.tasting_data as any).appearance.hue}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                               {/* Nose aromas from tasting */}
@@ -1942,23 +1953,10 @@ export default function Journal() {
                                   </div>
                                 </div>
                               )}
-                              {/* Palate scales */}
-                              {((wine.tasting_data as any).sweetness || (wine.tasting_data as any).acidity || (wine.tasting_data as any).body) && (
-                                <div style={{ marginBottom: 10 }}>
-                                  <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>PALATE</div>
-                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                    {(wine.tasting_data as any).sweetness && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).sweetness}</span>}
-                                    {(wine.tasting_data as any).acidity && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).acidity} acid</span>}
-                                    {(wine.tasting_data as any).tannin && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).tannin} tannin</span>}
-                                    {(wine.tasting_data as any).body && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).body} body</span>}
-                                    {(wine.tasting_data as any).finish && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).finish} finish</span>}
-                                  </div>
-                                </div>
-                              )}
-                              {/* Palate flavours from tasting */}
+                              {/* Palate flavours (taste descriptors) */}
                               {(wine.tasting_data as any).palate_flavours?.length > 0 && (
                                 <div style={{ marginBottom: 10 }}>
-                                  <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>FLAVOURS</div>
+                                  <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>PALATE</div>
                                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                                     {((wine.tasting_data as any).palate_flavours as string[]).map((a: string, i: number) => {
                                       const c = flavorColors[classifyNote(a)] || flavorColors.neutral;
@@ -1974,6 +1972,19 @@ export default function Journal() {
                                   </div>
                                 </div>
                               )}
+                              {/* Texture scales (sweetness, acidity, tannin, body, finish) */}
+                              {((wine.tasting_data as any).sweetness || (wine.tasting_data as any).acidity || (wine.tasting_data as any).body) && (
+                                <div style={{ marginBottom: 10 }}>
+                                  <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>TEXTURE</div>
+                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {(wine.tasting_data as any).sweetness && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).sweetness}</span>}
+                                    {(wine.tasting_data as any).acidity && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).acidity} acid</span>}
+                                    {(wine.tasting_data as any).tannin && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).tannin} tannin</span>}
+                                    {(wine.tasting_data as any).body && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).body} body</span>}
+                                    {(wine.tasting_data as any).finish && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).finish} finish</span>}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                           {/* Sommy's tasting (for tasting mode entries) */}
@@ -1986,7 +1997,7 @@ export default function Journal() {
                             if (!sNose && !sPalate && !sTexture) return null;
                             return (
                               <div style={{ marginBottom: 10 }}>
-                                <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
+                                <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S TASTING</div>
                                 <TastingPills nose={sNose} palate={sPalate} texture={sTexture} />
                               </div>
                             );

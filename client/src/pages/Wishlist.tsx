@@ -787,7 +787,7 @@ export default function Wishlist() {
                       {/* Tasting notes */}
                       {(entry.nose || entry.palate || entry.texture) && (
                         <div style={{ marginBottom: 10 }}>
-                          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 8, letterSpacing: "0.14em" }}>SOMMY'S TASTING NOTES</div>
+                          <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 8, letterSpacing: "0.14em" }}>SOMMY'S TASTING NOTES</div>
                           {entry.nose && <TastingPills label="Nose" text={entry.nose} />}
                           {entry.palate && <TastingPills label="Palate" text={entry.palate} />}
                           {entry.texture && <TastingPills label="Texture" text={entry.texture} />}

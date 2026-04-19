@@ -165,7 +165,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "messages array required" });
     }
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
     const isLabelScan = !!image;
 
     // Build the Anthropic messages — if an image is included, attach it to the last user message

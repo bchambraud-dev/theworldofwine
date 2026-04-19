@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const { cellar, goals, user_context } = req.body || {};
     if (!cellar || !goals) return res.status(400).json({ error: "cellar and goals required" });
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
 
     const cellarSummary = cellar.map((w) =>
       `${w.wine_name} (${w.region || "unknown region"}, ${w.grapes || "unknown grapes"}, ${w.style || ""}, ${w.vintage || "NV"}) x${w.quantity || 1} — ${w.status || "active"}`

@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "wine_card and user_tasting required" });
     }
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
 
     const userMessage = `Here is the wine I identified:
 Name: ${wine_card.name || "Unknown"}

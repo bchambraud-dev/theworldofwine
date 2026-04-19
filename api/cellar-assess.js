@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     }
 
     // Not cached — call Claude
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
 
     const parts = [
       `Wine: ${wine_name}`,

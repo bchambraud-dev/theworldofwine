@@ -181,7 +181,7 @@ function ReadinessBar({ entry }: { entry: WishlistEntry }) {
   return (
     <div style={{ marginTop: 8, marginBottom: 4 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <span style={{ ...mono("0.48rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
+        <span style={{ ...mono("0.58rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
       </div>
 
       <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3" }}>
@@ -224,16 +224,16 @@ function ReadinessBar({ entry }: { entry: WishlistEntry }) {
         {yearMarkers.map((m, i) => (
           <span key={i} style={{
             position: "absolute", left: `${m.pct}%`, transform: "translateX(-50%)",
-            fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
-            color: "#B0ADA6", whiteSpace: "nowrap", top: 0,
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500,
+            color: "#7A7568", whiteSpace: "nowrap", top: 0,
           }}>
             {m.year}
           </span>
         ))}
         <span style={{
           position: "absolute", right: 0,
-          fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
-          color: "#D4D1CA", top: 0,
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500,
+          color: "#7A7568", top: 0,
         }}>
           {until + pastYears}
         </span>
@@ -270,13 +270,13 @@ function TastingPills({ label, text }: { label: string; text: string }) {
   if (pills.length === 0) return null;
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>{label.toUpperCase()}</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+      <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {pills.map((p, i) => {
           const c = tastingPillColor(p);
           return (
             <span key={i} style={{
-              ...mono("0.5rem"), padding: "2px 8px", borderRadius: 5,
+              ...mono("0.55rem"), padding: "4px 10px", borderRadius: 5,
               background: c.bg, color: c.fg,
             }}>
               {p.toUpperCase()}
@@ -394,7 +394,7 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
           width: "100%", padding: "10px 12px", border: "1.5px dashed #EDEAE3", borderRadius: 8,
           background: "#F7F4EF", cursor: loading ? "default" : "pointer",
           fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", fontWeight: 500,
-          letterSpacing: "0.08em", color: loading ? "#B0ADA6" : "#8C1C2E",
+          letterSpacing: "0.08em", color: loading ? "#7A7568" : "#8C1C2E",
           textTransform: "uppercase", display: "flex", alignItems: "center",
           justifyContent: "center", gap: 8, transition: "all 0.15s",
         }}
@@ -435,7 +435,7 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
     <div style={{ background: "#F7F4EF", borderRadius: 8, padding: "10px 12px" }}>
       {retailers.length > 0 ? (
         <>
-          <div style={{ ...mono("0.46rem"), color: "#4A7A52", marginBottom: 8 }}>
+          <div style={{ ...mono("0.56rem"), color: "#4A7A52", marginBottom: 8 }}>
             FOUND {retailers.length} RETAILER{retailers.length > 1 ? "S" : ""}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -444,7 +444,7 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
         </>
       ) : (
         <>
-          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 6 }}>
+          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 6 }}>
             {limited ? "SEARCH LIMIT REACHED" : "NO DIRECT MATCHES FOUND"}
           </div>
           <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", lineHeight: 1.5, marginBottom: 8 }}>
@@ -459,7 +459,7 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
       {fallbacks.length > 0 && (
         <div style={{ marginTop: retailers.length > 0 ? 10 : 0 }}>
           {retailers.length > 0 && (
-            <div style={{ ...mono("0.42rem"), color: "#D4D1CA", marginBottom: 6 }}>ALSO TRY</div>
+            <div style={{ ...mono("0.52rem"), color: "#7A7568", marginBottom: 6 }}>ALSO TRY</div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {fallbacks.map((r, i) => <RetailerLink key={i} r={r} />)}
@@ -471,8 +471,8 @@ function RetailerSearch({ wineName, country }: { wineName: string; country: stri
         onClick={() => { setSearched(false); setRetailers([]); setFallbacks([]); }}
         style={{
           marginTop: 8, background: "none", border: "none", padding: 0, cursor: "pointer",
-          fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem", letterSpacing: "0.08em",
-          color: "#D4D1CA", textTransform: "uppercase",
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em",
+          color: "#7A7568", textTransform: "uppercase",
         }}
       >
         Search again
@@ -653,7 +653,7 @@ export default function Wishlist() {
 
         {/* Header */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>WINES TO TRY</div>
+          <div style={{ ...mono(), color: "#7A7568", marginBottom: 4 }}>WINES TO TRY</div>
           <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400, color: "#1A1410", margin: 0 }}>
             Wishlist
           </h1>
@@ -746,7 +746,7 @@ export default function Wishlist() {
                     style={{ padding: "14px 16px", cursor: canExpand ? "pointer" : "default" }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
                         {entry.wine_name}
                         {entry.vintage && (
                           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.78rem", fontWeight: 500, color: "#5A5248", marginLeft: 6 }}>
@@ -761,17 +761,17 @@ export default function Wishlist() {
                         {[entry.producer, entry.region].filter(Boolean).join(" · ")}
                       </div>
                     )}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-                      {entry.grapes && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
-                      {entry.style && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
-                      {entry.price_estimate && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                      {entry.grapes && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
+                      {entry.style && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}
+                      {entry.price_estimate && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "rgba(140,28,46,0.06)", borderRadius: 5, color: "#8C1C2E" }}>{entry.price_estimate}</span>}
                     </div>
                     {entry.why && (
                       <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 8px", fontStyle: "italic" }}>
                         "{entry.why}"
                       </p>
                     )}
-                    <div style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>
+                    <div style={{ ...mono("0.52rem"), color: "#7A7568" }}>
                       {sourceLabel(entry.source).toUpperCase()}
                     </div>
                   </div>
@@ -787,7 +787,7 @@ export default function Wishlist() {
                       {/* Tasting notes */}
                       {(entry.nose || entry.palate || entry.texture) && (
                         <div style={{ marginBottom: 10 }}>
-                          <div style={{ ...mono("0.48rem"), color: "#B0ADA6", marginBottom: 8, letterSpacing: "0.14em" }}>SOMMY'S TASTING NOTES</div>
+                          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 8, letterSpacing: "0.14em" }}>SOMMY'S TASTING NOTES</div>
                           {entry.nose && <TastingPills label="Nose" text={entry.nose} />}
                           {entry.palate && <TastingPills label="Palate" text={entry.palate} />}
                           {entry.texture && <TastingPills label="Texture" text={entry.texture} />}
@@ -797,8 +797,8 @@ export default function Wishlist() {
                       {/* Breathing */}
                       {entry.breathing && (
                         <div style={{ marginBottom: 12 }}>
-                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>BREATHING</div>
-                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5 }}>
+                          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 4 }}>BREATHING</div>
+                          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6 }}>
                             {entry.breathing}
                           </div>
                         </div>
@@ -807,7 +807,7 @@ export default function Wishlist() {
                       {/* Readiness bar */}
                       {entry.drink_from && entry.drink_until && (
                         <div style={{ marginBottom: 12 }}>
-                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>DRINKING WINDOW</div>
+                          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 4 }}>DRINKING WINDOW</div>
                           <ReadinessBar entry={entry} />
                         </div>
                       )}
@@ -815,8 +815,8 @@ export default function Wishlist() {
                       {/* Sommy notes */}
                       {entry.sommy_notes && (
                         <div style={{ marginBottom: 12 }}>
-                          <div style={{ ...mono("0.46rem"), color: "#B0ADA6", marginBottom: 4 }}>SOMMY'S NOTES</div>
-                          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: 0 }}>
+                          <div style={{ ...mono("0.56rem"), color: "#7A7568", marginBottom: 4 }}>SOMMY'S NOTES</div>
+                          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.65, margin: 0 }}>
                             {entry.sommy_notes}
                           </p>
                         </div>
@@ -850,7 +850,7 @@ export default function Wishlist() {
                       <button onClick={() => setConfirmDeleteId(entry.id)} style={{
                         background: "none", border: "none", cursor: "pointer",
                         fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-                        letterSpacing: "0.08em", color: "#D4D1CA", padding: 0,
+                        letterSpacing: "0.08em", color: "#7A7568", padding: 0,
                       }}>REMOVE</button>
                     )}
                   </div>

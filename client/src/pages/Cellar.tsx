@@ -204,7 +204,7 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
     <div style={{ marginTop: 8, marginBottom: 4 }}>
       {/* Phase label — with extra bottom margin so NOW pill doesn't collide */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <span style={{ ...mono("0.48rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
+        <span style={{ ...mono("0.58rem"), color: markerColor }}>{phaseLabel(phase).toUpperCase()}</span>
       </div>
 
       {/* Bar */}
@@ -254,8 +254,8 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
         {yearMarkers.map((m, i) => (
           <span key={i} style={{
             position: "absolute", left: `${m.pct}%`, transform: "translateX(-50%)",
-            fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
-            color: "#B0ADA6", whiteSpace: "nowrap", top: 0,
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500,
+            color: "#7A7568", whiteSpace: "nowrap", top: 0,
           }}>
             {m.year}
           </span>
@@ -263,8 +263,8 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
         {/* End year on the right */}
         <span style={{
           position: "absolute", right: 0,
-          fontFamily: "'Geist Mono', monospace", fontSize: "0.4rem", fontWeight: 500,
-          color: "#D4D1CA", top: 0,
+          fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500,
+          color: "#7A7568", top: 0,
         }}>
           {until + pastYears}
         </span>
@@ -807,11 +807,11 @@ export default function Cellar() {
   };
 
   const chipStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 12px", borderRadius: 16,
+    padding: "6px 12px", borderRadius: 16,
     border: `1.5px solid ${active ? "#8C1C2E" : "#EDEAE3"}`,
     background: active ? "#8C1C2E" : "white",
     color: active ? "#F7F4EF" : "#5A5248",
-    fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
+    fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
     letterSpacing: "0.08em", cursor: "pointer",
     textTransform: "uppercase" as const,
   });
@@ -828,7 +828,7 @@ export default function Cellar() {
 
         {/* ── Header ── */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>YOUR COLLECTION</div>
+          <div style={{ ...mono(), color: "#7A7568", marginBottom: 4 }}>YOUR COLLECTION</div>
           <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400, color: "#1A1410", margin: 0 }}>
             My Cellar
           </h1>
@@ -872,13 +872,13 @@ export default function Cellar() {
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setHealthCollapsed(!healthCollapsed)}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ ...mono("0.52rem"), color: "#8C1C2E" }}>SOMMY'S CELLAR ASSESSMENT</div>
+                <div style={{ ...mono("0.56rem"), color: "#8C1C2E" }}>SOMMY'S CELLAR ASSESSMENT</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {!healthCollapsed && (
                   <button onClick={(e) => { e.stopPropagation(); setHealthText(""); setCachedWineFingerprint(""); fetchHealth(); }} style={{
                     background: "none", border: "none", cursor: "pointer",
-                    ...mono("0.48rem"), color: "#8C1C2E",
+                    ...mono("0.52rem"), color: "#8C1C2E",
                   }}>{healthLoading ? "..." : "REFRESH"}</button>
                 )}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s", transform: healthCollapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
@@ -888,8 +888,8 @@ export default function Cellar() {
             </div>
             <div style={{ maxHeight: healthCollapsed ? 0 : 400, overflow: "hidden", transition: "max-height 0.3s ease, margin 0.3s ease", marginTop: healthCollapsed ? 0 : 10 }}>
               <p style={{
-                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300,
-                color: "#1A1410", lineHeight: 1.6, margin: 0,
+                fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+                color: "#1A1410", lineHeight: 1.65, margin: 0,
               }}>{healthText}</p>
             </div>
           </div>
@@ -1078,7 +1078,7 @@ export default function Cellar() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <div style={{
-                          fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 400,
+                          fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400,
                           color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1,
                         }}>
                           {wine.wine_name}
@@ -1094,13 +1094,13 @@ export default function Cellar() {
                         )}
                       </div>
                       {wine.producer && (
-                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#8C1C2E", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300, color: "#8C1C2E", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {wine.producer}
                         </div>
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (
-                          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>
                             {cc && <img src={`https://flagcdn.com/28x21/${cc.toLowerCase()}.png`} alt="" width={14} height={10} style={{ borderRadius: 1.5, objectFit: "cover" }} />}
                             {wine.region}
                           </span>
@@ -1116,7 +1116,7 @@ export default function Cellar() {
                       {wine.status === "active" && <DrinkingWindowBar wine={wine} />}
                       {/* Status for consumed/gifted */}
                       {wine.status !== "active" && (
-                        <div style={{ ...mono("0.48rem"), color: phaseColor(phase), marginTop: 4 }}>
+                        <div style={{ ...mono("0.56rem"), color: phaseColor(phase), marginTop: 4 }}>
                           {phaseLabel(phase).toUpperCase()}
                           {wine.status_updated_at && ` — ${formatDate(wine.status_updated_at)}`}
                         </div>
@@ -1129,12 +1129,12 @@ export default function Cellar() {
                     <div style={{ padding: "0 14px 14px", borderTop: "1px solid #EDEAE3" }}>
                       {/* Tags */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, marginBottom: 10 }}>
-                        {wine.grapes && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.grapes.toUpperCase()}</span>}
-                        {wine.style && <span style={{ ...mono("0.5rem"), padding: "3px 8px", background: "#F7F4EF", borderRadius: 6 }}>{wine.style.toUpperCase()}</span>}
+                        {wine.grapes && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 6 }}>{wine.grapes.toUpperCase()}</span>}
+                        {wine.style && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 6 }}>{wine.style.toUpperCase()}</span>}
                       </div>
                       {/* Purchase info */}
                       {(wine.purchase_source || wine.purchase_date) && (
-                        <div style={{ ...mono("0.48rem"), color: "#D4D1CA", marginBottom: 8 }}>
+                        <div style={{ ...mono("0.52rem"), color: "#7A7568", marginBottom: 8 }}>
                           {[wine.purchase_source, wine.purchase_date && `Purchased ${formatDate(wine.purchase_date)}`].filter(Boolean).join(" · ")}
                         </div>
                       )}
@@ -1147,11 +1147,11 @@ export default function Cellar() {
                       {/* Sommy's assessment */}
                       {wine.sommy_assessment && (
                         <div style={{
-                          fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300,
-                          color: "#1A1410", lineHeight: 1.55, margin: "0 0 10px",
+                          fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+                          color: "#1A1410", lineHeight: 1.65, margin: "0 0 10px",
                           padding: "10px 14px", background: "rgba(140,28,46,0.03)", borderRadius: 10,
                         }}>
-                          <div style={{ ...mono("0.48rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S ASSESSMENT</div>
+                          <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S ASSESSMENT</div>
                           {wine.sommy_assessment}
                         </div>
                       )}

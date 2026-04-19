@@ -1884,3 +1884,8 @@
   font-weight: 600;
   color: var(--text);
 }
+
+@media (max-width: 640px) {
+  /* Mobile readability baseline */
+  body { font-size: 0.95rem; }
+}

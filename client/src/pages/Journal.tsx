@@ -219,8 +219,8 @@ function classifyNote(note: string): string {
 }
 
 const categoryLabelStyle: React.CSSProperties = {
-  fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
-  letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+  fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem",
+  letterSpacing: "0.12em", color: "#7A7568", textTransform: "uppercase",
   flexShrink: 0, paddingTop: 2,
 };
 
@@ -241,8 +241,8 @@ function TastingPills({ nose, palate, texture }: {
             const c = cat.colorize ? flavorColors[classifyNote(item)] || flavorColors.neutral : flavorColors.neutral;
             return (
               <span key={i} style={{
-                fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-                letterSpacing: "0.08em", padding: "3px 8px",
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                letterSpacing: "0.08em", padding: "4px 10px",
                 background: c.bg, color: c.color,
                 border: `1px solid ${c.border}`,
                 borderRadius: 6, textTransform: "uppercase", whiteSpace: "nowrap",
@@ -368,8 +368,8 @@ function TastingProgressBar({ currentStep }: { currentStep: number }) {
             background: i <= currentStep ? "#8C1C2E" : "#EDEAE3",
           }} />
           <span style={{
-            fontFamily: "'Geist Mono', monospace", fontSize: "0.42rem",
-            letterSpacing: "0.1em", color: i <= currentStep ? "#8C1C2E" : "#D4D1CA",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
+            letterSpacing: "0.1em", color: i <= currentStep ? "#8C1C2E" : "#7A7568",
           }}>{label}</span>
         </div>
       ))}
@@ -406,8 +406,8 @@ function AromaPillGrid({ selected, onToggle, customItems, onAddCustom, colorize 
       {AROMA_CATEGORIES.map(cat => (
         <div key={cat.label}>
           <div style={{
-            fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
-            letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem",
+            letterSpacing: "0.12em", color: "#7A7568", textTransform: "uppercase",
             marginBottom: 6,
           }}>{cat.label}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -435,8 +435,8 @@ function AromaPillGrid({ selected, onToggle, customItems, onAddCustom, colorize 
       {extras.length > 0 && (
         <div>
           <div style={{
-            fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
-            letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem",
+            letterSpacing: "0.12em", color: "#7A7568", textTransform: "uppercase",
             marginBottom: 6,
           }}>YOUR NOTES</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1109,7 +1109,7 @@ export default function Journal() {
         {/* ── Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
-            <div style={{ ...mono(), color: "#D4D1CA", marginBottom: 4 }}>WINES YOU'VE TASTED AND YOUR NOTES</div>
+            <div style={{ ...mono(), color: "#7A7568", marginBottom: 4 }}>WINES YOU'VE TASTED AND YOUR NOTES</div>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400, color: "#1A1410", margin: 0 }}>
               My Experiences
             </h1>
@@ -1277,8 +1277,8 @@ export default function Journal() {
                   <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                 </svg>
                 <div>
-                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 3 }}>BREATHING</div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5 }}>{cardData.breathing}</div>
+                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 3 }}>BREATHING</div>
+                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6 }}>{cardData.breathing}</div>
                 </div>
               </div>
             )}
@@ -1662,12 +1662,12 @@ export default function Journal() {
             {sommyComparison && (
               <details style={{ marginBottom: 18 }}>
                 <summary style={{
-                  fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.1em",
+                  fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.1em",
                   color: "#8C1C2E", cursor: "pointer", padding: "8px 0",
                 }}>SOMMY'S COMPARISON</summary>
                 <div style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300,
-                  color: "#5A5248", lineHeight: 1.55, padding: "10px 14px",
+                  fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+                  color: "#5A5248", lineHeight: 1.65, padding: "10px 14px",
                   background: "rgba(140,28,46,0.03)", borderRadius: 10, marginTop: 6,
                 }}>{sommyComparison}</div>
               </details>
@@ -1848,7 +1848,7 @@ export default function Journal() {
                         {/* Info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{
-                            fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 400,
+                            fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400,
                             color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                           }}>
                             {wine.wine_name}
@@ -1856,7 +1856,7 @@ export default function Journal() {
                           </div>
                           {wine.producer && (
                             <div style={{
-                              fontFamily: "'Jost', sans-serif", fontSize: "0.72rem", fontWeight: 300,
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300,
                               color: "#8C1C2E", marginTop: 1,
                               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                             }}>
@@ -1865,7 +1865,7 @@ export default function Journal() {
                           )}
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                             {wine.region && (
-                              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>
                                 {(() => {
                                   const c = countryCode(regionToCountry(wine.region));
                                   if (!c) return null;
@@ -1874,9 +1874,9 @@ export default function Journal() {
                                 {wine.region}
                               </span>
                             )}
-                            {wine.personal_rating !== null && <Stars value={wine.personal_rating} size="0.65rem" />}
+                            {wine.personal_rating !== null && <Stars value={wine.personal_rating} size="0.75rem" />}
                             {wine.date_tasted && (
-                              <span style={{ ...mono("0.55rem"), color: "#D4D1CA" }}>{formatDate(wine.date_tasted)}</span>
+                              <span style={{ ...mono("0.55rem"), color: "#7A7568" }}>{formatDate(wine.date_tasted)}</span>
                             )}
                           </div>
                         </div>
@@ -1899,18 +1899,18 @@ export default function Journal() {
                           {/* Tasting mode detail — structured data */}
                           {wine.tasting_data && (
                             <div style={{ marginBottom: 12 }}>
-                              <div style={{ ...mono("0.52rem"), color: "#8C1C2E", marginBottom: 8 }}>YOUR TASTING</div>
+                              <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 8 }}>YOUR TASTING</div>
                               {/* Appearance */}
                               {((wine.tasting_data as any).appearance?.intensity || (wine.tasting_data as any).appearance?.hue) && (
                                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
-                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>APPEARANCE</span>
+                                  <span style={{ ...mono("0.56rem"), color: "#7A7568" }}>APPEARANCE</span>
                                   {(wine.tasting_data as any).appearance?.intensity && (
-                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                    <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
                                       {(wine.tasting_data as any).appearance.intensity}
                                     </span>
                                   )}
                                   {(wine.tasting_data as any).appearance?.hue && (
-                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                    <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
                                       {(wine.tasting_data as any).appearance.hue}
                                     </span>
                                   )}
@@ -1919,9 +1919,9 @@ export default function Journal() {
                               {/* Nose aromas from tasting */}
                               {(wine.tasting_data as any).nose_aromas?.length > 0 && (
                                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6, alignItems: "center" }}>
-                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>NOSE</span>
+                                  <span style={{ ...mono("0.56rem"), color: "#7A7568" }}>NOSE</span>
                                   {(wine.tasting_data as any).nose_intensity && (
-                                    <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>
+                                    <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>
                                       {(wine.tasting_data as any).nose_intensity}
                                     </span>
                                   )}
@@ -1929,8 +1929,8 @@ export default function Journal() {
                                     const c = flavorColors[classifyNote(a)] || flavorColors.neutral;
                                     return (
                                       <span key={i} style={{
-                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
-                                        letterSpacing: "0.08em", padding: "2px 7px",
+                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                                        letterSpacing: "0.08em", padding: "4px 10px",
                                         background: c.bg, color: c.color, border: `1px solid ${c.border}`,
                                         borderRadius: 5, textTransform: "uppercase",
                                       }}>{a}</span>
@@ -1941,12 +1941,12 @@ export default function Journal() {
                               {/* Palate scales */}
                               {((wine.tasting_data as any).sweetness || (wine.tasting_data as any).acidity || (wine.tasting_data as any).body) && (
                                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
-                                  <span style={{ ...mono("0.48rem"), color: "#D4D1CA" }}>PALATE</span>
-                                  {(wine.tasting_data as any).sweetness && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).sweetness}</span>}
-                                  {(wine.tasting_data as any).acidity && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).acidity} acid</span>}
-                                  {(wine.tasting_data as any).tannin && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).tannin} tannin</span>}
-                                  {(wine.tasting_data as any).body && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).body} body</span>}
-                                  {(wine.tasting_data as any).finish && <span style={{ ...mono("0.5rem"), padding: "2px 7px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).finish} finish</span>}
+                                  <span style={{ ...mono("0.56rem"), color: "#7A7568" }}>PALATE</span>
+                                  {(wine.tasting_data as any).sweetness && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).sweetness}</span>}
+                                  {(wine.tasting_data as any).acidity && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).acidity} acid</span>}
+                                  {(wine.tasting_data as any).tannin && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).tannin} tannin</span>}
+                                  {(wine.tasting_data as any).body && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).body} body</span>}
+                                  {(wine.tasting_data as any).finish && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{(wine.tasting_data as any).finish} finish</span>}
                                 </div>
                               )}
                               {/* Palate flavours from tasting */}
@@ -1957,8 +1957,8 @@ export default function Journal() {
                                     const c = flavorColors[classifyNote(a)] || flavorColors.neutral;
                                     return (
                                       <span key={i} style={{
-                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
-                                        letterSpacing: "0.08em", padding: "2px 7px",
+                                        fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                                        letterSpacing: "0.08em", padding: "4px 10px",
                                         background: c.bg, color: c.color, border: `1px solid ${c.border}`,
                                         borderRadius: 5, textTransform: "uppercase",
                                       }}>{a}</span>
@@ -2001,26 +2001,26 @@ export default function Journal() {
                                 <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                               </svg>
                               <div>
-                                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
-                                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.4 }}>{wine.breathing}</div>
+                                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
+                                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5 }}>{wine.breathing}</div>
                               </div>
                             </div>
                           )}
                           {/* Sommy's comparison (tasting mode) */}
                           {wine.sommy_comparison && (
                             <div style={{
-                              fontFamily: "'Jost', sans-serif", fontSize: "0.8rem", fontWeight: 300,
-                              color: "#1A1410", lineHeight: 1.55, margin: "0 0 10px",
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
+                              color: "#1A1410", lineHeight: 1.65, margin: "0 0 10px",
                               padding: "12px 14px", background: "rgba(140,28,46,0.03)", borderRadius: 10,
                               borderLeft: "3px solid rgba(140,28,46,0.15)",
                             }}>
-                              <div style={{ ...mono("0.48rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S COMPARISON</div>
+                              <div style={{ ...mono("0.56rem"), color: "#8C1C2E", marginBottom: 6 }}>SOMMY'S COMPARISON</div>
                               {wine.sommy_comparison}
                             </div>
                           )}
                           {/* Sommy's description */}
                           {wine.sommy_description && (
-                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: "0 0 10px" }}>
+                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.65, margin: "0 0 10px" }}>
                               {wine.sommy_description}
                             </p>
                           )}

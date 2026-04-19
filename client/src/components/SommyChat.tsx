@@ -665,7 +665,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         ["Style", msg.wineCard.style],
                       ].map(([label, value]) => value && (
                         <div key={label}>
-                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#D4D1CA" }}>{(label as string).toUpperCase()}</div>
+                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#7A7568" }}>{(label as string).toUpperCase()}</div>
                           <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410", display: "flex", alignItems: "center", gap: 4 }}>
                             {label === "Region" && (() => {
                               const country = regionToCountry(value as string);
@@ -684,12 +684,12 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         {[{label: "NOSE", val: msg.wineCard.nose, colorize: true}, {label: "PALATE", val: msg.wineCard.palate, colorize: true}, {label: "TEXTURE", val: msg.wineCard.texture, colorize: false}]
                           .filter(c => c.val)
                           .map(c => (
-                            <div key={c.label} style={{ display: "flex", alignItems: "flex-start", gap: 5, flexWrap: "wrap" }}>
-                              <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.46rem", letterSpacing: "0.12em", color: "#D4D1CA", textTransform: "uppercase", paddingTop: 2, flexShrink: 0 }}>{c.label}</span>
+                            <div key={c.label} style={{ display: "flex", alignItems: "flex-start", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.12em", color: "#7A7568", textTransform: "uppercase", paddingTop: 2, flexShrink: 0 }}>{c.label}</span>
                               {c.val!.split(",").map(s => s.trim()).filter(Boolean).map((item, j) => {
                                 const col = c.colorize ? classifyTastingNote(item) : neutralPill;
                                 return (
-                                  <span key={j} style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", letterSpacing: "0.08em", padding: "2px 7px", background: col.bg, color: col.color, border: `1px solid ${col.border}`, borderRadius: 5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{item}</span>
+                                  <span key={j} style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem", letterSpacing: "0.08em", padding: "4px 10px", background: col.bg, color: col.color, border: `1px solid ${col.border}`, borderRadius: 5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{item}</span>
                                 );
                               })}
                             </div>
@@ -703,7 +703,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                           <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                         </svg>
                         <div>
-                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.44rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
+                          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.12em", color: "#8C1C2E", textTransform: "uppercase", marginBottom: 2 }}>BREATHING</div>
                           <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.4 }}>{msg.wineCard.breathing}</div>
                         </div>
                       </div>
@@ -737,7 +737,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                       return (
                         <div style={{ padding: "10px 14px 12px", borderTop: "1px solid #EDEAE3" }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-                            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: mc }}>{phLabels[phase]}</span>
+                            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: mc }}>{phLabels[phase]}</span>
                           </div>
                           <div style={{ position: "relative", height: 8, borderRadius: 4, overflow: "visible", background: "#EDEAE3" }}>
                             <div style={{ position: "absolute", inset: 0, borderRadius: 4, overflow: "hidden" }}>
@@ -748,16 +748,16 @@ The more you share — what you enjoy, what you've tried, even what you definite
                               {paPct > 0 && <div style={{ position: "absolute", left: `${hPct + rPct + pPct + sPct}%`, top: 0, height: "100%", width: `${paPct}%`, background: "#A67055", opacity: 0.5 }} />}
                             </div>
                             <div style={{ position: "absolute", left: `${Math.max(3, Math.min(97, nowPct))}%`, top: -16, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
-                              <div style={{ fontSize: "0.46rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: mc, borderRadius: 4, padding: "2px 5px", lineHeight: 1.2, boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>NOW</div>
+                              <div style={{ fontSize: "0.5rem", fontFamily: "'Geist Mono', monospace", fontWeight: 700, color: "#fff", background: mc, borderRadius: 4, padding: "2px 5px", lineHeight: 1.2, boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>NOW</div>
                               <div style={{ width: 0, height: 0, borderLeft: "3.5px solid transparent", borderRight: "3.5px solid transparent", borderTop: `3.5px solid ${mc}` }} />
                               <div style={{ width: 2, height: 7, background: mc, borderRadius: 1, marginTop: -0.5 }} />
                             </div>
                           </div>
                           <div style={{ position: "relative", height: 14, marginTop: 2 }}>
-                            {hPct > 0 && <span style={{ position: "absolute", left: `${hPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{df}</span>}
-                            {ps > df && <span style={{ position: "absolute", left: `${hPct + rPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{ps}</span>}
-                            {pe < du && <span style={{ position: "absolute", left: `${hPct + rPct + pPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#B0ADA6" }}>{pe}</span>}
-                            <span style={{ position: "absolute", right: 0, fontFamily: "'Geist Mono', monospace", fontSize: "0.38rem", fontWeight: 500, color: "#D4D1CA" }}>{du}</span>
+                            {hPct > 0 && <span style={{ position: "absolute", left: `${hPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500, color: "#7A7568" }}>{df}</span>}
+                            {ps > df && <span style={{ position: "absolute", left: `${hPct + rPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500, color: "#7A7568" }}>{ps}</span>}
+                            {pe < du && <span style={{ position: "absolute", left: `${hPct + rPct + pPct}%`, transform: "translateX(-50%)", fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500, color: "#7A7568" }}>{pe}</span>}
+                            <span style={{ position: "absolute", right: 0, fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem", fontWeight: 500, color: "#7A7568" }}>{du}</span>
                           </div>
                         </div>
                       );

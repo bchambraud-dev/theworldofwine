@@ -150,6 +150,125 @@ function phaseColor(phase: string): string {
   return "#D4D1CA";
 }
 
+// ── Decanting Guidance ───────────────────────────────────────────────────────
+
+interface DecantAdvice {
+  level: "yes" | "recommended" | "optional" | "no";
+  duration: string;
+  method: string;
+  tip: string;
+}
+
+function getDecantingAdvice(wine: CellarWine): DecantAdvice {
+  const g = (wine.grapes || "").toLowerCase();
+  const s = (wine.style || "").toLowerCase();
+  const r = (wine.region || "").toLowerCase();
+  const n = (wine.wine_name || "").toLowerCase();
+  const age = wine.vintage ? CURRENT_YEAR - wine.vintage : 0;
+
+  // Sparkling — never
+  if (s.includes("sparkling") || s.includes("champagne") || r.includes("champagne") || s.includes("cava") || s.includes("prosecco") || g.includes("champagne")) {
+    return { level: "no", duration: "", method: "", tip: "Sparkling wines lose their fizz in a decanter. Serve straight from the bottle." };
+  }
+
+  // Fortified — vintage port yes, others optional
+  if (s.includes("port") || s.includes("fortified") || s.includes("sherry") || s.includes("madeira")) {
+    if (n.includes("vintage") || n.includes("lbv") || n.includes("late bottled") || (s.includes("port") && age > 10)) {
+      return { level: "yes", duration: "2-4 hours", method: "Decant through a fine filter to catch sediment", tip: "Vintage Port throws heavy sediment. Stand the bottle upright a day before, then pour slowly and stop when you see grit." };
+    }
+    return { level: "optional", duration: "15-30 min", method: "Brief pour into decanter", tip: "Most fortified wines are ready from the bottle, but a short decant can help them open." };
+  }
+
+  // Sweet / dessert
+  if (s.includes("sweet") || s.includes("dessert") || s.includes("botrytis") || r.includes("sauternes") || r.includes("tokaj")) {
+    return { level: "no", duration: "", method: "", tip: "Serve chilled, straight from the bottle. Decanting dulls the delicate aromatics." };
+  }
+
+  // Rosé
+  if (s.includes("rosé") || s.includes("rose")) {
+    return { level: "no", duration: "", method: "", tip: "Rosé is at its best served fresh and chilled." };
+  }
+
+  // White wines
+  const isWhite = s.includes("white") || g.includes("chardonnay") || g.includes("sauvignon blanc") || g.includes("riesling") || g.includes("viognier") || g.includes("gewurz") || g.includes("pinot grigio") || g.includes("pinot gris") || g.includes("albari") || g.includes("chenin") || g.includes("grüner") || g.includes("gruner");
+  if (isWhite) {
+    const fullBodyWhite = g.includes("chardonnay") || g.includes("viognier") || g.includes("chenin") || s.includes("oaked") || r.includes("burgundy") || r.includes("meursault") || r.includes("montrachet");
+    if (fullBodyWhite) {
+      return { level: "optional", duration: "15-30 min", method: "Gentle pour into a decanter", tip: "Full-bodied whites can benefit from a brief aeration — it opens up the buttery, oak-driven layers." };
+    }
+    return { level: "no", duration: "", method: "", tip: "Light, crisp whites are best served fresh from the bottle." };
+  }
+
+  // --- RED WINES ---
+
+  // Very old (20+ years) — gentle treatment
+  if (age >= 20) {
+    return { level: "recommended", duration: "15-30 min", method: "Stand bottle upright 24hrs before. Pour very gently, leaving sediment behind", tip: "Old wines are fragile. A brief, gentle decant separates sediment without stripping the delicate aromatics that took decades to develop." };
+  }
+
+  // Mature (10-20 years)
+  if (age >= 10 && age < 20) {
+    return { level: "recommended", duration: "30-60 min", method: "Careful pour, leave sediment in the bottle", tip: "Mature wines benefit from a gentle decant — it separates sediment and lets the bouquet unfold without rushing it." };
+  }
+
+  // Big tannic grapes
+  const bigTannic = g.includes("cabernet sauvignon") || g.includes("nebbiolo") || g.includes("tannat") || g.includes("mourvèdre") || g.includes("mourvedre") || g.includes("petit verdot") || g.includes("aglianico") || g.includes("sagrantino") || r.includes("barolo") || r.includes("barbaresco");
+  if (bigTannic) {
+    return { level: "yes", duration: "2-3 hours", method: "Standard decant — pour boldly and let it breathe", tip: "These wines are built with serious structure. Extended decanting softens the tannins and lets the fruit and complexity shine through." };
+  }
+
+  // Syrah, Malbec, Tempranillo family
+  const mediumBold = g.includes("syrah") || g.includes("shiraz") || g.includes("malbec") || g.includes("tempranillo") || g.includes("monastrell") || g.includes("petite sirah") || r.includes("rhône") || r.includes("rhone") || r.includes("barossa") || r.includes("mendoza") || r.includes("rioja");
+  if (mediumBold) {
+    return { level: "yes", duration: "1-2 hours", method: "Standard decant", tip: "Give these wines time to open — decanting brings out layers of dark fruit, spice, and earth." };
+  }
+
+  // Bordeaux blends
+  const isBordeaux = r.includes("bordeaux") || r.includes("médoc") || r.includes("medoc") || r.includes("saint-émilion") || r.includes("saint-emilion") || r.includes("pomerol") || r.includes("margaux") || r.includes("pauillac") || r.includes("saint-julien") || r.includes("graves") || r.includes("pessac") || (g.includes("cabernet") && g.includes("merlot"));
+  if (isBordeaux) {
+    if (age < 5) return { level: "yes", duration: "2-3 hours", method: "Standard decant — pour boldly", tip: "Young Bordeaux is built for the long haul. Generous decanting helps unlock what years of cellaring would otherwise reveal." };
+    return { level: "yes", duration: "1-2 hours", method: "Standard decant", tip: "Bordeaux deserves to breathe. Decanting lets the complex layers of cassis, cedar, and earth unfold." };
+  }
+
+  // Medium reds
+  const medRed = g.includes("merlot") || g.includes("sangiovese") || g.includes("grenache") || g.includes("garnacha") || g.includes("carignan") || g.includes("zinfandel") || g.includes("primitivo") || r.includes("chianti") || r.includes("brunello") || r.includes("priorat") || r.includes("châteauneuf") || r.includes("chateauneuf");
+  if (medRed) {
+    return { level: "recommended", duration: "30-60 min", method: "Standard decant", tip: "A moderate decant helps these wines show their best — the fruit opens up and any rough edges smooth out." };
+  }
+
+  // Pinot Noir / Burgundy — lighter touch
+  const isPinot = g.includes("pinot noir") || r.includes("burgundy") || r.includes("bourgogne") || r.includes("willamette") || r.includes("central otago");
+  if (isPinot) {
+    if (age < 3) return { level: "optional", duration: "20-30 min", method: "Gentle pour or just swirl in glass", tip: "Young Pinot can benefit from a short aeration, but don't overdo it — this grape is all about delicacy." };
+    return { level: "optional", duration: "15-20 min", method: "Gentle pour", tip: "Pinot Noir rarely needs a full decant. A brief rest or generous swirl in the glass is usually enough." };
+  }
+
+  // Light reds
+  if (g.includes("gamay") || g.includes("frappato") || g.includes("dolcetto") || r.includes("beaujolais")) {
+    return { level: "no", duration: "", method: "", tip: "Light, fresh reds are best enjoyed straight away — a slight chill if you like." };
+  }
+
+  // Natural / orange wine
+  if (s.includes("natural") || s.includes("orange") || s.includes("skin-contact")) {
+    return { level: "recommended", duration: "30-60 min", method: "Standard decant", tip: "Natural wines often benefit from air — give them a chance to blow off any initial funk and show their true character." };
+  }
+
+  // Default red
+  if (s.includes("red") || g) {
+    return { level: "recommended", duration: "30-60 min", method: "Standard decant", tip: "When in doubt with a red, a 30-60 minute decant rarely hurts and often helps." };
+  }
+
+  // Generic fallback
+  return { level: "optional", duration: "15-30 min", method: "Pour and taste — decant if it feels tight", tip: "Not sure? Pour a small taste first. If it feels closed or tannic, give it some air." };
+}
+
+const DECANT_LABEL: Record<string, { text: string; color: string }> = {
+  yes: { text: "DECANT", color: "#8C1C2E" },
+  recommended: { text: "RECOMMENDED", color: "#C8962E" },
+  optional: { text: "OPTIONAL", color: "#5A5248" },
+  no: { text: "NOT NEEDED", color: "#6B9E6B" },
+};
+
 // Bar segment colors
 const BAR_READY = "#6B9E6B";     // sage green
 const BAR_PEAK = "#1F6B35";      // deep emerald
@@ -1155,6 +1274,41 @@ export default function Cellar() {
                           {wine.sommy_assessment}
                         </div>
                       )}
+                      {/* Decanting guidance */}
+                      {(() => {
+                        const da = getDecantingAdvice(wine);
+                        const dl = DECANT_LABEL[da.level];
+                        return (
+                          <div style={{
+                            margin: "0 0 12px", padding: "10px 14px",
+                            background: "#FAFAF7", borderRadius: 10,
+                            border: "1px solid #EDEAE3",
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                              <div style={{ ...mono("0.56rem"), color: "#5A5248" }}>DECANTING</div>
+                              <span style={{
+                                ...mono("0.48rem"), color: dl.color,
+                                padding: "2px 8px", borderRadius: 4,
+                                background: dl.color + "12",
+                                fontWeight: 600,
+                              }}>{dl.text}</span>
+                              {da.duration && (
+                                <span style={{ ...mono("0.52rem"), color: "#8C1C2E", marginLeft: "auto" }}>{da.duration}</span>
+                              )}
+                            </div>
+                            <p style={{
+                              fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
+                              fontWeight: 300, color: "#1A1410", lineHeight: 1.55,
+                              margin: 0,
+                            }}>{da.tip}</p>
+                            {da.method && (
+                              <div style={{ ...mono("0.48rem"), color: "#7A7568", marginTop: 6 }}>
+                                {da.method.toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {/* Actions */}
                       {wine.status === "active" && (
                         <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>

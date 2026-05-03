@@ -333,7 +333,7 @@ export default function Methodology() {
           <div style={s.contactLabel}>CONTACT</div>
           <p style={s.contactBody}>
             Corrections, questions, or deeper detail:{" "}
-            <a style={s.link} href="mailto:brice@blackbird.ai">brice@blackbird.ai</a>
+            <a style={s.link} href="mailto:contact@theworldofwine.org">contact@theworldofwine.org</a>
           </p>
         </div>
 

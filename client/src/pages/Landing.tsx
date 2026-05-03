@@ -782,6 +782,7 @@ export default function Landing() {
                 { label: "Guides", href: "/guides" },
                 { label: "Vintage Guide", href: "/guides/vintages/table" },
                 { label: "News", href: "/news" },
+                { label: "Methodology", href: "/methodology" },
                 { label: "Privacy", href: "/privacy" },
                 { label: "Terms", href: "/terms" },
               ].map((link) => (

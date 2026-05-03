@@ -56,6 +56,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Methodology from "@/pages/Methodology";
 import Journal from "@/pages/Journal";
 import Admin from "@/pages/Admin";
 import VintageGuide from "@/pages/VintageGuide";
@@ -413,6 +414,7 @@ function AppRouter() {
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/methodology" component={Methodology} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>

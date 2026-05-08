@@ -785,6 +785,7 @@ export default function Landing() {
                 { label: "Methodology", href: "/methodology" },
                 { label: "Privacy", href: "/privacy" },
                 { label: "Terms", href: "/terms" },
+                { label: "Delete account", href: "/delete-account" },
               ].map((link) => (
                 <button key={link.href} className="lp-footer-link" onClick={() => setLocation(link.href)}>
                   {link.label}

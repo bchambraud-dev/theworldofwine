@@ -76,7 +76,6 @@ const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
   { key: "academy", label: "GUIDES", href: "/guides" },
   { key: "list", label: "LIST", href: "/explore/list" },
-  { key: "news", label: "NEWS", href: "/news" },
 ];
 
 const personalTabs: { key: NavTab; label: string; href: string }[] = [

@@ -4,7 +4,8 @@
     "namespace": "android_app",
     "package_name": "org.theworldofwine.twa",
     "sha256_cert_fingerprints": [
-      "D5:AA:1A:F1:23:DE:F4:93:F6:00:5B:02:21:97:17:A6:AF:B8:E2:50:7E:EA:8F:93:E7:78:CC:C9:FA:3E:4E:B0"
+      "D5:AA:1A:F1:23:DE:F4:93:F6:00:5B:02:21:97:17:A6:AF:B8:E2:50:7E:EA:8F:93:E7:78:CC:C9:FA:3E:4E:B0",
+      "EA:26:40:1B:67:FD:17:12:46:4F:8C:07:3C:8B:6F:A7:85:EB:BC:7C:96:8B:09:7F:E1:BE:DB:6E:46:C8:A9:D7"
     ]
   }
 }]

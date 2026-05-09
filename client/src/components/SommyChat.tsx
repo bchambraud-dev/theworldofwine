@@ -568,7 +568,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
       {/* Chat popup */}
       {isOpen && (
-        <div data-testid="sommy-chatbox" style={window.innerWidth <= 640 ? { position: "fixed", top: 56, bottom: 0, left: 0, right: 0, background: "#F7F4EF", borderRadius: "16px 16px 0 0", boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" } : { position: "fixed", bottom: 0, right: 0, width: "min(400px, calc(100vw - 32px))", height: "min(580px, calc(100vh - 100px))", background: "#F7F4EF", borderRadius: 20, boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" }}>
+        <div data-testid="sommy-chatbox" style={window.innerWidth <= 1024 ? { position: "fixed", top: "calc(52px + env(safe-area-inset-top, 0px))", bottom: 0, left: 0, right: 0, background: "#F7F4EF", borderRadius: "16px 16px 0 0", boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" } : { position: "fixed", bottom: 0, right: 0, width: "min(400px, calc(100vw - 32px))", height: "min(580px, calc(100vh - 100px))", background: "#F7F4EF", borderRadius: 20, boxShadow: "0 8px 40px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", zIndex: 901, overflow: "hidden", border: "1px solid #D4D1CA" }}>
 
           {/* Header */}
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #EDEAE3", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
@@ -576,13 +576,13 @@ The more you share — what you enjoy, what you've tried, even what you definite
               <img src="/sommy-avatar-circle.png" alt="Sommy" style={{ width: 36, height: 36, borderRadius: "50%", background: "#EDEAE3", objectFit: "cover" }} />
               <div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.68rem", fontWeight: 400, letterSpacing: "0.12em", color: "#1A1410" }}>ASK</span>
-                  <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "1.05rem", fontWeight: 400, color: "#8C1C2E" }}>Sommy</span>
+                  <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.78rem", fontWeight: 400, letterSpacing: "0.12em", color: "#1A1410" }}>ASK</span>
+                  <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "1.18rem", fontWeight: 400, color: "#8C1C2E" }}>Sommy</span>
                 </div>
-                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.7rem", fontWeight: 300, color: "#5A5248" }}>Your wine companion</div>
+                <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 300, color: "#5A5248" }}>Your wine companion</div>
               </div>
             </div>
-            <button onClick={onToggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#5A5248", fontSize: 18, lineHeight: 1 }} aria-label="Close">&#x2715;</button>
+            <button onClick={onToggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#5A5248", fontSize: 22, lineHeight: 1 }} aria-label="Close">&#x2715;</button>
           </div>
 
           {/* Toast notification */}
@@ -603,14 +603,14 @@ The more you share — what you enjoy, what you've tried, even what you definite
             {messages.length === 0 && !isLoading && (
               <div>
                 <div style={{ background: "#EDEAE3", borderRadius: "14px 14px 14px 4px", padding: "12px 15px", maxWidth: "88%", marginBottom: 14 }}>
-                  <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.6, margin: 0 }}>
+                  <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.55, margin: 0 }}>
                     Hey, I'm Sommy. Ask me anything about wine — or tap the <strong style={{fontWeight:500}}>+</strong> below to scan a label and I'll tell you if it's worth your time.
                   </p>
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {chips.map(chip => (
-                    <button key={chip} onClick={() => sendMessage(chip)} style={{ background: "white", border: "1px solid #D4D1CA", borderRadius: 18, padding: "6px 12px", fontFamily: "'Jost', sans-serif", fontSize: "0.76rem", fontWeight: 400, color: "#8C1C2E", cursor: "pointer" }}>
+                    <button key={chip} onClick={() => sendMessage(chip)} style={{ background: "white", border: "1px solid #D4D1CA", borderRadius: 18, padding: "7px 14px", fontFamily: "'Jost', sans-serif", fontSize: "0.86rem", fontWeight: 400, color: "#8C1C2E", cursor: "pointer" }}>
                       {chip}
                     </button>
                   ))}
@@ -837,7 +837,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
                 {/* Text bubble */}
                 {msg.content && (
-                  <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "10px 14px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                  <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "11px 15px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
                     {msg.content}
                   </div>
                 )}
@@ -846,7 +846,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
             {isLoading && (
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                <div style={{ background: "#EDEAE3", borderRadius: "14px 14px 14px 4px", padding: "10px 14px", fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#5A5248", opacity: 0.6 }}>
+                <div style={{ background: "#EDEAE3", borderRadius: "14px 14px 14px 4px", padding: "11px 15px", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, color: "#5A5248", opacity: 0.6 }}>
                   Sommy is thinking...
                 </div>
               </div>
@@ -890,7 +890,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                 </button>
 
                 <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={pendingImage ? "Add a message or just send\u2026" : "Ask me anything about wine\u2026"} disabled={isLoading} data-testid="sommy-input"
-                  style={{ flex: 1, border: "1px solid #D4D1CA", borderRadius: 22, padding: "9px 15px", fontFamily: "'Jost', sans-serif", fontSize: "0.87rem", fontWeight: 300, color: "#1A1410", background: "white", outline: "none" }}
+                  style={{ flex: 1, border: "1px solid #D4D1CA", borderRadius: 22, padding: "10px 16px", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, color: "#1A1410", background: "white", outline: "none" }}
                   onFocus={e => { e.currentTarget.style.borderColor = "#8C1C2E"; }}
                   onBlur={e => { e.currentTarget.style.borderColor = "#D4D1CA"; }}
                 />

@@ -442,6 +442,7 @@ function GlobalFilterBar() {
 
 function App() {
   const [sommyOpen, setSommyOpen] = useState(false);
+  const [, setLocation] = useLocation();
   // Profile panel no longer used (profile is now a full page at /journey/profile)
   const toggleSommy = useCallback(() => setSommyOpen(o => !o), []);
 

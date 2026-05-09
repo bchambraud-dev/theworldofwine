@@ -725,31 +725,31 @@
 }
 .sp-close {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 18px;
+  right: 16px;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--bg2);
-  border: 1px solid var(--border2-c);
+  background: var(--wine);
+  border: none;
   cursor: pointer;
-  color: var(--text);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 500;
   line-height: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: all 0.15s;
-  z-index: 5;
+  z-index: 50;
 }
 .sp-close:hover {
-  background: var(--wine);
-  color: #fff;
-  border-color: var(--wine);
+  background: #6B1524;
+  transform: scale(1.05);
 }
 .sp-header {
-  padding-right: 60px;
+  padding-right: 64px;
 }
 
 /* Back button */
@@ -991,7 +991,7 @@
 /* ── LIST VIEW ── */
 .list-view {
   position: fixed;
-  top: calc(var(--topbar) + var(--filterbar));
+  top: calc(var(--topbar) + var(--filterbar) + env(safe-area-inset-top, 0px));
   left: 0; right: 0; bottom: 0;
   background: var(--bg);
   z-index: 50;
@@ -1621,7 +1621,7 @@
   .layer-title { font-size: 0.52rem; margin-bottom: 7px; }
   .layer-lbl { font-size: 0.72rem; }
   .progress-badge { display: none; }
-  .list-view { top: calc(var(--topbar) + env(safe-area-inset-top, 0px)); }
+  .list-view { top: calc(var(--topbar) + var(--filterbar) + env(safe-area-inset-top, 0px)); }
   /* Hide desktop nav tabs on mobile and small tablets */
   .nav-tabs-desktop { display: none !important; }
 }

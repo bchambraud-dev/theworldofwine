@@ -237,14 +237,6 @@ export default function Explore() {
                           />
                         )}
                         <div className="lv-rc-img-overlay" />
-                        <button
-                          className="lv-rc-fav"
-                          onClick={handleFavorite}
-                          title="Save to your journey — coming soon!"
-                          data-testid={`fav-region-${region.id}`}
-                        >
-                          ♡
-                        </button>
                         <div className="lv-rc-img-label">
                           <span className="lv-rc-country">{region.country}</span>
                         </div>
@@ -299,17 +291,7 @@ export default function Explore() {
                       >
                         <div className="lv-pc-icon">{producer.name.charAt(0)}</div>
                         <div className="lv-pc-info">
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div className="lv-pc-name" style={{ flex: 1 }}>{producer.name}</div>
-                            <button
-                              className="fav-btn"
-                              onClick={handleFavorite}
-                              title="Save to your journey — coming soon!"
-                              data-testid={`fav-producer-${producer.id}`}
-                            >
-                              ♡
-                            </button>
-                          </div>
+                          <div className="lv-pc-name">{producer.name}</div>
                           <div className="lv-pc-sub">
                             {region?.name || producer.country} · Est. {producer.founded}
                           </div>

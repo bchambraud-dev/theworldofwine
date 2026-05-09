@@ -276,6 +276,16 @@ export default function Landing() {
         @media (max-width: 768px) {
           .lp-cellar-layout, .lp-map-layout, .lp-vintage-layout { grid-template-columns: 1fr; }
           .lp-cellar-mock, .lp-map-mock { margin-top: 24px; }
+
+          /* Mobile legibility — tighter padding, larger body text */
+          .lp-section { padding: 56px 20px; }
+          .lp-final-cta { padding: 56px 20px; }
+          .lp-section-sub { font-size: 1rem; line-height: 1.55; margin-bottom: 24px; }
+          .lp-section-desc { font-size: 0.98rem; line-height: 1.65; margin-bottom: 22px; }
+          .lp-sommy-feature { font-size: 0.98rem; line-height: 1.55; }
+          .lp-sommy-features { gap: 14px; margin-bottom: 24px; }
+          .lp-final-sub { font-size: 1rem; }
+          .lp-learn-desc { font-size: 0.88rem; }
         }
 
         /* ── LEARN ── */

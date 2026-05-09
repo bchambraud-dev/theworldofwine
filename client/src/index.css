@@ -150,7 +150,7 @@
 
 .logo-text {
   font-family: 'Fraunces', serif;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 500;
   color: var(--wine);
   white-space: nowrap;
@@ -1608,7 +1608,7 @@
   .filter-bar { display: none; }
   .topbar-divider.desktop-only { display: none; }
   .topbar { gap: 8px; }
-  .logo-text { font-size: 0.95rem; }
+  .logo-text { font-size: 1.18rem; }
   .layers-panel { bottom: 16px; left: 12px; padding: 10px 12px; min-width: 160px; }
   .layer-title { font-size: 0.52rem; margin-bottom: 7px; }
   .layer-lbl { font-size: 0.72rem; }
@@ -1886,6 +1886,6 @@
 }
 
 @media (max-width: 640px) {
-  /* Mobile readability baseline */
-  body { font-size: 0.95rem; }
+  /* Mobile readability baseline — bumped for app legibility */
+  body { font-size: 1rem; line-height: 1.55; }
 }

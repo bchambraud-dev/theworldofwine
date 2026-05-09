@@ -51,7 +51,7 @@ export default function AcademyHub() {
         <p
           style={{
             fontFamily: "'Geist Mono', monospace",
-            fontSize: "0.68rem",
+            fontSize: "0.78rem",
             textTransform: "uppercase",
             letterSpacing: "0.12em",
             color: "var(--text3)",

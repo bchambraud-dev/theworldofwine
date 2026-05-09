@@ -298,12 +298,20 @@ The more you share — what you enjoy, what you've tried, even what you definite
     e.target.value = "";
   }, []);
 
-  // Save a tagged wine name (from inline [wine:...] tag tap) to wishlist as a lightweight bookmark
-  const saveTaggedWineToWishlist = useCallback(async (wineName: string) => {
+  // Tag tap shows a confirmation prompt rather than saving silently
+  const [pendingWineConfirm, setPendingWineConfirm] = useState<string | null>(null);
+  const promptWineConfirm = useCallback((wineName: string) => {
     if (!user) {
       setToastMsg("Sign in to save wines");
       return;
     }
+    setPendingWineConfirm(wineName);
+  }, [user]);
+
+  const confirmSaveWine = useCallback(async () => {
+    const wineName = pendingWineConfirm;
+    if (!wineName || !user) return;
+    setPendingWineConfirm(null);
     try {
       await directInsert("wine_wishlist", {
         user_id: user.id,
@@ -316,7 +324,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
       console.error("Wishlist save error:", e);
       setToastMsg("Could not save — try again");
     }
-  }, [user, silentRefresh]);
+  }, [pendingWineConfirm, user, silentRefresh]);
 
   // Save a wine card to wishlist
   const saveWineCardToWishlist = useCallback(async (card: WineCard, msgIdx: number) => {
@@ -619,6 +627,66 @@ The more you share — what you enjoy, what you've tried, even what you definite
             </div>
           )}
 
+          {/* Wishlist confirmation sheet */}
+          {pendingWineConfirm && (
+            <div
+              onClick={() => setPendingWineConfirm(null)}
+              style={{
+                position: "absolute", inset: 0, zIndex: 30,
+                background: "rgba(26,20,16,0.45)",
+                display: "flex", alignItems: "flex-end", justifyContent: "center",
+                animation: "fadeIn 0.15s ease-out",
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "#F7F4EF",
+                  borderRadius: "16px 16px 0 0",
+                  padding: "22px 22px 28px",
+                  width: "100%",
+                  maxWidth: 440,
+                  boxShadow: "0 -8px 32px rgba(0,0,0,0.18)",
+                  fontFamily: "'Jost', sans-serif",
+                }}
+              >
+                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.14em", color: "#5A5248", marginBottom: 8 }}>
+                  Save to wishlist
+                </div>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410", marginBottom: 6, lineHeight: 1.25 }}>
+                  {pendingWineConfirm}
+                </div>
+                <div style={{ fontSize: "0.92rem", color: "#5A5248", lineHeight: 1.5, marginBottom: 22 }}>
+                  Add this to your wishlist so you can find it later in My Wishlist.
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => setPendingWineConfirm(null)}
+                    style={{
+                      flex: 1, padding: "12px 18px", borderRadius: 10,
+                      background: "transparent", border: "1px solid #D4D1CA",
+                      color: "#1A1410", fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 400,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmSaveWine}
+                    style={{
+                      flex: 1, padding: "12px 18px", borderRadius: 10,
+                      background: "#8C1C2E", border: "none",
+                      color: "#F7F4EF", fontFamily: "'Jost', sans-serif", fontSize: "0.92rem", fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Add to wishlist
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
             {/* Welcome */}
@@ -860,7 +928,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                 {/* Text bubble */}
                 {msg.content && (
                   <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "11px 15px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, lineHeight: 1.55 }}>
-                    <SommyMarkdown text={msg.content} isUser={msg.role === "user"} onWineTap={saveTaggedWineToWishlist} />
+                    <SommyMarkdown text={msg.content} isUser={msg.role === "user"} onWineTap={promptWineConfirm} />
                   </div>
                 )}
               </div>

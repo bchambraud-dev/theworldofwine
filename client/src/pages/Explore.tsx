@@ -30,6 +30,18 @@ export default function Explore() {
 
   const [vintageOn, setVintageOn] = useState(false);
   const [vintageYear, setVintageYear] = useState(2020);
+  const [mapResetTrigger, setMapResetTrigger] = useState(0);
+
+  // Detect ?reset=1 — reset map to world view
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("reset=1")) {
+      store.closeDetail();
+      store.clearFilters?.();
+      setMapResetTrigger((t) => t + 1);
+      window.history.replaceState({}, "", "/explore");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useSEO({
     title: "Wine Map — Explore Regions & Producers",
@@ -110,6 +122,7 @@ export default function Explore() {
             showBoundaries={store.showBoundaries}
             hasActiveFilter={store.hasActiveFilter}
             vintageYear={vintageOn ? vintageYear : null}
+            resetTrigger={mapResetTrigger}
           />
 
           {/* ── Vintage heatmap toggle ── */}

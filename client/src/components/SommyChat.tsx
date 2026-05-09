@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { directInsert, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
+import SommyMarkdown from "@/components/SommyMarkdown";
 
 // Colour-coded tasting pills — matches the ftag system on producer pages
 const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -838,8 +839,8 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
                 {/* Text bubble */}
                 {msg.content && (
-                  <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "11px 15px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
-                    {msg.content}
+                  <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "11px 15px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, lineHeight: 1.55 }}>
+                    <SommyMarkdown text={msg.content} isUser={msg.role === "user"} />
                   </div>
                 )}
               </div>

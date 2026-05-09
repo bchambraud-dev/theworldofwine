@@ -17,6 +17,7 @@ interface WineMapProps {
   showBoundaries: boolean;
   hasActiveFilter?: boolean;
   vintageYear?: number | null;
+  resetTrigger?: number;
 }
 
 const BOUNDARY_SOURCE = "region-boundaries";
@@ -171,6 +172,7 @@ export default function WineMap({
   showBoundaries,
   hasActiveFilter = false,
   vintageYear = null,
+  resetTrigger = 0,
 }: WineMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -937,6 +939,16 @@ export default function WineMap({
       });
     }
   }, [selectedRegionId, regions]);
+
+  // Reset to default world view when triggered
+  useEffect(() => {
+    if (!map.current || resetTrigger === 0) return;
+    map.current.flyTo({
+      center: [15, 35],
+      zoom: 2.5,
+      duration: 1200,
+    });
+  }, [resetTrigger]);
 
   // Vintage heatmap overlay
   useEffect(() => {

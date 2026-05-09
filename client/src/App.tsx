@@ -454,6 +454,13 @@ function App() {
     }
   }, []);
 
+  // Global "open Sommy" event — any page can dispatch this
+  useEffect(() => {
+    const handler = () => setSommyOpen(true);
+    window.addEventListener("open-sommy", handler);
+    return () => window.removeEventListener("open-sommy", handler);
+  }, []);
+
   return (
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>

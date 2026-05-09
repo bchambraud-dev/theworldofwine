@@ -150,7 +150,26 @@ drink_peak_end: [year]
 drink_until: [year]
 WISHLIST_ADD_END
 
-You can include multiple WISHLIST blocks if recommending several wines. Only add this block when the user explicitly asks to save/shortlist/remember a wine — not for every recommendation.`;
+You can include multiple WISHLIST blocks if recommending several wines. Only add this block when the user explicitly asks to save/shortlist/remember a wine — not for every recommendation.
+
+INLINE TAGS — IMPORTANT:
+When writing your conversational prose (NOT in WINE_CARD_START / WISHLIST_ADD_START blocks), wrap key wine entities in inline tags so the app can style and link them. Use these exact formats:
+
+- Wine names → [wine:Château Margaux]
+- Producer names → [wine:Bodegas Muga]  (treat producers as wines for tagging purposes)
+- Specific vintages → [vintage:2019]  (only the year, only when next to a wine)
+- Regions/appellations → [region:Burgundy] or [region:Bordeaux] or [region:Saint-Estèphe]
+- Prices → [price:S$80-120] or [price:$45] or [price:€30-50]  (preserve the user's currency symbol exactly)
+- Taste descriptors → [taste:CATEGORY:term]  where CATEGORY is one of: fruit, floral, earth, spice, oak, mineral, fresh
+  Examples: [taste:fruit:cherry], [taste:earth:forest floor], [taste:oak:vanilla], [taste:spice:black pepper], [taste:floral:violet], [taste:mineral:slate], [taste:fresh:citrus]
+
+Rules for tags:
+- Tag the FIRST mention of each wine, region, or grape only — subsequent mentions stay as plain text
+- Tag taste descriptors only when describing flavour profiles (not when used metaphorically like "cherry-pick")
+- Tag every price mention
+- Do NOT tag generic terms like "red wine", "Pinot", "Cabernet" alone — only specific named entities
+- Tags must contain only plain text, no markdown or formatting inside
+- Continue using **bold** for emphasis on the wine name's first mention if you want extra prominence`;
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");

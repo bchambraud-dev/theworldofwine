@@ -298,6 +298,26 @@ The more you share — what you enjoy, what you've tried, even what you definite
     e.target.value = "";
   }, []);
 
+  // Save a tagged wine name (from inline [wine:...] tag tap) to wishlist as a lightweight bookmark
+  const saveTaggedWineToWishlist = useCallback(async (wineName: string) => {
+    if (!user) {
+      setToastMsg("Sign in to save wines");
+      return;
+    }
+    try {
+      await directInsert("wine_wishlist", {
+        user_id: user.id,
+        wine_name: wineName,
+        source: "sommy",
+      });
+      setToastMsg(`Added ${wineName} to your wishlist`);
+      silentRefresh();
+    } catch (e) {
+      console.error("Wishlist save error:", e);
+      setToastMsg("Could not save — try again");
+    }
+  }, [user, silentRefresh]);
+
   // Save a wine card to wishlist
   const saveWineCardToWishlist = useCallback(async (card: WineCard, msgIdx: number) => {
     if (!user) return;
@@ -840,7 +860,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                 {/* Text bubble */}
                 {msg.content && (
                   <div style={{ background: msg.role === "user" ? "#8C1C2E" : "#EDEAE3", color: msg.role === "user" ? "#F7F4EF" : "#1A1410", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "11px 15px", maxWidth: "88%", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, lineHeight: 1.55 }}>
-                    <SommyMarkdown text={msg.content} isUser={msg.role === "user"} />
+                    <SommyMarkdown text={msg.content} isUser={msg.role === "user"} onWineTap={saveTaggedWineToWishlist} />
                   </div>
                 )}
               </div>

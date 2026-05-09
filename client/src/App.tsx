@@ -461,6 +461,19 @@ function App() {
     return () => window.removeEventListener("open-sommy", handler);
   }, []);
 
+  // Global "navigate-region" event — fired when a Sommy chat tag is tapped
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail?.id;
+      if (typeof id === "string" && id.length > 0) {
+        setSommyOpen(false);
+        setLocation(`/explore/region/${id}`);
+      }
+    };
+    window.addEventListener("navigate-region", handler as EventListener);
+    return () => window.removeEventListener("navigate-region", handler as EventListener);
+  }, [setLocation]);
+
   return (
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>

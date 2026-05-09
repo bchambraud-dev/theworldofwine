@@ -16,6 +16,18 @@ export default function Explore() {
   const store = useWineStore();
   const { toast } = useToast();
 
+  // Remember whether the user came from the List view so we can return there on close
+  useEffect(() => {
+    if (isListRoute) {
+      sessionStorage.setItem("explore-came-from", "list");
+    } else if (!regionParams?.regionId && !producerParams?.producerId) {
+      sessionStorage.setItem("explore-came-from", "map");
+    }
+  }, [isListRoute, regionParams?.regionId, producerParams?.producerId]);
+
+  const closePath = () =>
+    sessionStorage.getItem("explore-came-from") === "list" ? "/explore/list" : "/explore";
+
   const [vintageOn, setVintageOn] = useState(false);
   const [vintageYear, setVintageYear] = useState(2020);
 
@@ -334,7 +346,7 @@ export default function Explore() {
             producers={store.allProducers}
             onClose={() => {
               store.closeDetail();
-              setLocation("/explore");
+              setLocation(closePath());
             }}
             onSelectProducer={(id) => {
               store.selectProducer(id);
@@ -346,7 +358,7 @@ export default function Explore() {
             producer={store.selectedProducer}
             onClose={() => {
               store.closeDetail();
-              setLocation("/explore");
+              setLocation(closePath());
             }}
             onSelectRegion={(id) => {
               store.selectRegion(id);

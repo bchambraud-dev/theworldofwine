@@ -560,9 +560,10 @@ The more you share — what you enjoy, what you've tried, even what you definite
     <>
       {/* Floating button */}
       {!isOpen && (
-        <button onClick={onToggle} data-testid="sommy-float-btn" style={{ position: "fixed", bottom: 24, right: 24, display: "flex", alignItems: "center", gap: 8, padding: "12px 20px", borderRadius: 28, background: "#8C1C2E", color: "#F7F4EF", border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(140,28,46,0.3)", zIndex: 900, fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400 }}>
-          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.7rem", fontWeight: 400, letterSpacing: "0.12em" }}>ASK</span>
-          <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "0.95rem", fontWeight: 400 }}>Sommy</span>
+        <button onClick={onToggle} data-testid="sommy-float-btn" style={{ position: "fixed", bottom: "calc(24px + env(safe-area-inset-bottom, 0px))", right: 20, display: "flex", alignItems: "center", gap: 10, padding: "15px 26px", borderRadius: 32, background: "#8C1C2E", color: "#F7F4EF", border: "none", cursor: "pointer", boxShadow: "0 6px 24px rgba(140,28,46,0.42), 0 2px 8px rgba(0,0,0,0.18)", zIndex: 900, fontFamily: "'Jost', sans-serif", fontSize: "1rem", fontWeight: 500 }}>
+          <img src="/sommy-avatar-circle.png" alt="" style={{ width: 28, height: 28, borderRadius: "50%", background: "#F7F4EF", objectFit: "cover", marginLeft: -6 }} />
+          <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.78rem", fontWeight: 500, letterSpacing: "0.14em" }}>ASK</span>
+          <span style={{ fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: "1.1rem", fontWeight: 500 }}>Sommy</span>
         </button>
       )}
 

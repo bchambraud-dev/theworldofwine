@@ -725,8 +725,8 @@
 }
 .sp-close {
   position: absolute;
-  top: 18px;
-  right: 16px;
+  top: 26px;
+  right: 18px;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -750,6 +750,7 @@
 }
 .sp-header {
   padding-right: 64px;
+  padding-top: 22px;
 }
 
 /* Back button */

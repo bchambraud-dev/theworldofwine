@@ -937,45 +937,93 @@ export default function Cellar() {
   });
 
   // Sort applied on top of the filtered set.
-  // Wines with missing values for a given sort key are pushed to the end so
-  // they don't pollute the meaningful ordering.
+  // Helpers to coerce values that can arrive as strings from the API into
+  // proper numbers, and to push missing values consistently to the end.
+  const HUGE = Number.POSITIVE_INFINITY;
+  const NEG_HUGE = Number.NEGATIVE_INFINITY;
+  const num = (v: unknown): number | null => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = typeof v === "number" ? v : parseFloat(String(v));
+    return Number.isFinite(n) ? n : null;
+  };
+  const marketPrice = (w: CellarWine): number | null =>
+    num(w.market_value_estimate) ?? num(w.purchase_price);
+  const ts = (w: CellarWine): number =>
+    w.created_at ? new Date(w.created_at).getTime() : 0;
+  // Phase priority for "drink soonest" — lower number = surface first.
+  const phaseUrgency = (w: CellarWine): number => {
+    const phase = getWinePhase(w);
+    if (phase === "past") return 0;
+    if (phase === "soon") return 1;
+    if (phase === "peak") return 2;
+    if (phase === "ready") return 3;
+    if (phase === "aging") return 4;
+    return 5; // unknown / unparseable
+  };
+  // Tie-breaker that keeps ordering stable when a primary key matches.
+  const tieBreak = (a: CellarWine, b: CellarWine) => {
+    const nameDiff = (a.wine_name || "").localeCompare(b.wine_name || "", undefined, { sensitivity: "base" });
+    if (nameDiff !== 0) return nameDiff;
+    return (a.id || "").localeCompare(b.id || "");
+  };
   const sorted = [...filtered].sort((a, b) => {
-    const HUGE = Number.POSITIVE_INFINITY;
-    const NEG_HUGE = Number.NEGATIVE_INFINITY;
     switch (sortKey) {
       case "drink_soonest": {
-        // Use the soonest of (peak_end, drink_until) as the urgency anchor.
+        // Primary: phase urgency (past < soon < peak < ready < aging)
+        // Secondary: drink_peak_end ascending (within phase, those whose peak
+        // ends sooner come first)
+        const phaseDiff = phaseUrgency(a) - phaseUrgency(b);
+        if (phaseDiff !== 0) return phaseDiff;
         const aEnd = a.drink_peak_end ?? a.drink_until ?? HUGE;
         const bEnd = b.drink_peak_end ?? b.drink_until ?? HUGE;
-        return aEnd - bEnd;
+        if (aEnd !== bEnd) return aEnd - bEnd;
+        return tieBreak(a, b);
       }
       case "recent": {
-        const aT = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bT = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return bT - aT;
+        const diff = ts(b) - ts(a);
+        if (diff !== 0) return diff;
+        return tieBreak(a, b);
       }
       case "price_desc": {
-        const aP = a.purchase_price ?? a.market_value_estimate ?? NEG_HUGE;
-        const bP = b.purchase_price ?? b.market_value_estimate ?? NEG_HUGE;
-        return bP - aP;
+        // Use market value estimate as the benchmark (falls back to purchase price)
+        const aP = marketPrice(a);
+        const bP = marketPrice(b);
+        // Wines with no price data sort to the end regardless of direction
+        if (aP === null && bP === null) return tieBreak(a, b);
+        if (aP === null) return 1;
+        if (bP === null) return -1;
+        if (aP !== bP) return bP - aP;
+        return tieBreak(a, b);
       }
       case "price_asc": {
-        const aP = a.purchase_price ?? a.market_value_estimate ?? HUGE;
-        const bP = b.purchase_price ?? b.market_value_estimate ?? HUGE;
-        return aP - bP;
+        const aP = marketPrice(a);
+        const bP = marketPrice(b);
+        if (aP === null && bP === null) return tieBreak(a, b);
+        if (aP === null) return 1;
+        if (bP === null) return -1;
+        if (aP !== bP) return aP - bP;
+        return tieBreak(a, b);
       }
       case "vintage_old": {
-        const aV = a.vintage ?? HUGE;
-        const bV = b.vintage ?? HUGE;
-        return aV - bV;
+        const aV = a.vintage ?? null;
+        const bV = b.vintage ?? null;
+        if (aV === null && bV === null) return tieBreak(a, b);
+        if (aV === null) return 1;
+        if (bV === null) return -1;
+        if (aV !== bV) return aV - bV;
+        return tieBreak(a, b);
       }
       case "vintage_new": {
-        const aV = a.vintage ?? NEG_HUGE;
-        const bV = b.vintage ?? NEG_HUGE;
-        return bV - aV;
+        const aV = a.vintage ?? null;
+        const bV = b.vintage ?? null;
+        if (aV === null && bV === null) return tieBreak(a, b);
+        if (aV === null) return 1;
+        if (bV === null) return -1;
+        if (aV !== bV) return bV - aV;
+        return tieBreak(a, b);
       }
       case "name_asc": {
-        return (a.wine_name || "").localeCompare(b.wine_name || "", undefined, { sensitivity: "base" });
+        return tieBreak(a, b);
       }
       default:
         return 0;

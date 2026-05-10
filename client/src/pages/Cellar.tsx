@@ -55,6 +55,17 @@ interface ParsedCard {
 }
 
 type FilterKey = "all" | "aging" | "ready" | "peak" | "soon" | "past" | "consumed" | "gifted";
+type SortKey = "drink_soonest" | "recent" | "price_desc" | "price_asc" | "vintage_old" | "vintage_new" | "name_asc";
+
+const SORT_LABELS: Record<SortKey, string> = {
+  drink_soonest: "Drink soonest",
+  recent: "Recently added",
+  price_desc: "Price: high to low",
+  price_asc: "Price: low to high",
+  vintage_old: "Vintage: oldest first",
+  vintage_new: "Vintage: newest first",
+  name_asc: "Name: A to Z",
+};
 type Step = "idle" | "scanning" | "form";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
@@ -438,6 +449,16 @@ export default function Cellar() {
 
   // UI state
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [sortKey, setSortKey] = useState<SortKey>(() => {
+    if (typeof window === "undefined") return "drink_soonest";
+    const stored = localStorage.getItem("cellar_sort");
+    if (stored && stored in SORT_LABELS) return stored as SortKey;
+    return "drink_soonest";
+  });
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("cellar_sort", sortKey);
+  }, [sortKey]);
   const [step, setStep] = useState<Step>("idle");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -915,6 +936,52 @@ export default function Cellar() {
     return true;
   });
 
+  // Sort applied on top of the filtered set.
+  // Wines with missing values for a given sort key are pushed to the end so
+  // they don't pollute the meaningful ordering.
+  const sorted = [...filtered].sort((a, b) => {
+    const HUGE = Number.POSITIVE_INFINITY;
+    const NEG_HUGE = Number.NEGATIVE_INFINITY;
+    switch (sortKey) {
+      case "drink_soonest": {
+        // Use the soonest of (peak_end, drink_until) as the urgency anchor.
+        const aEnd = a.drink_peak_end ?? a.drink_until ?? HUGE;
+        const bEnd = b.drink_peak_end ?? b.drink_until ?? HUGE;
+        return aEnd - bEnd;
+      }
+      case "recent": {
+        const aT = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bT = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bT - aT;
+      }
+      case "price_desc": {
+        const aP = a.purchase_price ?? a.market_value_estimate ?? NEG_HUGE;
+        const bP = b.purchase_price ?? b.market_value_estimate ?? NEG_HUGE;
+        return bP - aP;
+      }
+      case "price_asc": {
+        const aP = a.purchase_price ?? a.market_value_estimate ?? HUGE;
+        const bP = b.purchase_price ?? b.market_value_estimate ?? HUGE;
+        return aP - bP;
+      }
+      case "vintage_old": {
+        const aV = a.vintage ?? HUGE;
+        const bV = b.vintage ?? HUGE;
+        return aV - bV;
+      }
+      case "vintage_new": {
+        const aV = a.vintage ?? NEG_HUGE;
+        const bV = b.vintage ?? NEG_HUGE;
+        return bV - aV;
+      }
+      case "name_asc": {
+        return (a.wine_name || "").localeCompare(b.wine_name || "", undefined, { sensitivity: "base" });
+      }
+      default:
+        return 0;
+    }
+  });
+
   // ── Styles ─────────────────────────────────────────────────────────────────
 
   const inputStyle: React.CSSProperties = {
@@ -1011,6 +1078,83 @@ export default function Cellar() {
                 color: "#1A1410", lineHeight: 1.65, margin: 0,
               }}>{healthText}</p>
             </div>
+          </div>
+        )}
+
+        {/* ── Sort dropdown ── */}
+        {step === "idle" && wines.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8, position: "relative" }}>
+            <button
+              onClick={() => setSortMenuOpen(o => !o)}
+              data-testid="cellar-sort-button"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "7px 12px",
+                border: "1px solid #EDEAE3",
+                borderRadius: 16,
+                background: "white",
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "0.66rem",
+                fontWeight: 400,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "#5A5248",
+                cursor: "pointer",
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5A5248" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+                <line x1="9" y1="18" x2="15" y2="18" />
+              </svg>
+              Sort: {SORT_LABELS[sortKey]}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5A5248" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: sortMenuOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {sortMenuOpen && (
+              <>
+                {/* Click-outside backdrop */}
+                <div onClick={() => setSortMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                <div style={{
+                  position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50,
+                  background: "white",
+                  borderRadius: 12,
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  border: "1px solid #EDEAE3",
+                  minWidth: 220,
+                  overflow: "hidden",
+                }}>
+                  {(Object.keys(SORT_LABELS) as SortKey[]).map(key => {
+                    const isActive = sortKey === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => { setSortKey(key); setSortMenuOpen(false); }}
+                        data-testid={`cellar-sort-${key}`}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          width: "100%", padding: "11px 14px",
+                          background: isActive ? "#F7F4EF" : "white",
+                          border: "none", borderBottom: "1px solid #F7F4EF",
+                          fontFamily: "'Jost', sans-serif", fontSize: "0.86rem",
+                          fontWeight: isActive ? 500 : 400,
+                          color: isActive ? "#8C1C2E" : "#1A1410",
+                          cursor: "pointer", textAlign: "left",
+                        }}
+                      >
+                        <span>{SORT_LABELS[key]}</span>
+                        {isActive && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1167,9 +1311,9 @@ export default function Cellar() {
         )}
 
         {/* ── Wine list ── */}
-        {step === "idle" && !loading && filtered.length > 0 && (
+        {step === "idle" && !loading && sorted.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {filtered.map(wine => {
+            {sorted.map(wine => {
               const isExpanded = expandedId === wine.id;
               const isEditing = editingId === wine.id;
               const isActioning = actionId === wine.id;
@@ -1465,7 +1609,7 @@ export default function Cellar() {
         )}
 
         {/* ── No results for filter ── */}
-        {step === "idle" && !loading && filtered.length === 0 && wines.length > 0 && (
+        {step === "idle" && !loading && sorted.length === 0 && wines.length > 0 && (
           <div style={{ textAlign: "center", padding: "32px 20px" }}>
             <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#D4D1CA" }}>
               No wines match this filter.

@@ -8,6 +8,8 @@ import { directInsert, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } fr
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import SommyMarkdown from "@/components/SommyMarkdown";
+import { AwardsRow } from "@/components/AwardsRow";
+import { MatchBadge } from "@/components/MatchBadge";
 
 // Colour-coded tasting pills — matches the ftag system on producer pages
 const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -73,6 +75,11 @@ interface WineCard {
   drink_peak_start: string;
   drink_peak_end: string;
   drink_until: string;
+  // Awards + match score — emitted as compact JSON strings in the WINE_CARD
+  // block. The shared rubric in /api/wine-context is injected into the chat
+  // system prompt so Sommy can fill these in inline (4c).
+  awards_json?: any | null;
+  match_score_json?: any | null;
 }
 
 interface WishlistBlock {
@@ -103,6 +110,12 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     return m ? m[1].trim() : "";
   };
 
+  // Parse JSON-encoded fields safely — if Sommy emits malformed JSON, fall back to null.
+  const tryParseJson = (raw: string) => {
+    if (!raw || raw === "null" || raw === "none") return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  };
+
   const card: WineCard = {
     name: get("name"),
     producer: get("producer"),
@@ -118,6 +131,8 @@ function parseWineCard(text: string): { card: WineCard | null; prose: string } {
     drink_peak_start: get("drink_peak_start"),
     drink_peak_end: get("drink_peak_end"),
     drink_until: get("drink_until"),
+    awards_json: tryParseJson(get("awards")),
+    match_score_json: tryParseJson(get("match")),
   };
 
   const prose = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END\n?/, "").trim();
@@ -194,6 +209,12 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const [savedWineCards, setSavedWineCards] = useState<Set<number>>(new Set());
   // Track saved wishlist suggestions by "msgIdx-blockIdx" key
   const [savedSuggestions, setSavedSuggestions] = useState<Set<string>>(new Set());
+  // Shared badge tooltip state (one popover open at a time across all chat cards)
+  const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
+  const [activeMatchTooltip, setActiveMatchTooltip] = useState<string | null>(null);
+  // User's palate digest — sent with every chat turn so Sommy can score matches
+  // inline. Loaded once on mount; null when no form completed.
+  const [palateDigest, setPalateDigest] = useState<any | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { context, chips } = usePageContext();
@@ -216,6 +237,27 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
     const t = setTimeout(() => setToastMsg(null), 3000);
     return () => clearTimeout(t);
   }, [toastMsg]);
+
+  // Load palate digest once per user. Sent in chat body so Sommy can score
+  // match inline. If the user hasn't completed the form, digest stays null
+  // and the API skips match generation (graceful no-op).
+  useEffect(() => {
+    if (!user) { setPalateDigest(null); return; }
+    (async () => {
+      try {
+        const rows = await directSelect<any>(
+          "user_preferences",
+          `select=palate_digest,palate_form_complete&user_id=eq.${user.id}`
+        );
+        const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+        if (row && row.palate_form_complete && row.palate_digest) {
+          setPalateDigest(row.palate_digest);
+        } else {
+          setPalateDigest(null);
+        }
+      } catch { /* non-fatal */ }
+    })();
+  }, [user]);
 
   // Single sequential effect: load history first, then greet if no history
   useEffect(() => {
@@ -347,6 +389,12 @@ The more you share — what you enjoy, what you've tried, even what you definite
         drink_peak_start: card.drink_peak_start ? parseInt(card.drink_peak_start) : null,
         drink_peak_end: card.drink_peak_end ? parseInt(card.drink_peak_end) : null,
         drink_until: card.drink_until ? parseInt(card.drink_until) : null,
+        // Carry Sommy's inline awards + match score forward so the wishlist
+        // entry is born already populated — no re-generation needed on first load.
+        awards_json: card.awards_json || null,
+        awards_generated_at: card.awards_json ? new Date().toISOString() : null,
+        match_score_json: card.match_score_json || null,
+        match_score_generated_at: card.match_score_json ? new Date().toISOString() : null,
       });
       setSavedWineCards(prev => new Set(prev).add(msgIdx));
       setToastMsg(`Added ${card.name} to your wishlist`);
@@ -499,6 +547,8 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
       const body: any = { messages: messagesWithContext };
       if (img) body.image = { data: img.data, mediaType: img.mediaType };
+      // Include palate digest so Sommy can emit match scores inline in WINE_CARDs (4c)
+      if (palateDigest) body.palate_digest = palateDigest;
 
       // 50s client-side timeout (Vercel Pro limit is 60s)
       const abort = new AbortController();
@@ -720,33 +770,61 @@ The more you share — what you enjoy, what you've tried, even what you definite
 
                 {/* Wine card */}
                 {msg.wineCard && (
-                  <div style={{ maxWidth: "92%", background: "white", border: "1px solid #EDEAE3", borderRadius: 14, overflow: "hidden", position: "relative" }}>
-                    <div style={{ background: "#8C1C2E", padding: "10px 14px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#F7F4EF", lineHeight: 1.2 }}>{msg.wineCard.name}</div>
+                  <div style={{ maxWidth: "92%", background: "white", border: "1px solid #EDEAE3", borderRadius: 14, overflow: "visible", position: "relative" }}>
+                    <div style={{ background: "#8C1C2E", padding: "10px 14px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderRadius: "14px 14px 0 0" }}>
+                      <div style={{ flex: 1, paddingRight: msg.wineCard.match_score_json ? 10 : 0 }}>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#F7F4EF", lineHeight: 1.25, wordBreak: "break-word", overflowWrap: "anywhere" }}>{msg.wineCard.name}</div>
                         <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "rgba(247,244,239,0.75)", marginTop: 2 }}>{msg.wineCard.producer}</div>
                       </div>
-                      {/* Bookmark/save button */}
-                      {user && (
-                        <button
-                          onClick={() => saveWineCardToWishlist(msg.wineCard!, i)}
-                          disabled={savedWineCards.has(i)}
-                          title={savedWineCards.has(i) ? "Saved to wishlist" : "Save to wishlist"}
-                          style={{
-                            background: "none", border: "none", cursor: savedWineCards.has(i) ? "default" : "pointer",
-                            padding: 4, flexShrink: 0, marginLeft: 8, marginTop: -2,
-                            opacity: savedWineCards.has(i) ? 1 : 0.75,
-                            transition: "opacity 0.15s",
-                          }}
-                          onMouseEnter={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "1"; }}
-                          onMouseLeave={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "0.75"; }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill={savedWineCards.has(i) ? "#F7F4EF" : "none"} stroke="#F7F4EF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                          </svg>
-                        </button>
-                      )}
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
+                        {/* Match circle in the burgundy header. Shared component so it
+                            looks identical to cellar/wishlist. */}
+                        {msg.wineCard.match_score_json && typeof msg.wineCard.match_score_json.score === "number" && (
+                          <div style={{ zIndex: activeMatchTooltip === `chat-${i}-match` ? 120 : 2, position: "relative" }}>
+                            <MatchBadge
+                              match={msg.wineCard.match_score_json}
+                              hostId={`chat-${i}`}
+                              activeTooltipId={activeMatchTooltip}
+                              onToggleTooltip={setActiveMatchTooltip}
+                              size={36}
+                            />
+                          </div>
+                        )}
+                        {/* Bookmark/save button */}
+                        {user && (
+                          <button
+                            onClick={() => saveWineCardToWishlist(msg.wineCard!, i)}
+                            disabled={savedWineCards.has(i)}
+                            title={savedWineCards.has(i) ? "Saved to wishlist" : "Save to wishlist"}
+                            style={{
+                              background: "none", border: "none", cursor: savedWineCards.has(i) ? "default" : "pointer",
+                              padding: 4, marginTop: -2,
+                              opacity: savedWineCards.has(i) ? 1 : 0.75,
+                              transition: "opacity 0.15s",
+                            }}
+                            onMouseEnter={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "1"; }}
+                            onMouseLeave={e => { if (!savedWineCards.has(i)) e.currentTarget.style.opacity = "0.75"; }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill={savedWineCards.has(i) ? "#F7F4EF" : "none"} stroke="#F7F4EF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    {/* Awards row — quietly under the burgundy header so it doesn't fight
+                        the gold-accent badges with the burgundy. */}
+                    {msg.wineCard.awards_json && (
+                      <div style={{ padding: "8px 14px 0" }}>
+                        <AwardsRow
+                          awards={msg.wineCard.awards_json}
+                          hostId={`chat-${i}`}
+                          activeTooltipId={activeAwardTooltip}
+                          onToggleTooltip={setActiveAwardTooltip}
+                          marginTop={0}
+                        />
+                      </div>
+                    )}
                     <div style={{ padding: "10px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px" }}>
                       {[
                         ["Vintage", msg.wineCard.vintage],

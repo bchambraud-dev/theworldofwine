@@ -193,13 +193,26 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   try {
-    const { messages, image } = req.body || {};
+    const { messages, image, palate_digest } = req.body || {};
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "messages array required" });
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
     const isLabelScan = !!image;
+
+    // ── Palate — inject match scoring instructions into the system prompt when ──
+    // the user has a palate digest. Same scoring rubric used by /api/wine-context
+    // so chat scores match cellar/wishlist scores (4c).
+    let systemPrompt = SYSTEM;
+    if (palate_digest && typeof palate_digest === "object" && palate_digest.summary_prose) {
+      const palateBlock = `\n\nUSER'S PALATE (use this to personalise everything and to compute match scores):\n${JSON.stringify(palate_digest, null, 2)}\n\nMATCH SCORING RULES — when you emit a WINE_CARD or WISHLIST_ADD block, ALSO include these two lines:\n\nawards: {compact JSON, one line} or null\nmatch:  {compact JSON, one line} or null\n\nThe awards JSON shape:\n{\"awards\":[{\"type\":\"classification|critic_score|recognition\",\"label\":\"First Growth\",\"tone\":\"classification|score|recognized|iconic\",\"context\":\"1855 Bordeaux, Pauillac\"}],\"is_flagship\":true,\"confidence\":\"high|medium|low\"}\nEmpty awards: {\"awards\":[],\"is_flagship\":false,\"confidence\":\"high\"} — only include awards that are real and verifiable for this bottle+vintage.\n\nThe match JSON shape — score is computed by you using this rubric:\n  - Style fit (30% weight): structure + flavour profile vs user palate. 0-100.\n  - Region match (30%): regions_loved=high, regions_curious=mid, unknown=30-50.\n  - Budget (20%): inside band=80-100, 20% over=60-75, double=20-40.\n  - Adventure (20%): how well risk level matches adventurousness_band.\nFinal score = round(0.3*style + 0.3*region + 0.2*budget + 0.2*adventure). Use precise values (47, 63, 72, 84, 91), NEVER round numbers (50, 60, 65, 70, 75).\nBand cutoffs: 90+ \"Perfect Match\", 75-89 \"Strong Match\", 60-74 \"Worth Trying\", 45-59 \"A Stretch\", <45 \"Off Profile\".\nShape:\n{\"score\":87,\"band\":\"Strong Match\",\"confidence\":\"high|medium|low\",\"why_short\":\"Bold structured Bordeaux hits your sweet spot.\",\"why_long\":\"Cabernet-dominant Saint-Est\u00e8phe matches your love of structured reds...\",\"factors\":[{\"label\":\"Style fit\",\"alignment\":\"strong\",\"alignment_pct\":92},{\"label\":\"Region match\",\"alignment\":\"strong\",\"alignment_pct\":95},{\"label\":\"Budget\",\"alignment\":\"moderate\",\"alignment_pct\":78},{\"label\":\"Adventure\",\"alignment\":\"moderate\",\"alignment_pct\":60}]}\nwhy_short is max 12 words, second-person. why_long is 2-3 sentences, max 60 words, conversational.\n\nIf you don't have enough info to score honestly, emit \"match: null\" — do not fabricate. Same for awards.`;
+      systemPrompt = SYSTEM + palateBlock;
+    } else if (isLabelScan) {
+      // User has no palate yet — still ask Sommy for awards (evergreen) even
+      // without a match score, so label scans still surface recognition info.
+      systemPrompt = SYSTEM + `\n\nWhen you emit a WINE_CARD block, also include:\nawards: {compact JSON, one line} or null\nmatch: null\n\nThe awards JSON shape:\n{\"awards\":[{\"type\":\"classification|critic_score|recognition\",\"label\":\"First Growth\",\"tone\":\"classification|score|recognized|iconic\",\"context\":\"1855 Bordeaux\"}],\"is_flagship\":true,\"confidence\":\"high|medium|low\"}\nOnly include awards that are real and verifiable for this exact bottle+vintage. If the wine isn't a classified or recognized bottle, return {\"awards\":[],\"is_flagship\":false,\"confidence\":\"high\"}.`;
+    }
 
     // Build the Anthropic messages — if an image is included, attach it to the last user message
     const anthropicMessages = messages.map((m, i) => {
@@ -231,7 +244,7 @@ export default async function handler(req, res) {
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
-      system: SYSTEM,
+      system: systemPrompt,
       messages: anthropicMessages,
     });
 
@@ -249,12 +262,21 @@ export default async function handler(req, res) {
         // Check cache
         const cached = await getCachedAssessment(wineKey);
         if (cached) {
-          // Replace WINE_CARD block with cached structured data
-          // Keep the prose (everything after WINE_CARD_END) fresh and personalised
+          // Replace WINE_CARD block with cached structured data.
+          // BUT keep awards + match from Sommy's fresh response — those are
+          // either evergreen-per-bottle (awards) or per-user-and-palate-version
+          // (match), neither of which belongs in the cross-user cache.
           const cardBlock = rebuildWineCard(cached);
-          text = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END/, cardBlock);
+          const awardsLine = fields.awards ? `\nawards: ${fields.awards}` : "";
+          const matchLine  = fields.match  ? `\nmatch: ${fields.match}`   : "";
+          // Insert awards + match just before WINE_CARD_END
+          const cardBlockWithExtras = cardBlock.replace(
+            /\nWINE_CARD_END$/,
+            `${awardsLine}${matchLine}\nWINE_CARD_END`
+          );
+          text = text.replace(/WINE_CARD_START[\s\S]*?WINE_CARD_END/, cardBlockWithExtras);
         } else {
-          // Cache this new assessment for future scans
+          // Cache this new assessment for future scans (awards + match excluded by design)
           await cacheAssessment(wineKey, fields);
         }
       }

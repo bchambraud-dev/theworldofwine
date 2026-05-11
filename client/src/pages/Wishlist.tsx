@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useUserData, type WishlistEntry } from "@/lib/useUserData";
 import { useLocation } from "wouter";
-import { directInsert, directDelete } from "@/lib/supabaseDirectFetch";
+import { directInsert, directDelete, directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
+import { AwardsRow } from "@/components/AwardsRow";
+import { MatchBadge } from "@/components/MatchBadge";
 
 // ── Helpers ──
 
@@ -490,6 +492,52 @@ export default function Wishlist() {
   const [wishlist, setWishlist] = useState<WishlistEntry[]>([]);
   useEffect(() => { setWishlist(wishlistData); }, [wishlistData]);
 
+  // Tooltip state for shared badge components
+  const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
+  const [activeMatchTooltip, setActiveMatchTooltip] = useState<string | null>(null);
+
+  // Palate state — drives match scoring. Identical pattern to the cellar so
+  // the user experience is consistent across surfaces.
+  const [palateVersion, setPalateVersion] = useState<number | null>(null);
+  const [palateDigest, setPalateDigest] = useState<any>(null);
+  const [palateReady, setPalateReady] = useState(false);
+
+  // Rescore progress
+  const [rescoreTotal, setRescoreTotal] = useState(0);
+  const [rescoreDone, setRescoreDone]   = useState(0);
+
+  // Sort
+  type WishlistSortKey =
+    | "recent"
+    | "match_desc"
+    | "match_asc"
+    | "price_desc"
+    | "price_asc"
+    | "vintage_old"
+    | "vintage_new"
+    | "name_asc";
+  const SORT_LABELS: Record<WishlistSortKey, string> = {
+    recent:      "Recently added",
+    match_desc:  "Best matches first",
+    match_asc:   "Most adventurous first",
+    price_desc:  "Price: high to low",
+    price_asc:   "Price: low to high",
+    vintage_old: "Vintage: oldest first",
+    vintage_new: "Vintage: newest first",
+    name_asc:    "Name: A to Z",
+  };
+  const [sortKey, setSortKey] = useState<WishlistSortKey>(() => {
+    if (typeof window === "undefined") return "recent";
+    const stored = window.localStorage.getItem("wishlist_sort");
+    if (stored && stored in SORT_LABELS) return stored as WishlistSortKey;
+    return "recent";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("wishlist_sort", sortKey);
+  }, [sortKey]);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+
   // Manual add form
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -603,6 +651,8 @@ export default function Wishlist() {
         vintage: null, nose: null, palate: null, texture: null, breathing: null,
         drink_from: null, drink_peak_start: null, drink_peak_end: null, drink_until: null,
         sommy_notes: null,
+        awards_json: null, awards_generated_at: null,
+        match_score_json: null, match_score_palate_version: null, match_score_generated_at: null,
       };
       setWishlist(prev => [newEntry, ...prev]);
     } catch (e: any) {
@@ -624,6 +674,215 @@ export default function Wishlist() {
       console.error("Wishlist delete error:", e);
     }
   };
+
+  // ── Palate load ────────────────────────────────────────────────────────────
+  // Same pattern as cellar — detect form completion + digest + version.
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const rows = await directSelect<any>(
+          "user_preferences",
+          `select=palate_digest,palate_version,palate_form_complete&user_id=eq.${user.id}`
+        );
+        const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+        if (row && row.palate_form_complete && row.palate_digest && typeof row.palate_version === "number") {
+          setPalateDigest(row.palate_digest);
+          setPalateVersion(row.palate_version);
+          setPalateReady(true);
+        }
+      } catch (e) { /* non-fatal */ }
+    })();
+  }, [user]);
+
+  // ── Awards background generation (throttled, max 6/session) ──────────────
+  const awardsBackfillRanRef = useRef(false);
+  useEffect(() => {
+    if (!user || wishlist.length === 0) return;
+    if (awardsBackfillRanRef.current) return;
+    const missing = wishlist.filter(w => !w.awards_json).slice(0, 6);
+    if (missing.length === 0) return;
+    awardsBackfillRanRef.current = true;
+    (async () => {
+      for (const w of missing) {
+        try {
+          const resp = await fetch("/api/wine-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: "awards",
+              wine: {
+                id: w.id,
+                wine_name: w.wine_name,
+                vintage: w.vintage ? Number(w.vintage) : null,
+                producer: w.producer,
+                region: w.region,
+                grapes: w.grapes,
+                style: w.style,
+              },
+            }),
+          });
+          if (!resp.ok) continue;
+          const json = await resp.json();
+          const nowIso = new Date().toISOString();
+          try {
+            await directUpdate("wine_wishlist", w.id, {
+              awards_json: json.data,
+              awards_generated_at: nowIso,
+            });
+          } catch (cacheErr) {
+            console.warn("Failed to cache wishlist awards:", cacheErr);
+          }
+          setWishlist(prev => prev.map(x =>
+            x.id === w.id ? { ...x, awards_json: json.data, awards_generated_at: nowIso } : x
+          ));
+        } catch {
+          // swallow — awards are silent enrichment
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wishlist.length]);
+
+  // ── Match score orchestrator (concurrent batches of 4) ────────────────────
+  const rescoreRunRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!user || !palateReady || palateVersion == null || palateDigest == null) return;
+    if (wishlist.length === 0) return;
+
+    const stale = wishlist.filter(w => w.match_score_palate_version !== palateVersion);
+    if (stale.length === 0) {
+      setRescoreTotal(0);
+      setRescoreDone(0);
+      return;
+    }
+    if (rescoreRunRef.current === palateVersion) return;
+    rescoreRunRef.current = palateVersion;
+
+    setRescoreTotal(stale.length);
+    setRescoreDone(0);
+
+    const runOne = async (w: WishlistEntry) => {
+      try {
+        const resp = await fetch("/api/wine-context", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "match",
+            palate_digest: palateDigest,
+            wine: {
+              id: w.id,
+              wine_name: w.wine_name,
+              vintage: w.vintage ? Number(w.vintage) : null,
+              producer: w.producer,
+              region: w.region,
+              grapes: w.grapes,
+              style: w.style,
+            },
+          }),
+        });
+        if (!resp.ok) return;
+        const json = await resp.json();
+        const nowIso = new Date().toISOString();
+        try {
+          await directUpdate("wine_wishlist", w.id, {
+            match_score_json: json.data,
+            match_score_palate_version: palateVersion,
+            match_score_generated_at: nowIso,
+          });
+        } catch (cacheErr) {
+          console.warn("Failed to cache wishlist match:", cacheErr);
+        }
+        setWishlist(prev => prev.map(x => x.id === w.id ? {
+          ...x,
+          match_score_json: json.data,
+          match_score_palate_version: palateVersion,
+          match_score_generated_at: nowIso,
+        } : x));
+      } catch {
+        // silent per-wine failure
+      } finally {
+        setRescoreDone(d => d + 1);
+      }
+    };
+
+    (async () => {
+      const BATCH = 4;
+      for (let i = 0; i < stale.length; i += BATCH) {
+        const slice = stale.slice(i, i + BATCH);
+        await Promise.all(slice.map(runOne));
+      }
+      setTimeout(() => { setRescoreTotal(0); setRescoreDone(0); }, 1200);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, palateReady, palateVersion, palateDigest, wishlist.length]);
+
+  // ── Sort ────────────────────────────────────────────────────────────────────
+  const parsePrice = (s: string | null): number | null => {
+    if (!s) return null;
+    const m = s.match(/-?\d+(?:\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  };
+  const tieBreak = (a: WishlistEntry, b: WishlistEntry) =>
+    (a.wine_name || "").localeCompare(b.wine_name || "");
+  const sortedWishlist = [...wishlist].sort((a, b) => {
+    switch (sortKey) {
+      case "recent": {
+        const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return diff !== 0 ? diff : tieBreak(a, b);
+      }
+      case "match_desc": {
+        const aS = typeof a.match_score_json?.score === "number" ? a.match_score_json.score : null;
+        const bS = typeof b.match_score_json?.score === "number" ? b.match_score_json.score : null;
+        if (aS === null && bS === null) return tieBreak(a, b);
+        if (aS === null) return 1;
+        if (bS === null) return -1;
+        return aS !== bS ? bS - aS : tieBreak(a, b);
+      }
+      case "match_asc": {
+        const aS = typeof a.match_score_json?.score === "number" ? a.match_score_json.score : null;
+        const bS = typeof b.match_score_json?.score === "number" ? b.match_score_json.score : null;
+        if (aS === null && bS === null) return tieBreak(a, b);
+        if (aS === null) return 1;
+        if (bS === null) return -1;
+        return aS !== bS ? aS - bS : tieBreak(a, b);
+      }
+      case "price_desc": {
+        const aP = parsePrice(a.price_estimate);
+        const bP = parsePrice(b.price_estimate);
+        if (aP === null && bP === null) return tieBreak(a, b);
+        if (aP === null) return 1;
+        if (bP === null) return -1;
+        return aP !== bP ? bP - aP : tieBreak(a, b);
+      }
+      case "price_asc": {
+        const aP = parsePrice(a.price_estimate);
+        const bP = parsePrice(b.price_estimate);
+        if (aP === null && bP === null) return tieBreak(a, b);
+        if (aP === null) return 1;
+        if (bP === null) return -1;
+        return aP !== bP ? aP - bP : tieBreak(a, b);
+      }
+      case "vintage_old": {
+        const aV = a.vintage ? Number(a.vintage) : null;
+        const bV = b.vintage ? Number(b.vintage) : null;
+        if (aV === null && bV === null) return tieBreak(a, b);
+        if (aV === null) return 1;
+        if (bV === null) return -1;
+        return aV !== bV ? aV - bV : tieBreak(a, b);
+      }
+      case "vintage_new": {
+        const aV = a.vintage ? Number(a.vintage) : null;
+        const bV = b.vintage ? Number(b.vintage) : null;
+        if (aV === null && bV === null) return tieBreak(a, b);
+        if (aV === null) return 1;
+        if (bV === null) return -1;
+        return aV !== bV ? bV - aV : tieBreak(a, b);
+      }
+      case "name_asc": return tieBreak(a, b);
+      default: return 0;
+    }
+  });
 
   // "Tried it" -> go to journal log
   const triedIt = (entry: WishlistEntry) => {
@@ -731,22 +990,131 @@ export default function Wishlist() {
           </div>
         )}
 
+        {/* Calibration banner — mirrors the cellar's during palate rescore. */}
+        {rescoreTotal > 0 && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(90deg, rgba(140,28,46,0.06) 0%, rgba(212,165,106,0.06) 100%)",
+            border: "1px solid rgba(140,28,46,0.18)", borderRadius: 10,
+            padding: "10px 12px", marginBottom: 14,
+          }}>
+            <div style={{
+              width: 14, height: 14, borderRadius: "50%",
+              border: "2px solid rgba(140,28,46,0.2)", borderTopColor: "#8C1C2E",
+              animation: "spin 0.8s linear infinite", flexShrink: 0,
+            }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>
+                Sommy is calibrating your wishlist matches
+              </div>
+              <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", color: "#5A5248", marginTop: 1 }}>
+                {rescoreDone} OF {rescoreTotal}
+              </div>
+            </div>
+          </div>
+        )}
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+        {/* Sort menu — only rendered when there's something to sort. */}
+        {wishlist.length > 1 && (
+          <div style={{ position: "relative", marginBottom: 12, display: "flex", justifyContent: "flex-end" }}>
+            <button
+              onClick={() => setSortMenuOpen(o => !o)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "7px 12px", borderRadius: 16,
+                border: "1px solid #EDEAE3", background: "white",
+                fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                color: "#5A5248", cursor: "pointer",
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5A5248" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+                <line x1="9" y1="18" x2="15" y2="18" />
+              </svg>
+              Sort: {SORT_LABELS[sortKey]}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5A5248" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: sortMenuOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {sortMenuOpen && (
+              <>
+                <div onClick={() => setSortMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                <div style={{
+                  position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50,
+                  background: "white", borderRadius: 12,
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  border: "1px solid #EDEAE3", minWidth: 220, overflow: "hidden",
+                }}>
+                  {(Object.keys(SORT_LABELS) as WishlistSortKey[])
+                    // Match-based sorts hidden until the user has a palate digest —
+                    // otherwise the sort produces meaningless ordering.
+                    .filter(key => palateReady || (key !== "match_desc" && key !== "match_asc"))
+                    .map(key => {
+                      const isActive = sortKey === key;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => { setSortKey(key); setSortMenuOpen(false); }}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            width: "100%", padding: "11px 14px", border: "none",
+                            background: isActive ? "rgba(140,28,46,0.06)" : "white",
+                            fontFamily: "'Jost', sans-serif", fontSize: "0.85rem",
+                            fontWeight: isActive ? 500 : 300,
+                            color: isActive ? "#8C1C2E" : "#1A1410",
+                            cursor: "pointer", textAlign: "left",
+                          }}
+                        >
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "#8C1C2E" : "transparent" }} />
+                          <span>{SORT_LABELS[key]}</span>
+                        </button>
+                      );
+                    })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Wishlist cards */}
         {wishlist.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {wishlist.map(entry => {
+            {sortedWishlist.map(entry => {
               const isExpanded = expandedId === entry.id;
               const canExpand = hasExpandableContent(entry);
+              const hasMatch = palateReady && entry.match_score_json && typeof entry.match_score_json.score === "number";
 
               return (
-                <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                <div key={entry.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "visible", position: "relative" }}>
+                  {/* Match score circle in card top-right (same component as cellar) */}
+                  {hasMatch && (
+                    <div style={{
+                      position: "absolute", top: 10, right: 10,
+                      zIndex: activeMatchTooltip === `${entry.id}-match` ? 120 : 2,
+                    }}>
+                      <MatchBadge
+                        match={entry.match_score_json}
+                        stale={entry.match_score_palate_version !== palateVersion}
+                        hostId={entry.id}
+                        activeTooltipId={activeMatchTooltip}
+                        onToggleTooltip={setActiveMatchTooltip}
+                      />
+                    </div>
+                  )}
                   {/* Card header — clickable to expand */}
                   <div
                     onClick={() => canExpand && toggleExpand(entry.id)}
-                    style={{ padding: "14px 16px", cursor: canExpand ? "pointer" : "default" }}
+                    style={{ padding: "14px 16px", paddingRight: hasMatch ? 60 : 16, cursor: canExpand ? "pointer" : "default" }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.3, marginBottom: 2 }}>
+                      <div style={{
+                        fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400,
+                        color: "#1A1410", lineHeight: 1.3, marginBottom: 2,
+                        wordBreak: "break-word", overflowWrap: "anywhere", flex: 1,
+                      }}>
                         {entry.wine_name}
                         {entry.vintage && (
                           <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.78rem", fontWeight: 500, color: "#5A5248", marginLeft: 6 }}>
@@ -761,6 +1129,17 @@ export default function Wishlist() {
                         {[entry.producer, entry.region].filter(Boolean).join(" · ")}
                       </div>
                     )}
+                    {/* Bottle-aware awards — shared component, wrapped to give
+                        a small bottom margin against the grape/style chips below. */}
+                    <div style={{ marginBottom: entry.awards_json?.awards?.length ? 8 : 0 }}>
+                      <AwardsRow
+                        awards={entry.awards_json}
+                        hostId={entry.id}
+                        activeTooltipId={activeAwardTooltip}
+                        onToggleTooltip={setActiveAwardTooltip}
+                        marginTop={0}
+                      />
+                    </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
                       {entry.grapes && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{entry.grapes.toUpperCase()}</span>}
                       {entry.style && <span style={{ ...mono("0.55rem"), padding: "4px 10px", background: "#F7F4EF", borderRadius: 5 }}>{entry.style.toUpperCase()}</span>}

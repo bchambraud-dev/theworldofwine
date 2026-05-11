@@ -62,6 +62,25 @@ export interface WishlistEntry {
   drink_peak_end: number | null;
   drink_until: number | null;
   sommy_notes: string | null;
+  // Awards — same shape as wine_cellar.awards_json
+  awards_json: {
+    awards?: { type: string; label: string; tone: string; context?: string }[];
+    is_flagship?: boolean;
+    confidence?: "high" | "medium" | "low";
+    notes?: string;
+  } | null;
+  awards_generated_at: string | null;
+  // Match score — same shape as wine_cellar.match_score_json
+  match_score_json: {
+    score?: number;
+    band?: "Perfect Match" | "Strong Match" | "Worth Trying" | "A Stretch" | "Off Profile";
+    confidence?: "high" | "medium" | "low";
+    why_short?: string;
+    why_long?: string;
+    factors?: { label: string; alignment: "strong" | "moderate" | "neutral" | "weak"; alignment_pct?: number }[];
+  } | null;
+  match_score_palate_version: number | null;
+  match_score_generated_at: string | null;
 }
 
 interface UserDataContextType {
@@ -114,7 +133,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           directSelect("user_preferences", `select=preferred_types&user_id=eq.${uid}`),
           directSelect("user_goals", `select=id,title,target_count,current_count,completed&user_id=eq.${uid}&completed=eq.false&order=created_at.desc&limit=3`),
           directSelect("wine_journal", `select=id,wine_name,producer,vintage,region,grapes,style,notes,personal_rating,price_estimate,date_tasted&user_id=eq.${uid}&order=date_tasted.desc.nullslast&limit=8`),
-          directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at,vintage,nose,palate,texture,breathing,drink_from,drink_peak_start,drink_peak_end,drink_until,sommy_notes&user_id=eq.${uid}&order=created_at.desc`),
+          directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at,vintage,nose,palate,texture,breathing,drink_from,drink_peak_start,drink_peak_end,drink_until,sommy_notes,awards_json,awards_generated_at,match_score_json,match_score_palate_version,match_score_generated_at&user_id=eq.${uid}&order=created_at.desc`),
           directSelect("wine_journal", `select=region&user_id=eq.${uid}`),
         ]);
 

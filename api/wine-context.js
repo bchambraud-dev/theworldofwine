@@ -69,6 +69,87 @@ CRITICAL RULES (per-bottle, not per-producer):
 
 Output ONLY the JSON. No prose, no markdown, no commentary.`;
 
+// SHARED SCORING RUBRIC — imported into both /api/wine-context (kind=match) and Sommy chat context (4c)
+// Treat as the single source of truth for how match scores get assigned across every surface.
+export const MATCH_SCORE_RUBRIC = `
+SCORING RUBRIC (0-100 scale):
+
+90-100 "Perfect Match"  → Hits multiple core preferences cleanly (style, region, flavour profile, structure, price). High signal that the user will love it.
+75-89  "Strong Match"   → Aligns with most preferences. The user will likely enjoy it; one factor may be slightly off but not jarring.
+60-74  "Worth Trying"   → Some alignment, some adventure. The user has signalled openness here but it's a step outside their core comfort zone.
+45-59  "A Stretch"      → Several factors run against the user's preferences. Only worth recommending if their adventurousness score is high or they specifically asked for novelty.
+0-44   "Off Profile"    → Strong conflict with the user's stated preferences. Skip unless there's an explicit reason.
+
+CONFIDENCE GATING (the client uses this to decide what to show):
+- "high"   → Both the user's palate AND the wine's profile are well-defined. Score is reliable.
+- "medium" → Either the palate is sparse OR the wine is obscure. Score is directional.
+- "low"    → Insufficient data on either side. Score should not be shown to the user.
+
+HONESTY RULES:
+- If the user's palate signal is light (form only, no log history), cap your top band at "Strong Match". "Perfect Match" requires both form AND ≥8 wine logs.
+- Never reward iconic status — a First Growth Bordeaux scores low for a user who only drinks fruity reds under $30.
+- Adventurousness (1-5) shifts the cutoff: a 5 means the user wants you to push them, so "Worth Trying" can climb to 80+. A 1 means stay safe — never recommend outside core preferences.
+- Budget alignment matters but isn't binary — a wine 20% above budget is still "Worth Trying" if everything else hits.
+`.trim();
+
+const PALATE_DIGEST_SYSTEM = `You are Sommy, an expert sommelier. Given a user's palate form data, write a compact JSONB digest that captures their taste in a form usable for wine matching.
+
+Return ONLY valid JSON with this exact shape:
+
+{
+  "summary_prose": "A 2-3 sentence first-person summary of this drinker, written as if Sommy is recalling them. 'You lean toward bold reds with structure...' Max 60 words.",
+  "flavour_tags": ["fruit-forward", "earthy", "oaky"],
+  "structure_profile": { "body": "medium-full", "acidity": "moderate", "tannin": "firm" },
+  "regions_loved":     ["Bordeaux", "Tuscany"],
+  "regions_curious":   ["Rhone", "Mendoza"],
+  "adventurousness_band": "moderate",
+  "budget_band": "premium",
+  "price_quality_posture": "willing to pay for quality",
+  "experience_level": "enthusiast"
+}
+
+Rules:
+- Keep the prose short and second-person ("You lean toward..."). It is shown to the user occasionally and should sound like Sommy talking to them.
+- 3-6 flavour tags, lowercase, descriptive (not generic like "good wines").
+- Structure values: body in {"light","medium-light","medium","medium-full","full"}; acidity in {"low","moderate","bright","high"}; tannin in {"none","soft","moderate","firm","grippy"}.
+- adventurousness_band: "cautious" (1-2), "moderate" (3), "open" (4), "adventurous" (5).
+- budget_band: "value", "mid", "premium", "luxury".
+- Output ONLY the JSON. No prose, no markdown, no commentary.
+`.trim();
+
+const MATCH_SCORE_SYSTEM = `You are Sommy, an expert sommelier. Given a user's palate digest AND a wine, return a match analysis.
+
+${MATCH_SCORE_RUBRIC}
+
+Return ONLY valid JSON with this exact shape:
+
+{
+  "score": 87,
+  "band": "Strong Match",
+  "confidence": "high",
+  "why_short": "Bold structured Bordeaux hits your sweet spot.",
+  "why_long": "Cabernet-dominant Saint-Estèphe matches your love of structured reds. The 2014 vintage offers the firm tannin you prefer and sits comfortably within your premium budget. Aged Bordeaux is your wheelhouse.",
+  "factors": [
+    { "label": "Region match",   "alignment": "strong" },
+    { "label": "Structure fit",  "alignment": "strong" },
+    { "label": "Budget",         "alignment": "moderate" },
+    { "label": "Adventure",      "alignment": "neutral" }
+  ]
+}
+
+Rules:
+- "score" is an integer 0-100. The band MUST match the score range from the rubric.
+- "band" exact string: "Perfect Match" | "Strong Match" | "Worth Trying" | "A Stretch" | "Off Profile".
+- "why_short" is one line, max 12 words, second-person ("you"), Sommy's voice. Shown on the wine card.
+- "why_long" is 2-3 sentences, max 60 words, second-person, conversational. Shown on tap. Explain the score honestly.
+- "factors" is 3-5 short labels with alignment in {"strong","moderate","neutral","weak"}. Used to render small chips.
+- "confidence" follows the rubric. Be honest — if palate signal is thin OR wine is obscure, lower it.
+- Do NOT pad. If the user's palate clearly doesn't fit this wine, score it low and say so honestly.
+- No emojis.
+
+Output ONLY the JSON. No prose, no markdown, no commentary.
+`.trim();
+
 const PAIRING_SYSTEM = `You are Sommy, an expert sommelier. Given a wine, suggest 4-6 specific food pairings that complement it well. Return ONLY valid JSON with this exact shape:
 
 {
@@ -154,9 +235,45 @@ export default async function handler(req, res) {
     const wine = body.wine || {};
     const wineId = wine.id;
 
-    if (!wineId) return res.status(400).json({ error: "wine.id required" });
-    if (kind !== "tasting" && kind !== "pairings" && kind !== "awards") {
-      return res.status(400).json({ error: "kind must be 'tasting', 'pairings', or 'awards'" });
+    const validKinds = ["tasting", "pairings", "awards", "palate_digest", "match"];
+    if (!validKinds.includes(kind)) {
+      return res.status(400).json({ error: `kind must be one of: ${validKinds.join(", ")}` });
+    }
+    // wine.id only required for kinds that persist a cache row
+    if (["tasting", "pairings", "awards"].includes(kind) && !wineId) {
+      return res.status(400).json({ error: "wine.id required" });
+    }
+    // palate_digest doesn't need a wine — it takes palate form data
+    if (kind === "palate_digest") {
+      const form = body.form || {};
+      const userMessage = JSON.stringify(form, null, 2);
+      const text = await callSommy(PALATE_DIGEST_SYSTEM, userMessage);
+      let parsed;
+      try { parsed = parseJSON(text); } catch (e) {
+        return res.status(502).json({ error: "Sommy returned malformed digest" });
+      }
+      if (!parsed || !parsed.summary_prose) {
+        return res.status(502).json({ error: "digest missing required fields" });
+      }
+      return res.status(200).json({ kind: "palate_digest", data: parsed });
+    }
+    // match needs both palate_digest and wine
+    if (kind === "match") {
+      const palate = body.palate_digest;
+      if (!palate || !palate.summary_prose) {
+        return res.status(400).json({ error: "palate_digest required" });
+      }
+      if (!wine.wine_name) return res.status(400).json({ error: "wine.wine_name required" });
+      const userMessage = `PALATE:\n${JSON.stringify(palate, null, 2)}\n\nWINE:\n${describeWine(wine)}`;
+      const text = await callSommy(MATCH_SCORE_SYSTEM, userMessage);
+      let parsed;
+      try { parsed = parseJSON(text); } catch (e) {
+        return res.status(502).json({ error: "Sommy returned malformed match score" });
+      }
+      if (!parsed || typeof parsed.score !== "number" || !parsed.band) {
+        return res.status(502).json({ error: "match missing required fields" });
+      }
+      return res.status(200).json({ kind: "match", data: parsed });
     }
     if (!wine.wine_name) return res.status(400).json({ error: "wine.wine_name required" });
 

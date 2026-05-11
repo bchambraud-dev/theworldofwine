@@ -41,6 +41,13 @@ interface CellarWine {
   tasting_notes_generated_at: string | null;
   food_pairings_json: { pairings: { dish: string; why: string }[] } | null;
   food_pairings_generated_at: string | null;
+  awards_json: {
+    awards?: { type: string; label: string; tone: string; context: string }[];
+    is_flagship?: boolean;
+    confidence?: "high" | "medium" | "low";
+    notes?: string;
+  } | null;
+  awards_generated_at: string | null;
   created_at: string;
 }
 
@@ -60,6 +67,17 @@ interface ParsedCard {
 
 type FilterKey = "all" | "aging" | "ready" | "peak" | "soon" | "past" | "consumed" | "gifted";
 type SortKey = "drink_soonest" | "recent" | "price_desc" | "price_asc" | "vintage_old" | "vintage_new" | "name_asc";
+
+// Award badge tone palette — quiet, brand-aligned colors. NEVER neon.
+function awardBadgeStyle(tone: string) {
+  const palettes: Record<string, { bg: string; color: string; border: string }> = {
+    classification: { bg: "rgba(26,20,16,0.05)",    color: "#1A1410", border: "rgba(26,20,16,0.25)" },
+    score:          { bg: "rgba(140,28,46,0.07)",   color: "#7A1424", border: "rgba(140,28,46,0.35)" },
+    recognized:     { bg: "rgba(212,165,106,0.12)", color: "#8C6A2E", border: "rgba(212,165,106,0.45)" },
+    iconic:         { bg: "rgba(212,165,106,0.16)", color: "#7A5A20", border: "rgba(212,165,106,0.55)" },
+  };
+  return palettes[tone] || palettes.classification;
+}
 
 // Taste pill palette (matches Sommy chat + producer pages)
 const TASTE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
@@ -516,6 +534,9 @@ export default function Cellar() {
   // Tasting notes / food pairings generation state
   const [tastingLoadingId, setTastingLoadingId] = useState<string | null>(null);
   const [pairingsLoadingId, setPairingsLoadingId] = useState<string | null>(null);
+
+  // Award badge tooltip (which badge is currently revealing its context note)
+  const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
 
   // Goals form
   const [goalsOpen, setGoalsOpen] = useState(false);
@@ -1482,6 +1503,65 @@ export default function Cellar() {
                           {wine.producer}
                         </div>
                       )}
+                      {/* Bottle-aware award badges — high & medium confidence only.
+                          Tap to reveal context. Hidden entirely for low-confidence/unknown wines. */}
+                      {(() => {
+                        const aj = wine.awards_json;
+                        if (!aj || aj.confidence === "low") return null;
+                        const awards = Array.isArray(aj.awards) ? aj.awards : [];
+                        if (awards.length === 0) return null;
+                        return (
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4, position: "relative" }}>
+                            {awards.slice(0, 4).map((a, idx) => {
+                              const s = awardBadgeStyle(a.tone);
+                              const id = `${wine.id}-aw-${idx}`;
+                              const isActive = activeAwardTooltip === id;
+                              return (
+                                <span
+                                  key={id}
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={(e) => { e.stopPropagation(); setActiveAwardTooltip(isActive ? null : id); }}
+                                  style={{
+                                    display: "inline-flex", alignItems: "center", gap: 3,
+                                    padding: "1px 7px", borderRadius: 8,
+                                    fontFamily: "'Geist Mono', monospace", fontSize: "0.5rem",
+                                    letterSpacing: "0.07em", textTransform: "uppercase",
+                                    background: s.bg, color: s.color,
+                                    border: `1px solid ${s.border}`,
+                                    cursor: "pointer",
+                                    position: "relative",
+                                  }}
+                                >
+                                  {/* tiny medal icon for iconic + recognized tones */}
+                                  {(a.tone === "iconic" || a.tone === "recognized") && (
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="8" r="7" />
+                                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                                    </svg>
+                                  )}
+                                  {a.label}
+                                  {isActive && a.context && (
+                                    <span
+                                      onClick={(e) => { e.stopPropagation(); setActiveAwardTooltip(null); }}
+                                      style={{
+                                        position: "absolute", top: "calc(100% + 6px)", left: 0,
+                                        zIndex: 30, minWidth: 200, maxWidth: 260,
+                                        background: "#1A1410", color: "#F7F4EF",
+                                        padding: "7px 10px", borderRadius: 6,
+                                        fontFamily: "'Jost', sans-serif", fontSize: "0.7rem",
+                                        fontWeight: 300, letterSpacing: "normal", textTransform: "none",
+                                        lineHeight: 1.4,
+                                        boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+                                      }}
+                                    >{a.context}</span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (
                           <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

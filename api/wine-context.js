@@ -26,6 +26,49 @@ Rules:
 
 Output ONLY the JSON. No prose, no markdown, no commentary.`;
 
+const AWARDS_SYSTEM = `You are Sommy, an expert sommelier and wine historian. Given a specific bottle (wine name + vintage + producer), return any genuine recognition, classification, or critic-recognized awards that apply to THIS SPECIFIC BOTTLE.
+
+Return ONLY valid JSON with this exact shape:
+
+{
+  "awards": [
+    { "type": "classification", "label": "First Growth",          "tone": "classification", "context": "Pauillac, 1855 Bordeaux Classification" },
+    { "type": "critic_score",   "label": "Parker 100",            "tone": "score",          "context": "Robert Parker, 1982 vintage" },
+    { "type": "recognition",    "label": "Decanter Wine of the Year 1982", "tone": "recognized", "context": "Decanter Magazine" }
+  ],
+  "is_flagship": true,
+  "confidence": "high",
+  "notes": "Grand Vin from the classified estate."
+}
+
+CRITICAL RULES (per-bottle, not per-producer):
+
+1. Distinguish FLAGSHIP wines from second wines or negociant blends. "Château Mouton Rothschild" (the Grand Vin) is a First Growth. "Mouton Cadet" (the cheap negociant blend from the SAME producer) is NOT. Penfolds Grange is iconic; Penfolds Koonunga Hill is a $15 supermarket wine.
+
+2. Distinguish VINTAGES. A First Growth's classification applies to all vintages (it's an estate-level designation), but critic scores and "Wine of the Year" awards are vintage-specific. Only attach scores you genuinely know for THAT vintage.
+
+3. If you don't know with reasonable certainty, return an empty awards array. Do NOT fabricate. Do NOT extrapolate from the producer's general reputation. Better to under-promise than misrepresent.
+
+4. For Old World classifications (1855 Bordeaux, Grand Cru, Premier Cru, DOCG, etc.), use "type": "classification" with "tone": "classification".
+
+5. For critic scores (Parker, Wine Spectator, James Suckling, Decanter, Vinous), use "type": "critic_score" with "tone": "score". Include critic + vintage in "context".
+
+6. For recognition awards (Decanter Wine of the Year, Wine Spectator Top 100, Wine of the Year, Master of Wine choices), use "type": "recognition" with "tone": "recognized".
+
+7. For widely-acknowledged iconic status without formal classification (e.g. Tignanello as a Super Tuscan pioneer, Sassicaia pre-DOC, Vega Sicilia Único), use "type": "recognition" with "tone": "iconic" and label like "Iconic Super Tuscan" or "Spanish wine legend". Use sparingly.
+
+8. "confidence" must be: "high" (you're certain about this specific bottle), "medium" (likely but vintage-specific data may not be perfect), or "low" (you're stretching). The client will hide all low-confidence results.
+
+9. "is_flagship": true ONLY when this IS the producer's classified/iconic wine. Mouton Cadet 2020 → false. Château Mouton Rothschild 1982 → true.
+
+10. Maximum 4 awards. Quality over quantity. Don't pad.
+
+11. For wines you genuinely don't recognize (regional producers, supermarket brands, unknown labels): return { "awards": [], "is_flagship": false, "confidence": "low", "notes": "Limited data on this specific bottle." }
+
+12. "notes" is a one-line internal note (not shown to user) explaining the call.
+
+Output ONLY the JSON. No prose, no markdown, no commentary.`;
+
 const PAIRING_SYSTEM = `You are Sommy, an expert sommelier. Given a wine, suggest 4-6 specific food pairings that complement it well. Return ONLY valid JSON with this exact shape:
 
 {
@@ -112,8 +155,8 @@ export default async function handler(req, res) {
     const wineId = wine.id;
 
     if (!wineId) return res.status(400).json({ error: "wine.id required" });
-    if (kind !== "tasting" && kind !== "pairings") {
-      return res.status(400).json({ error: "kind must be 'tasting' or 'pairings'" });
+    if (kind !== "tasting" && kind !== "pairings" && kind !== "awards") {
+      return res.status(400).json({ error: "kind must be 'tasting', 'pairings', or 'awards'" });
     }
     if (!wine.wine_name) return res.status(400).json({ error: "wine.wine_name required" });
 
@@ -144,6 +187,22 @@ export default async function handler(req, res) {
         food_pairings_generated_at: new Date().toISOString(),
       });
       return res.status(200).json({ kind: "pairings", data: parsed });
+    }
+
+    if (kind === "awards") {
+      const text = await callSommy(AWARDS_SYSTEM, wineDesc);
+      let parsed;
+      try {
+        parsed = parseJSON(text);
+      } catch (e) {
+        // Treat malformed JSON as 'no awards known' rather than failing the call.
+        parsed = { awards: [], is_flagship: false, confidence: "low", notes: "Parse error — treated as empty." };
+      }
+      // Defensive shape check
+      if (!parsed || !Array.isArray(parsed.awards)) {
+        parsed = { awards: [], is_flagship: false, confidence: "low", notes: "Malformed response — treated as empty." };
+      }
+      return res.status(200).json({ kind: "awards", data: parsed });
     }
 
     return res.status(400).json({ error: "unsupported kind" });

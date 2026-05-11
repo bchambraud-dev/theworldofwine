@@ -9,7 +9,6 @@ import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import { displayPriceSync, preloadRates, convertToUSD } from "@/lib/currencyConvert";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
-import { producers as PRODUCERS_DATA } from "@/data/producers";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -61,82 +60,6 @@ interface ParsedCard {
 
 type FilterKey = "all" | "aging" | "ready" | "peak" | "soon" | "past" | "consumed" | "gifted";
 type SortKey = "drink_soonest" | "recent" | "price_desc" | "price_asc" | "vintage_old" | "vintage_new" | "name_asc";
-
-// Award badge derivation — maps a producer's structured data into a small
-// set of badges renderable on each wine card.
-type AwardBadge = {
-  key: string;
-  label: string;
-  short: string;
-  tone: "legendary" | "iconic" | "classification" | "rising" | "recognized";
-};
-
-function normalizeName(s: string): string {
-  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-}
-
-function findProducerMatch(producerName: string | null | undefined) {
-  if (!producerName) return null;
-  const target = normalizeName(producerName);
-  if (!target) return null;
-  // Exact normalised match first
-  let match = PRODUCERS_DATA.find(p => normalizeName(p.name) === target);
-  if (match) return match;
-  // Substring match either direction ("Lafite" matches "Château Lafite Rothschild")
-  match = PRODUCERS_DATA.find(p => {
-    const n = normalizeName(p.name);
-    return n.includes(target) || target.includes(n);
-  });
-  return match || null;
-}
-
-function deriveBadges(producerName: string | null | undefined): AwardBadge[] {
-  const p = findProducerMatch(producerName);
-  if (!p) return [];
-  const badges: AwardBadge[] = [];
-
-  // Prestige tier badge
-  if (p.prestige === "legendary") {
-    badges.push({ key: "legendary", label: "Legendary estate", short: "Legendary", tone: "legendary" });
-  } else if (p.prestige === "iconic") {
-    badges.push({ key: "iconic", label: "Iconic producer", short: "Iconic", tone: "iconic" });
-  } else if (p.prestige === "rising-star") {
-    badges.push({ key: "rising", label: "Rising star", short: "Rising", tone: "rising" });
-  }
-
-  // Classification badges parsed from keyFacts
-  const facts = (p.keyFacts || []).join(" | ").toLowerCase();
-  if (/first growth|premier grand cru classé a|1er cru classé a/.test(facts)) {
-    badges.push({ key: "first-growth", label: "First Growth", short: "1st Growth", tone: "classification" });
-  } else if (/second growth/.test(facts)) {
-    badges.push({ key: "second-growth", label: "Second Growth", short: "2nd Growth", tone: "classification" });
-  } else if (/grand cru classé|premier grand cru|grand cru/.test(facts)) {
-    badges.push({ key: "grand-cru", label: "Grand Cru", short: "Grand Cru", tone: "classification" });
-  } else if (/premier cru|1er cru/.test(facts)) {
-    badges.push({ key: "premier-cru", label: "Premier Cru", short: "Premier Cru", tone: "classification" });
-  } else if (/docg|denominazione di origine controllata e garantita/.test(facts)) {
-    badges.push({ key: "docg", label: "DOCG", short: "DOCG", tone: "classification" });
-  }
-
-  // Award winner fallback if no classification matched
-  if (p.isAwardWinner && !badges.some(b => b.tone === "classification")) {
-    badges.push({ key: "award-winner", label: "Award winner", short: "Award", tone: "recognized" });
-  }
-
-  return badges;
-}
-
-function badgeStyle(tone: AwardBadge["tone"]) {
-  // Palette keeps badges quiet but distinctive — metallic/jewel tones, never neon
-  const palettes: Record<AwardBadge["tone"], { bg: string; color: string; border: string }> = {
-    legendary:      { bg: "rgba(140,28,46,0.08)",  color: "#7A1424", border: "rgba(140,28,46,0.4)" },
-    iconic:         { bg: "rgba(212,165,106,0.14)", color: "#8C6A2E", border: "rgba(212,165,106,0.5)" },
-    classification: { bg: "rgba(26,20,16,0.05)",   color: "#1A1410", border: "rgba(26,20,16,0.25)" },
-    rising:         { bg: "rgba(74,122,82,0.08)",  color: "#3E6A48", border: "rgba(74,122,82,0.4)" },
-    recognized:     { bg: "rgba(212,165,106,0.10)", color: "#8C6A2E", border: "rgba(212,165,106,0.35)" },
-  };
-  return palettes[tone];
-}
 
 // Taste pill palette (matches Sommy chat + producer pages)
 const TASTE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
@@ -1559,41 +1482,6 @@ export default function Cellar() {
                           {wine.producer}
                         </div>
                       )}
-                      {/* Award badges — compact: top 2 only */}
-                      {(() => {
-                        const badges = deriveBadges(wine.producer);
-                        if (badges.length === 0) return null;
-                        return (
-                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-                            {badges.slice(0, 2).map(b => {
-                              const s = badgeStyle(b.tone);
-                              return (
-                                <span
-                                  key={b.key}
-                                  title={b.label}
-                                  style={{
-                                    display: "inline-flex", alignItems: "center", gap: 3,
-                                    padding: "1px 7px", borderRadius: 8,
-                                    fontFamily: "'Geist Mono', monospace", fontSize: "0.48rem",
-                                    letterSpacing: "0.08em", textTransform: "uppercase",
-                                    background: s.bg, color: s.color,
-                                    border: `1px solid ${s.border}`,
-                                  }}
-                                >
-                                  {/* tiny award glyph for top-tier badges only */}
-                                  {(b.tone === "legendary" || b.tone === "iconic") && (
-                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                      <circle cx="12" cy="8" r="7" />
-                                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                                    </svg>
-                                  )}
-                                  {b.short}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (
                           <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

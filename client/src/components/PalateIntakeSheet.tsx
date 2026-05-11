@@ -24,6 +24,7 @@
  *   - Never says "AI" or "I'll guess".
  */
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { directUpdate, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -76,34 +77,35 @@ const PRICE_POSTURES = [
 ];
 
 // Budget brackets per currency. Numbers chosen to feel natural in each market.
+// Brackets per user feedback (May 2026): under 30, 30—50, 50—100, 100—200, 200+.
 const BUDGET_BRACKETS_BY_CURRENCY: Record<string, { min: number; max: number; label: string }[]> = {
   SGD: [
     { min: 0,   max: 30,   label: "Under 30" },
-    { min: 30,  max: 60,   label: "30 — 60" },
-    { min: 60,  max: 120,  label: "60 — 120" },
-    { min: 120, max: 300,  label: "120 — 300" },
-    { min: 300, max: 99999, label: "300+" },
+    { min: 30,  max: 50,   label: "30 — 50" },
+    { min: 50,  max: 100,  label: "50 — 100" },
+    { min: 100, max: 200,  label: "100 — 200" },
+    { min: 200, max: 99999, label: "200+" },
   ],
   USD: [
-    { min: 0,   max: 20,   label: "Under 20" },
-    { min: 20,  max: 50,   label: "20 — 50" },
-    { min: 50,  max: 100,  label: "50 — 250" },
-    { min: 100, max: 250,  label: "100 — 250" },
-    { min: 250, max: 99999, label: "250+" },
+    { min: 0,   max: 30,   label: "Under 30" },
+    { min: 30,  max: 50,   label: "30 — 50" },
+    { min: 50,  max: 100,  label: "50 — 100" },
+    { min: 100, max: 200,  label: "100 — 200" },
+    { min: 200, max: 99999, label: "200+" },
   ],
   EUR: [
-    { min: 0,   max: 20,   label: "Under 20" },
-    { min: 20,  max: 50,   label: "20 — 50" },
+    { min: 0,   max: 30,   label: "Under 30" },
+    { min: 30,  max: 50,   label: "30 — 50" },
     { min: 50,  max: 100,  label: "50 — 100" },
-    { min: 100, max: 250,  label: "100 — 250" },
-    { min: 250, max: 99999, label: "250+" },
+    { min: 100, max: 200,  label: "100 — 200" },
+    { min: 200, max: 99999, label: "200+" },
   ],
   GBP: [
-    { min: 0,   max: 20,   label: "Under 20" },
-    { min: 20,  max: 50,   label: "20 — 50" },
+    { min: 0,   max: 30,   label: "Under 30" },
+    { min: 30,  max: 50,   label: "30 — 50" },
     { min: 50,  max: 100,  label: "50 — 100" },
-    { min: 100, max: 250,  label: "100 — 250" },
-    { min: 250, max: 99999, label: "250+" },
+    { min: 100, max: 200,  label: "100 — 200" },
+    { min: 200, max: 99999, label: "200+" },
   ],
 };
 
@@ -324,9 +326,11 @@ export default function PalateIntakeSheet({ userId, currency, existing, onComple
     (step === 4)
   );
 
-  return (
+  // Portal to <body> so the sheet sits in its own root stacking context, above
+  // the global Sommy floating button (z-index 900) and any page-level overlays.
+  return createPortal(
     <div style={{
-      position: "fixed", inset: 0, zIndex: 1500,
+      position: "fixed", inset: 0, zIndex: 2000,
       background: "rgba(26,20,16,0.55)",
       display: "flex", alignItems: "flex-end", justifyContent: "center",
     }}
@@ -419,7 +423,8 @@ export default function PalateIntakeSheet({ userId, currency, existing, onComple
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

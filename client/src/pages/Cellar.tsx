@@ -10,6 +10,7 @@ import { displayPriceSync, preloadRates, convertToUSD } from "@/lib/currencyConv
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
 import { AwardsRow } from "@/components/AwardsRow";
+import { MatchBadge, type MatchScore } from "@/components/MatchBadge";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,11 @@ interface CellarWine {
     notes?: string;
   } | null;
   awards_generated_at: string | null;
+  // Match score — per-(user, wine) score against the user's palate.
+  // null when not yet scored; mismatch with current palate_version means stale.
+  match_score_json: MatchScore;
+  match_score_palate_version: number | null;
+  match_score_generated_at: string | null;
   created_at: string;
 }
 
@@ -529,6 +535,19 @@ export default function Cellar() {
 
   // Award badge tooltip (which badge is currently revealing its context note)
   const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
+  // Match score tooltip (independent from awards — user can have one of each open)
+  const [activeMatchTooltip, setActiveMatchTooltip] = useState<string | null>(null);
+
+  // Palate state — drives the match scoring feature. Hidden entirely until
+  // palate_form_complete=true. Stale detection compares each wine's
+  // match_score_palate_version against this.
+  const [palateVersion, setPalateVersion] = useState<number | null>(null);
+  const [palateDigest, setPalateDigest] = useState<any>(null);
+  const [palateReady, setPalateReady] = useState(false); // form complete?
+
+  // Rescore progress — used to show the calibration indicator at top of cellar
+  const [rescoreTotal, setRescoreTotal] = useState(0);
+  const [rescoreDone, setRescoreDone]   = useState(0);
 
   // Goals form
   const [goalsOpen, setGoalsOpen] = useState(false);
@@ -647,6 +666,118 @@ export default function Cellar() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, wines.length]);
+
+  // ── Palate load ───────────────────────────────────────────────────────────
+  // Pull the user's palate digest + version + completion flag. Drives whether
+  // match scoring is active at all and what counts as stale.
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const rows = await directSelect<any>(
+          "user_preferences",
+          `select=palate_digest,palate_version,palate_form_complete&user_id=eq.${user.id}`
+        );
+        const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+        if (row && row.palate_form_complete && row.palate_digest && typeof row.palate_version === "number") {
+          setPalateDigest(row.palate_digest);
+          setPalateVersion(row.palate_version);
+          setPalateReady(true);
+        } else {
+          setPalateReady(false);
+        }
+      } catch (e) {
+        console.warn("Palate load failed:", e);
+        setPalateReady(false);
+      }
+    })();
+  }, [user]);
+
+  // ── Match score orchestrator ───────────────────────────────────────────────────
+  // On palate or cellar change: detect wines whose match score is missing or
+  // stale (palate_version mismatch). Rescore in concurrent batches of 4 with
+  // a progress indicator. Per-wine failure is silently swallowed so one bad
+  // wine doesn't block the batch.
+  const rescoreRunRef = useRef<number | null>(null); // tracks which version's rescore is running
+  useEffect(() => {
+    if (!user || !palateReady || palateVersion == null || palateDigest == null) return;
+    if (wines.length === 0) return;
+
+    // Identify wines needing a fresh score (active only — consumed/gifted excluded)
+    const stale = wines.filter(w => w.status === "active" && w.match_score_palate_version !== palateVersion);
+    if (stale.length === 0) {
+      setRescoreTotal(0);
+      setRescoreDone(0);
+      return;
+    }
+
+    // Don't re-launch if we're already mid-rescore for this exact palate version
+    if (rescoreRunRef.current === palateVersion) return;
+    rescoreRunRef.current = palateVersion;
+
+    setRescoreTotal(stale.length);
+    setRescoreDone(0);
+
+    const runOne = async (w: CellarWine) => {
+      try {
+        const resp = await fetch("/api/wine-context", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "match",
+            palate_digest: palateDigest,
+            wine: {
+              id: w.id,
+              wine_name: w.wine_name,
+              vintage: w.vintage,
+              producer: w.producer,
+              region: w.region,
+              grapes: w.grapes,
+              style: w.style,
+            },
+          }),
+        });
+        if (!resp.ok) return;
+        const json = await resp.json();
+        const nowIso = new Date().toISOString();
+        try {
+          await directUpdate("wine_cellar", w.id, {
+            match_score_json: json.data,
+            match_score_palate_version: palateVersion,
+            match_score_generated_at: nowIso,
+          });
+        } catch (cacheErr) {
+          console.warn("Failed to cache match score:", cacheErr);
+        }
+        setWines(prev => prev.map(x => x.id === w.id ? {
+          ...x,
+          match_score_json: json.data,
+          match_score_palate_version: palateVersion,
+          match_score_generated_at: nowIso,
+        } : x));
+      } catch (e) {
+        // Silent failure — stale score remains, user can re-trigger by reopening Sommy
+      } finally {
+        setRescoreDone(d => d + 1);
+      }
+    };
+
+    // Batched concurrency: 4 at a time keeps Anthropic happy and finishes 74
+    // wines in ~30-40 seconds. Higher = bursty 429s.
+    (async () => {
+      const BATCH = 4;
+      for (let i = 0; i < stale.length; i += BATCH) {
+        const slice = stale.slice(i, i + BATCH);
+        await Promise.all(slice.map(runOne));
+      }
+      // Done — hide the progress indicator after a brief beat so the user sees "X of X"
+      setTimeout(() => {
+        setRescoreTotal(0);
+        setRescoreDone(0);
+      }, 1200);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, palateReady, palateVersion, palateDigest, wines.length]);
 
   const loadGoals = useCallback(async () => {
     if (!user) return;
@@ -1184,6 +1315,33 @@ export default function Cellar() {
           </h1>
         </div>
 
+        {/* Calibration banner — shown while Sommy is rescoring matches.
+            Quiet, narrow, dismisses itself when done. */}
+        {rescoreTotal > 0 && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            background: "linear-gradient(90deg, rgba(140,28,46,0.06) 0%, rgba(212,165,106,0.06) 100%)",
+            border: "1px solid rgba(140,28,46,0.18)", borderRadius: 10,
+            padding: "10px 12px", marginBottom: 14,
+          }}>
+            <div style={{
+              width: 14, height: 14, borderRadius: "50%",
+              border: "2px solid rgba(140,28,46,0.2)", borderTopColor: "#8C1C2E",
+              animation: "spin 0.8s linear infinite", flexShrink: 0,
+            }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#1A1410" }}>
+                Sommy is calibrating your matches
+              </div>
+              <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", color: "#5A5248", marginTop: 1 }}>
+                {rescoreDone} OF {rescoreTotal}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Inline keyframes for the spinner (only needed when banner is visible) */}
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
         {/* ── Stats strip ── */}
         <div style={{
           display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -1533,6 +1691,18 @@ export default function Cellar() {
                         activeTooltipId={activeAwardTooltip}
                         onToggleTooltip={setActiveAwardTooltip}
                       />
+                      {/* Match score — only renders if the user has completed their
+                          palate form AND Sommy has produced a fresh score. Stale
+                          scores (older palate version) render dimmed until rescore. */}
+                      {palateReady && (
+                        <MatchBadge
+                          match={wine.match_score_json}
+                          stale={wine.match_score_palate_version !== palateVersion}
+                          hostId={wine.id}
+                          activeTooltipId={activeMatchTooltip}
+                          onToggleTooltip={setActiveMatchTooltip}
+                        />
+                      )}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (
                           <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

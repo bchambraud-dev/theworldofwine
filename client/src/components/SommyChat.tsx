@@ -489,32 +489,26 @@ The more you share — what you enjoy, what you've tried, even what you definite
         const total = guides.filter(g => g.level === (profile?.experience_level || "beginner")).length;
         profileParts.push(`Guides completed (${guideNames.length}/${total} ${profile?.experience_level || "beginner"}): ${guideNames.join(", ")}`);
       }
-      // Journal context — STRICT gating to prevent Sommy from over-anchoring
-      // on a single highly-rated wine. Two rules (per user feedback May 2026):
-      //  1) Don't send specific wine names unless there are >=5 wines rated
-      //     4/5 or above. Below that, send only aggregate signal (regions tried).
-      //  2) Sommy is told separately in the system prompt: never name specific
-      //     journal wines, treat them as exploration history only.
-      const highlyRated = journal.filter(w => (w.personal_rating ?? 0) >= 4);
-      if (highlyRated.length >= 5) {
-        // Enough signal — send detailed wine list (up to 5 most recent highly-rated)
-        const wineLines = highlyRated.slice(0, 5).map(w => {
-          const parts = [w.wine_name];
-          if (w.vintage) parts[0] += ` ${w.vintage}`;
-          if (w.region) parts.push(w.region);
-          if (w.grapes) parts.push(w.grapes);
-          if (w.personal_rating) parts.push(`rated ${w.personal_rating}/5`);
-          return `- ${parts.join(" · ")}`;
-        });
-        profileParts.push(`Wines the user has rated 4+ stars (use as supporting context only, NEVER as the anchor; do not reference repeatedly):\n${wineLines.join("\n")}`);
-      } else if (journal.length > 0) {
-        // Below the signal threshold — send only aggregate exploration data
-        const regions = Array.from(new Set(journal.map(w => w.region).filter(Boolean))).slice(0, 8);
-        const grapes  = Array.from(new Set(journal.map(w => w.grapes).filter(Boolean))).slice(0, 8);
-        const summaryParts = [`${journal.length} wines logged so far`];
+      // Journal context — AGGREGATE ONLY. We never send specific wine names
+      // to Sommy. This was a continuous source of frustration: Sommy would
+      // anchor on the same 1-2 highly-rated wines (Tronquoy, Zinfandel) and
+      // reference them in every response, even after the prompt told her not
+      // to. The only reliable fix is removing them from her context entirely.
+      // The palate digest (from the form) is the primary signal; the journal
+      // contributes only style awareness (regions/grapes the user has explored).
+      if (journal.length > 0) {
+        const highlyRated = journal.filter(w => (w.personal_rating ?? 0) >= 4);
+        const regions = Array.from(new Set(journal.map(w => w.region).filter(Boolean))).slice(0, 10);
+        const grapes  = Array.from(new Set(journal.map(w => w.grapes).filter(Boolean))).slice(0, 10);
+        const ratings = journal.map(w => w.personal_rating).filter(r => r != null) as number[];
+        const avgRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : null;
+
+        const summaryParts: string[] = [`${journal.length} wines logged, ${highlyRated.length} rated 4+ stars`];
+        if (avgRating) summaryParts.push(`average rating ${avgRating}/5`);
         if (regions.length) summaryParts.push(`regions explored: ${regions.join(", ")}`);
         if (grapes.length)  summaryParts.push(`grapes tasted: ${grapes.join(", ")}`);
-        profileParts.push(`Exploration so far (aggregate signal only — NEVER name specific wines from this list, the user hasn't rated enough to anchor on individuals): ${summaryParts.join("; ")}`);
+
+        profileParts.push(`Exploration signal (aggregate — use for style awareness only; do not name any specific past wine): ${summaryParts.join("; ")}`);
       }
       if (stats.wines > 0 || stats.regions > 0) {
         profileParts.push(`Stats: ${stats.wines} wines logged, ${stats.regions} regions explored, ${stats.guides} guides read`);

@@ -81,10 +81,14 @@ interface MatchBadgeProps {
   /** Circle size in px (default 40 — fits a stacked score + "MATCH" label
       without crowding. Slightly larger than 36 to keep both lines readable. */
   size?: number;
+  /** When true, render with a SOLID WHITE background regardless of band
+      (used when the circle sits on a burgundy / dark header so the percent
+      text stays legible). The ring still picks up the band color. */
+  onDarkSurface?: boolean;
 }
 
 export function MatchBadge({
-  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 40,
+  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 40, onDarkSurface = false,
 }: MatchBadgeProps) {
   const id = `${hostId}-match`;
   const isActive = activeTooltipId === id;
@@ -123,9 +127,9 @@ export function MatchBadge({
         aria-label={`${score} percent match${lowConfidence ? ", approximate" : ""}`}
         style={{
           width: size, height: size, borderRadius: "50%",
-          background: c.fill,
-          // Dashed ring when confidence is low, solid otherwise. Subtle but
-          // distinguishable on glance — honest about Sommy's certainty.
+          // Solid white when sitting on a dark header (chat card burgundy)
+          // so the percent number stays legible. Otherwise use the band tint.
+          background: onDarkSurface ? "#FFFFFF" : c.fill,
           border: `1.5px ${lowConfidence ? "dashed" : "solid"} ${c.ring}`,
           color: c.text,
           display: "flex", flexDirection: "column",
@@ -135,7 +139,9 @@ export function MatchBadge({
           opacity: stale ? 0.45 : 1,
           transition: "opacity 0.25s ease, transform 0.15s ease",
           transform: isActive ? "scale(0.96)" : "scale(1)",
-          boxShadow: isActive ? "none" : `0 1px 3px rgba(26,20,16,0.06)`,
+          boxShadow: isActive
+            ? "none"
+            : onDarkSurface ? "0 2px 6px rgba(0,0,0,0.18)" : "0 1px 3px rgba(26,20,16,0.06)",
           lineHeight: 1,
         }}
       >

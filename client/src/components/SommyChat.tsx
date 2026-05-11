@@ -489,17 +489,32 @@ The more you share — what you enjoy, what you've tried, even what you definite
         const total = guides.filter(g => g.level === (profile?.experience_level || "beginner")).length;
         profileParts.push(`Guides completed (${guideNames.length}/${total} ${profile?.experience_level || "beginner"}): ${guideNames.join(", ")}`);
       }
-      if (journal.length > 0) {
-        const wineLines = journal.slice(0, 5).map(w => {
+      // Journal context — STRICT gating to prevent Sommy from over-anchoring
+      // on a single highly-rated wine. Two rules (per user feedback May 2026):
+      //  1) Don't send specific wine names unless there are >=5 wines rated
+      //     4/5 or above. Below that, send only aggregate signal (regions tried).
+      //  2) Sommy is told separately in the system prompt: never name specific
+      //     journal wines, treat them as exploration history only.
+      const highlyRated = journal.filter(w => (w.personal_rating ?? 0) >= 4);
+      if (highlyRated.length >= 5) {
+        // Enough signal — send detailed wine list (up to 5 most recent highly-rated)
+        const wineLines = highlyRated.slice(0, 5).map(w => {
           const parts = [w.wine_name];
           if (w.vintage) parts[0] += ` ${w.vintage}`;
           if (w.region) parts.push(w.region);
           if (w.grapes) parts.push(w.grapes);
           if (w.personal_rating) parts.push(`rated ${w.personal_rating}/5`);
-          if (w.notes) parts.push(`notes: "${w.notes}"`);
           return `- ${parts.join(" · ")}`;
         });
-        profileParts.push(`Recent wines logged:\n${wineLines.join("\n")}`);
+        profileParts.push(`Wines the user has rated 4+ stars (use as supporting context only, NEVER as the anchor; do not reference repeatedly):\n${wineLines.join("\n")}`);
+      } else if (journal.length > 0) {
+        // Below the signal threshold — send only aggregate exploration data
+        const regions = Array.from(new Set(journal.map(w => w.region).filter(Boolean))).slice(0, 8);
+        const grapes  = Array.from(new Set(journal.map(w => w.grapes).filter(Boolean))).slice(0, 8);
+        const summaryParts = [`${journal.length} wines logged so far`];
+        if (regions.length) summaryParts.push(`regions explored: ${regions.join(", ")}`);
+        if (grapes.length)  summaryParts.push(`grapes tasted: ${grapes.join(", ")}`);
+        profileParts.push(`Exploration so far (aggregate signal only — NEVER name specific wines from this list, the user hasn't rated enough to anchor on individuals): ${summaryParts.join("; ")}`);
       }
       if (stats.wines > 0 || stats.regions > 0) {
         profileParts.push(`Stats: ${stats.wines} wines logged, ${stats.regions} regions explored, ${stats.guides} guides read`);
@@ -778,8 +793,8 @@ The more you share — what you enjoy, what you've tried, even what you definite
                         <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "rgba(247,244,239,0.75)", marginTop: 2 }}>{msg.wineCard.producer}</div>
                       </div>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
-                        {/* Match circle in the burgundy header. Shared component so it
-                            looks identical to cellar/wishlist. */}
+                        {/* Match circle in the burgundy header. Solid white
+                            background so the percent stays legible on the dark surface. */}
                         {msg.wineCard.match_score_json && typeof msg.wineCard.match_score_json.score === "number" && (
                           <div style={{ zIndex: activeMatchTooltip === `chat-${i}-match` ? 120 : 2, position: "relative" }}>
                             <MatchBadge
@@ -788,6 +803,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
                               activeTooltipId={activeMatchTooltip}
                               onToggleTooltip={setActiveMatchTooltip}
                               size={36}
+                              onDarkSurface
                             />
                           </div>
                         )}

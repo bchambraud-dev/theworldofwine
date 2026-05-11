@@ -8,6 +8,7 @@ import { trackWineScan, trackWineLog, trackWishlistAdd, trackTastingComplete } f
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
+import { AwardsRow } from "@/components/AwardsRow";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,13 @@ interface Wine {
   breathing: string | null;
   tasting_data: Record<string, unknown> | null;
   sommy_comparison: string | null;
+  awards_json: {
+    awards?: { type: string; label: string; tone: string; context?: string }[];
+    is_flagship?: boolean;
+    confidence?: "high" | "medium" | "low";
+    notes?: string;
+  } | null;
+  awards_generated_at: string | null;
   created_at: string;
 }
 
@@ -666,6 +674,7 @@ export default function Journal() {
   const [sommyComparison, setSommyComparison] = useState("");
   const [comparingWithSommy, setComparingWithSommy] = useState(false);
   const [tastingMode, setTastingMode] = useState(false); // tracks if current scan is tasting mode
+  const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
 
   // ── Load wines ──────────────────────────────────────────────────────────────
 
@@ -693,6 +702,61 @@ export default function Journal() {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Background awards generation — silently fills in awards for journal entries
+  // that don't yet have them. Throttled: max 6 per session to keep cost predictable.
+  // Same pattern as the cellar awards backfill. Runs once per journal load.
+  const awardsBackfillRanRef = useRef(false);
+  useEffect(() => {
+    if (!user || wines.length === 0) return;
+    if (awardsBackfillRanRef.current) return;
+    const missing = wines.filter(w => !w.awards_json).slice(0, 6);
+    if (missing.length === 0) return;
+    awardsBackfillRanRef.current = true;
+    (async () => {
+      for (const w of missing) {
+        try {
+          const resp = await fetch("/api/wine-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: "awards",
+              wine: {
+                id: w.id,
+                wine_name: w.wine_name,
+                vintage: w.vintage ? Number(w.vintage) : null,
+                producer: w.producer,
+                region: w.region,
+                grapes: w.grapes,
+                style: w.style,
+              },
+            }),
+          });
+          if (!resp.ok) continue;
+          const json = await resp.json();
+          const nowIso = new Date().toISOString();
+          // Client-side cache write (RLS owner-only). Server-side service-role
+          // env var isn't set on Vercel, so we persist from the client.
+          try {
+            await directUpdate("wine_journal", w.id, {
+              awards_json: json.data,
+              awards_generated_at: nowIso,
+            });
+          } catch (cacheErr) {
+            console.warn("Failed to cache journal awards:", cacheErr);
+          }
+          setWines(prev => prev.map(x =>
+            x.id === w.id
+              ? { ...x, awards_json: json.data, awards_generated_at: nowIso }
+              : x
+          ));
+        } catch {
+          // swallow — awards are silent enrichment, never block the journal
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wines.length]);
 
   // ── Sort ─────────────────────────────────────────────────────────────────────
 
@@ -1874,6 +1938,14 @@ export default function Journal() {
                               {wine.producer}
                             </div>
                           )}
+                          {/* Bottle-aware awards — same shared component as cellar.
+                              Hidden silently for low-confidence or unrecognized wines. */}
+                          <AwardsRow
+                            awards={wine.awards_json}
+                            hostId={wine.id}
+                            activeTooltipId={activeAwardTooltip}
+                            onToggleTooltip={setActiveAwardTooltip}
+                          />
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                             {wine.region && (
                               <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

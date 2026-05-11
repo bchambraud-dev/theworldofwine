@@ -1643,10 +1643,24 @@ export default function Cellar() {
               const cc = countryCode(regionToCountry(wine.region));
 
               return (
-                <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "hidden" }}>
+                <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "visible", position: "relative" }}>
+                  {/* Match score circle — absolutely positioned in the card's top-right.
+                      Sits above the main row button so its tap doesn't expand the card.
+                      Hidden entirely when the user has no palate or the score isn't ready. */}
+                  {palateReady && wine.match_score_json && (
+                    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 2 }}>
+                      <MatchBadge
+                        match={wine.match_score_json}
+                        stale={wine.match_score_palate_version !== palateVersion}
+                        hostId={wine.id}
+                        activeTooltipId={activeMatchTooltip}
+                        onToggleTooltip={setActiveMatchTooltip}
+                      />
+                    </div>
+                  )}
                   {/* Main row */}
                   <button onClick={() => { setExpandedId(isExpanded ? null : wine.id); if (isEditing) setEditingId(null); }}
-                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 62 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
                     {/* Thumbnail */}
                     {wine.image_url ? (
                       <img src={wine.image_url} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
@@ -1691,18 +1705,7 @@ export default function Cellar() {
                         activeTooltipId={activeAwardTooltip}
                         onToggleTooltip={setActiveAwardTooltip}
                       />
-                      {/* Match score — only renders if the user has completed their
-                          palate form AND Sommy has produced a fresh score. Stale
-                          scores (older palate version) render dimmed until rescore. */}
-                      {palateReady && (
-                        <MatchBadge
-                          match={wine.match_score_json}
-                          stale={wine.match_score_palate_version !== palateVersion}
-                          hostId={wine.id}
-                          activeTooltipId={activeMatchTooltip}
-                          onToggleTooltip={setActiveMatchTooltip}
-                        />
-                      )}
+                      {/* Match score now lives in the card's top-right corner (see above). */}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
                         {wine.region && (
                           <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 300, color: "#5A5248", display: "inline-flex", alignItems: "center", gap: 4 }}>

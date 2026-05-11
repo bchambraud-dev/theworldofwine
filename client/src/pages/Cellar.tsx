@@ -1646,9 +1646,13 @@ export default function Cellar() {
                 <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "visible", position: "relative" }}>
                   {/* Match score circle — absolutely positioned in the card's top-right.
                       Sits above the main row button so its tap doesn't expand the card.
-                      Hidden entirely when the user has no palate or the score isn't ready. */}
+                      When its tooltip is open we bump zIndex so the popover wins over
+                      neighboring cards' NOW chip and drink-window timeline. */}
                   {palateReady && wine.match_score_json && (
-                    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 2 }}>
+                    <div style={{
+                      position: "absolute", top: 10, right: 10,
+                      zIndex: activeMatchTooltip === `${wine.id}-match` ? 120 : 2,
+                    }}>
                       <MatchBadge
                         match={wine.match_score_json}
                         stale={wine.match_score_palate_version !== palateVersion}
@@ -1660,7 +1664,7 @@ export default function Cellar() {
                   )}
                   {/* Main row */}
                   <button onClick={() => { setExpandedId(isExpanded ? null : wine.id); if (isEditing) setEditingId(null); }}
-                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 62 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 54 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
                     {/* Thumbnail */}
                     {wine.image_url ? (
                       <img src={wine.image_url} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />

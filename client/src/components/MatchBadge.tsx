@@ -78,12 +78,13 @@ interface MatchBadgeProps {
   hostId: string;
   activeTooltipId: string | null;
   onToggleTooltip: (id: string | null) => void;
-  /** Circle size in px (default 44 — fits comfortably in card top-right). */
+  /** Circle size in px (default 36 — sits comfortably in card top-right without
+      crowding the wine name). Per user feedback May 2026, the original 44 was bulky. */
   size?: number;
 }
 
 export function MatchBadge({
-  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 44,
+  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 36,
 }: MatchBadgeProps) {
   const id = `${hostId}-match`;
   const isActive = activeTooltipId === id;
@@ -131,40 +132,33 @@ export function MatchBadge({
         }}
       >
         <span style={{
-          fontSize: size <= 36 ? "0.78rem" : "0.92rem",
+          fontSize: size <= 36 ? "0.68rem" : "0.88rem",
           fontWeight: 500, lineHeight: 1,
           letterSpacing: "-0.01em",
-        }}>{score}<span style={{ fontSize: "0.62em", fontWeight: 400, opacity: 0.78, marginLeft: 1 }}>%</span></span>
+        }}>{score}<span style={{ fontSize: "0.6em", fontWeight: 400, opacity: 0.78, marginLeft: 1 }}>%</span></span>
       </button>
 
-      {/* Explainer popover — positioned to the LEFT of the circle so it doesn't
-          fall off the right edge of the card on narrow screens. */}
+      {/* Explainer popover — right-aligned with the circle and given a high z-index
+          so nothing on the card (drink-window timeline, NOW chip, neighboring badges)
+          bleeds through. Score is NOT duplicated here — the user can already see it
+          on the circle they just tapped. Title color matches the band ring. */}
       {isActive && (
         <div
           onClick={(e) => { e.stopPropagation(); onToggleTooltip(null); }}
           style={{
             position: "absolute", top: "calc(100% + 8px)", right: 0,
-            zIndex: 40, minWidth: 240, maxWidth: 300,
+            zIndex: 100, minWidth: 240, maxWidth: 300,
             background: "#1A1410", color: "#F7F4EF",
             padding: "12px 14px", borderRadius: 10,
             boxShadow: "0 8px 22px rgba(0,0,0,0.28)",
+            isolation: "isolate",
           }}
         >
-          {/* Header: label + score */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
-            <span style={{
-              fontFamily: "'Fraunces', serif", fontSize: "0.92rem", fontWeight: 500,
-              color: "#F7F4EF",
-            }}>{label}</span>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              fontFamily: "'Geist Mono', monospace", fontSize: "0.68rem",
-              color: c.dot, letterSpacing: 0,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
-              {score}%
-            </span>
-          </div>
+          {/* Header: band label only, colored to match the circle ring. */}
+          <div style={{
+            fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 500,
+            color: c.ring, marginBottom: 8, lineHeight: 1.2,
+          }}>{label}</div>
 
           {match.why_short && (
             <div style={{

@@ -90,6 +90,13 @@ HONESTY RULES:
 - Never reward iconic status — a First Growth Bordeaux scores low for a user who only drinks fruity reds under $30.
 - Adventurousness (1-5) shifts the cutoff: a 5 means the user wants you to push them, so "Worth Trying" can climb to 80+. A 1 means stay safe — never recommend outside core preferences.
 - Budget alignment matters but isn't binary — a wine 20% above budget is still "Worth Trying" if everything else hits.
+
+SCORE DISCRIMINATION (critical — prevents lazy clustering):
+- USE THE FULL RANGE of each band. Don't anchor on band midpoints.
+- Two wines with the same alignment should still score differently if their factor strengths differ. A wine hitting 4 of 5 factors at the top of a band scores higher than a wine barely qualifying.
+- Example within "Strong Match" (75-89): a Cabernet from a loved region in budget scores 86; a Merlot from a curious region slightly over budget scores 77. Both are Strong Match, but the score reflects nuance.
+- Use precise scores like 73, 81, 86, 88, 62 — not just 65, 70, 75, 80.
+- It's rare for two wines to honestly deserve the exact same score. Find the difference.
 `.trim();
 
 const PALATE_DIGEST_SYSTEM = `You are Sommy, an expert sommelier. Given a user's palate form data, write a compact JSONB digest that captures their taste in a form usable for wine matching.

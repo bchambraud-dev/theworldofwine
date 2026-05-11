@@ -100,8 +100,12 @@ export function MatchBadge({
     return () => document.removeEventListener("click", onDocClick);
   }, [isActive, onToggleTooltip]);
 
-  if (!match || match.confidence === "low") return null;
+  if (!match) return null;
   if (typeof match.score !== "number") return null;
+  // Note: we intentionally render even when confidence is "low" — every wine in
+  // the cellar should show a score. We signal low confidence visually below
+  // (dashed ring + tilde prefix) and in the popover copy.
+  const lowConfidence = match.confidence === "low";
 
   const score = Math.max(0, Math.min(100, Math.round(match.score)));
   const band = visualBand(score);
@@ -116,11 +120,13 @@ export function MatchBadge({
       {/* The circle itself */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggleTooltip(isActive ? null : id); }}
-        aria-label={`${score} percent match`}
+        aria-label={`${score} percent match${lowConfidence ? ", approximate" : ""}`}
         style={{
           width: size, height: size, borderRadius: "50%",
           background: c.fill,
-          border: `1.5px solid ${c.ring}`,
+          // Dashed ring when confidence is low, solid otherwise. Subtle but
+          // distinguishable on glance — honest about Sommy's certainty.
+          border: `1.5px ${lowConfidence ? "dashed" : "solid"} ${c.ring}`,
           color: c.text,
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
@@ -137,7 +143,10 @@ export function MatchBadge({
           fontFamily: "'Fraunces', serif",
           fontSize: "0.72rem", fontWeight: 500, lineHeight: 1,
           letterSpacing: "-0.01em",
-        }}>{score}<span style={{ fontSize: "0.65em", fontWeight: 400, opacity: 0.78, marginLeft: 0.5 }}>%</span></span>
+        }}>
+          {lowConfidence && <span style={{ opacity: 0.6, marginRight: 0.5 }}>~</span>}
+          {score}<span style={{ fontSize: "0.65em", fontWeight: 400, opacity: 0.78, marginLeft: 0.5 }}>%</span>
+        </span>
         <span style={{
           fontFamily: "'Geist Mono', monospace",
           fontSize: "0.36rem", fontWeight: 500, lineHeight: 1,
@@ -167,6 +176,15 @@ export function MatchBadge({
             fontFamily: "'Fraunces', serif", fontSize: "0.95rem", fontWeight: 500,
             color: c.ring, marginBottom: 8, lineHeight: 1.2,
           }}>{label}</div>
+
+          {/* Low-confidence honesty note — only shown when confidence is low */}
+          {lowConfidence && (
+            <div style={{
+              fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "rgba(247,244,239,0.6)", marginBottom: 6,
+            }}>SOMMY'S BEST READ</div>
+          )}
 
           {match.why_short && (
             <div style={{

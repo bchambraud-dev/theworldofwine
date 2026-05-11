@@ -73,7 +73,14 @@ interface ParsedCard {
 }
 
 type FilterKey = "all" | "aging" | "ready" | "peak" | "soon" | "past" | "consumed" | "gifted";
-type SortKey = "drink_soonest" | "recent" | "price_desc" | "price_asc" | "vintage_old" | "vintage_new" | "name_asc";
+type SortKey =
+  | "drink_soonest"
+  | "recent"
+  | "match_desc"
+  | "match_asc"
+  | "price_desc" | "price_asc"
+  | "vintage_old" | "vintage_new"
+  | "name_asc";
 
 // (Award badge palette + rendering moved to <AwardsRow /> shared component.)
 
@@ -91,6 +98,10 @@ const TASTE_COLORS: Record<string, { bg: string; color: string; border: string }
 const SORT_LABELS: Record<SortKey, string> = {
   drink_soonest: "Drink soonest",
   recent: "Recently added",
+  // Match-based sort options. Only useful once the user has a palate —
+  // the UI hides them when palateReady is false.
+  match_desc: "Best matches first",
+  match_asc:  "Most adventurous first",
   price_desc: "Price: high to low",
   price_asc: "Price: low to high",
   vintage_old: "Vintage: oldest first",
@@ -1272,6 +1283,28 @@ export default function Cellar() {
       case "name_asc": {
         return tieBreak(a, b);
       }
+      case "match_desc": {
+        // Best matches first. Wines without a score sort to the end so the
+        // user always sees their highest-confidence picks at the top.
+        const aS = typeof a.match_score_json?.score === "number" ? a.match_score_json.score : null;
+        const bS = typeof b.match_score_json?.score === "number" ? b.match_score_json.score : null;
+        if (aS === null && bS === null) return tieBreak(a, b);
+        if (aS === null) return 1;
+        if (bS === null) return -1;
+        if (aS !== bS) return bS - aS;
+        return tieBreak(a, b);
+      }
+      case "match_asc": {
+        // Most adventurous first — the lowest-scoring wines surface first,
+        // useful when you want to push yourself out of the comfort zone.
+        const aS = typeof a.match_score_json?.score === "number" ? a.match_score_json.score : null;
+        const bS = typeof b.match_score_json?.score === "number" ? b.match_score_json.score : null;
+        if (aS === null && bS === null) return tieBreak(a, b);
+        if (aS === null) return 1;
+        if (bS === null) return -1;
+        if (aS !== bS) return aS - bS;
+        return tieBreak(a, b);
+      }
       default:
         return 0;
     }
@@ -1447,7 +1480,12 @@ export default function Cellar() {
                   minWidth: 220,
                   overflow: "hidden",
                 }}>
-                  {(Object.keys(SORT_LABELS) as SortKey[]).map(key => {
+                  {(Object.keys(SORT_LABELS) as SortKey[])
+                    // Hide match-based sorts until the user has a palate digest.
+                    // Otherwise they'd choose "Best matches first" and see everything
+                    // collapse to fallback order with no scores to sort by.
+                    .filter(key => palateReady || (key !== "match_desc" && key !== "match_asc"))
+                    .map(key => {
                     const isActive = sortKey === key;
                     return (
                       <button
@@ -1645,10 +1683,10 @@ export default function Cellar() {
               return (
                 <div key={wine.id} style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, overflow: "visible", position: "relative" }}>
                   {/* Match score circle — absolutely positioned in the card's top-right.
-                      Sits above the main row button so its tap doesn't expand the card.
-                      When its tooltip is open we bump zIndex so the popover wins over
-                      neighboring cards' NOW chip and drink-window timeline. */}
-                  {palateReady && wine.match_score_json && (
+                      The badge component itself decides whether to render (handles null
+                      vs low-confidence vs full score), so we just show it whenever the
+                      user has completed their palate form. */}
+                  {palateReady && wine.match_score_json && typeof wine.match_score_json.score === "number" && (
                     <div style={{
                       position: "absolute", top: 10, right: 10,
                       zIndex: activeMatchTooltip === `${wine.id}-match` ? 120 : 2,

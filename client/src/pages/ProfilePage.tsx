@@ -5,8 +5,9 @@ import { useLocation } from "wouter";
 import { guides } from "@/data/guides";
 import { WINE_COUNTRIES, COUNTRY_SUGGESTIONS } from "@/lib/countryFlags";
 import { CURRENCIES } from "@/lib/currencies";
-import { directUpdate } from "@/lib/supabaseDirectFetch";
+import { directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import LoginPrompt from "@/components/LoginPrompt";
+import PalateIntakeSheet, { type ExistingPalate } from "@/components/PalateIntakeSheet";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -45,6 +46,29 @@ export default function ProfilePage() {
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [saving, setSaving]               = useState(false);
+  const [palateOpen, setPalateOpen]       = useState(false);
+  const [palateExisting, setPalateExisting] = useState<ExistingPalate | null>(null);
+  const [palateLoading, setPalateLoading] = useState(true);
+
+  // Load existing palate state so we know whether the user is starting fresh,
+  // resuming a half-done form, or already complete.
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const rows = await directSelect<ExistingPalate>(
+          "user_preferences",
+          `select=preferred_types,body_preference,acidity_preference,tannin_preference,flavour_preferences,regions_of_interest,regions_to_explore,adventurousness,budget_min,budget_max,budget_currency,price_quality_posture,palate_form_step,palate_form_complete&user_id=eq.${user.id}`
+        );
+        setPalateExisting(Array.isArray(rows) && rows.length > 0 ? rows[0] : null);
+      } catch (e) {
+        // non-fatal — user just won't see resume state
+        setPalateExisting(null);
+      } finally {
+        setPalateLoading(false);
+      }
+    })();
+  }, [user]);
 
   useEffect(() => {
     if (editingPrefs) {
@@ -251,6 +275,39 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+
+            {/* Palate card — entry point to the 5-page Sommy-led intake form. */}
+            {!palateLoading && (() => {
+              const step    = palateExisting?.palate_form_step ?? 0;
+              const isDone  = !!palateExisting?.palate_form_complete;
+              const isPartial = step > 0 && !isDone;
+              const ctaLabel  = isDone ? "REVISIT PALATE →" : isPartial ? `RESUME · PAGE ${Math.min(step + 1, 5)} OF 5 →` : "START PALATE →";
+              const blurb     = isDone
+                ? "Sommy has your palate read. Tap to update it whenever your taste shifts."
+                : isPartial
+                ? "You started telling Sommy about your palate. Want to keep going?"
+                : "A five-page chat with Sommy so I can match wines to your real taste — not just guess from what you've tried.";
+              return (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>
+                    YOUR PALATE
+                  </div>
+                  <div style={{
+                    background: isDone ? "white" : "linear-gradient(180deg, rgba(140,28,46,0.04) 0%, rgba(212,165,106,0.05) 100%)",
+                    border: `1px solid ${isDone ? "#EDEAE3" : "rgba(140,28,46,0.18)"}`,
+                    borderRadius: 12, padding: "14px 16px",
+                  }}>
+                    <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 12px" }}>
+                      {blurb}
+                    </p>
+                    <button onClick={() => setPalateOpen(true)} style={{
+                      background: "none", border: "none", padding: 0, cursor: "pointer",
+                      fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", color: "#8C1C2E",
+                    }}>{ctaLabel}</button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Wine Passport */}
             {!dataLoading && (
@@ -526,6 +583,28 @@ export default function ProfilePage() {
           Sign out
         </button>
       </div>
+
+      {/* Palate intake bottom sheet — mounted when user opens the entry card. */}
+      {palateOpen && user && (
+        <PalateIntakeSheet
+          userId={user.id}
+          currency={displayCurrency}
+          existing={palateExisting}
+          onClose={() => setPalateOpen(false)}
+          onComplete={async () => {
+            setPalateOpen(false);
+            // Reload palate state so the card flips to "already done".
+            try {
+              const rows = await directSelect<ExistingPalate>(
+                "user_preferences",
+                `select=preferred_types,body_preference,acidity_preference,tannin_preference,flavour_preferences,regions_of_interest,regions_to_explore,adventurousness,budget_min,budget_max,budget_currency,price_quality_posture,palate_form_step,palate_form_complete&user_id=eq.${user.id}`
+              );
+              setPalateExisting(Array.isArray(rows) && rows.length > 0 ? rows[0] : null);
+            } catch {}
+            // The rescore orchestrator (4a.5) will pick up the new version on next cellar load.
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -124,34 +124,45 @@ Rules:
 - Output ONLY the JSON. No prose, no markdown, no commentary.
 `.trim();
 
-const MATCH_SCORE_SYSTEM = `You are Sommy, an expert sommelier. Given a user's palate digest AND a wine, return a match analysis.
+// The final score is computed SERVER-SIDE as a weighted average of per-factor
+// alignment_pct values. This is intentional — having Sommy pick a single number
+// in 0-100 produces lazy clustering on round band midpoints. By making Sommy
+// rate each factor and computing the aggregate ourselves, scores vary naturally
+// based on the underlying analysis.
+const MATCH_SCORE_SYSTEM = `You are Sommy, an expert sommelier. Given a user's palate digest AND a wine, rate this wine on FOUR factors. The final score is computed from your factor ratings, so RATE EACH FACTOR PRECISELY.
 
 ${MATCH_SCORE_RUBRIC}
 
 Return ONLY valid JSON with this exact shape:
 
 {
-  "score": 87,
-  "band": "Strong Match",
   "confidence": "high",
   "why_short": "Bold structured Bordeaux hits your sweet spot.",
   "why_long": "Cabernet-dominant Saint-Estèphe matches your love of structured reds. The 2014 vintage offers the firm tannin you prefer and sits comfortably within your premium budget. Aged Bordeaux is your wheelhouse.",
   "factors": [
-    { "label": "Region match",   "alignment": "strong" },
-    { "label": "Structure fit",  "alignment": "strong" },
-    { "label": "Budget",         "alignment": "moderate" },
-    { "label": "Adventure",      "alignment": "neutral" }
+    { "label": "Style fit",   "alignment_pct": 92 },
+    { "label": "Region match", "alignment_pct": 95 },
+    { "label": "Budget",       "alignment_pct": 78 },
+    { "label": "Adventure",    "alignment_pct": 60 }
   ]
 }
 
-Rules:
-- "score" is an integer 0-100. The band MUST match the score range from the rubric.
-- "band" exact string: "Perfect Match" | "Strong Match" | "Worth Trying" | "A Stretch" | "Off Profile".
+Factor rules (you MUST return exactly these 4 factors in this order, all with alignment_pct):
+- "Style fit":   how well the wine's body/acidity/tannin/flavour profile matches the user's structure_profile + flavour_tags. 0=clashes, 100=textbook match.
+- "Region match": how well the wine's region maps to regions_loved (high) or regions_curious (medium-high), with regions_loved scoring higher than regions_curious. Unknown regions score 30-50.
+- "Budget":      how comfortably the wine sits inside the user's budget_band. Inside band = 80-100. 20% over = 60-75. Double the band = 20-40.
+- "Adventure":   how well the wine matches the user's adventurousness_band. Cautious + safe wine = high. Adventurous + safe wine = moderate. Adventurous + unusual = high.
+
+alignment_pct precision rules (CRITICAL — prevents clustering):
+- Use the FULL 0-100 range. NEVER use round numbers like 50, 60, 65, 70, 75, 80, 85, 90.
+- Pick precise values like 47, 63, 72, 84, 91, 96. Two factors hitting at slightly different strengths should get different numbers.
+- A clear strong match: 85-98 range. A clear weak match: 10-35 range. Mid-ground: vary across 40-80.
+- It is VERY rare for two wines to have identical factor scores. Find the difference.
+
+Other fields:
 - "why_short" is one line, max 12 words, second-person ("you"), Sommy's voice. Shown on the wine card.
-- "why_long" is 2-3 sentences, max 60 words, second-person, conversational. Shown on tap. Explain the score honestly.
-- "factors" is 3-5 short labels with alignment in {"strong","moderate","neutral","weak"}. Used to render small chips.
-- "confidence" follows the rubric. Be honest — if palate signal is thin OR wine is obscure, lower it.
-- Do NOT pad. If the user's palate clearly doesn't fit this wine, score it low and say so honestly.
+- "why_long" is 2-3 sentences, max 60 words, second-person, conversational. Shown on tap. Explain honestly.
+- "confidence" in {"high","medium","low"}. Be honest — if palate signal is thin OR wine is obscure, lower it.
 - No emojis.
 
 Output ONLY the JSON. No prose, no markdown, no commentary.
@@ -277,10 +288,51 @@ export default async function handler(req, res) {
       try { parsed = parseJSON(text); } catch (e) {
         return res.status(502).json({ error: "Sommy returned malformed match score" });
       }
-      if (!parsed || typeof parsed.score !== "number" || !parsed.band) {
-        return res.status(502).json({ error: "match missing required fields" });
+      if (!parsed || !Array.isArray(parsed.factors)) {
+        return res.status(502).json({ error: "match missing factors array" });
       }
-      return res.status(200).json({ kind: "match", data: parsed });
+
+      // Compute the final score DETERMINISTICALLY from factor alignment_pct values.
+      // Weights reflect what most drives whether a user enjoys a wine:
+      //   Style fit    30% — body/tannin/flavour, the actual sensory experience
+      //   Region match 30% — strong proxy for many things at once
+      //   Budget       20% — affordability gates real-world enjoyment
+      //   Adventure    20% — calibrates risk tolerance
+      const WEIGHTS = { "Style fit": 0.30, "Region match": 0.30, "Budget": 0.20, "Adventure": 0.20 };
+      let weightedSum = 0, totalWeight = 0;
+      const factorsClean = [];
+      for (const f of parsed.factors) {
+        if (!f || typeof f.alignment_pct !== "number" || !f.label) continue;
+        const pct = Math.max(0, Math.min(100, Math.round(f.alignment_pct)));
+        const w = WEIGHTS[f.label] ?? 0.25; // fallback if Sommy renames a factor
+        weightedSum += pct * w;
+        totalWeight += w;
+        // Map alignment_pct → alignment label so the client can color chips
+        const alignment = pct >= 80 ? "strong"
+                       : pct >= 60 ? "moderate"
+                       : pct >= 40 ? "neutral"
+                       : "weak";
+        factorsClean.push({ label: f.label, alignment, alignment_pct: pct });
+      }
+      if (totalWeight === 0) {
+        return res.status(502).json({ error: "match has no valid factors" });
+      }
+      const score = Math.round(weightedSum / totalWeight);
+      // Derive band from the computed score using the same cutoffs the UI uses.
+      const band = score >= 90 ? "Perfect Match"
+                 : score >= 75 ? "Strong Match"
+                 : score >= 60 ? "Worth Trying"
+                 : score >= 45 ? "A Stretch"
+                 : "Off Profile";
+      const out = {
+        score,
+        band,
+        confidence: parsed.confidence || "medium",
+        why_short: parsed.why_short || "",
+        why_long:  parsed.why_long  || "",
+        factors:   factorsClean,
+      };
+      return res.status(200).json({ kind: "match", data: out });
     }
     if (!wine.wine_name) return res.status(400).json({ error: "wine.wine_name required" });
 

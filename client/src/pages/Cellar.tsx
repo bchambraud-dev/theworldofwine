@@ -1680,9 +1680,13 @@ export default function Cellar() {
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {/* Wine name wraps to a second line rather than truncating with "...".
+                            Long classified Bordeaux names ("Ch\u00e2teau La Marquette Bordeaux Sup\u00e9rieur")
+                            were getting cut off, hiding important context. */}
                         <div style={{
                           fontFamily: "'Fraunces', serif", fontSize: "1rem", fontWeight: 400,
-                          color: "#1A1410", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1,
+                          color: "#1A1410", flex: 1, lineHeight: 1.25,
+                          wordBreak: "break-word", overflowWrap: "anywhere",
                         }}>
                           {wine.wine_name}
                           {wine.vintage && <span style={{ fontWeight: 300, fontSize: "0.85rem" }}> {wine.vintage}</span>}

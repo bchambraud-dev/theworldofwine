@@ -116,11 +116,15 @@ drink_from: [earliest year the wine will be enjoyable, e.g. "2026"]
 drink_peak_start: [year the wine enters its peak drinking window, e.g. "2030"]
 drink_peak_end: [year the peak window ends and the wine starts to decline, e.g. "2040"]
 drink_until: [latest year the wine should be consumed by, e.g. "2050"]
+awards: [see AWARDS+MATCH section if a palate is provided, otherwise omit this line]
+match: [see AWARDS+MATCH section if a palate is provided, otherwise omit this line]
 WINE_CARD_END
+
+CRITICAL: The awards: and match: lines (when emitted) MUST appear INSIDE the WINE_CARD_START / WINE_CARD_END block. NEVER emit them as standalone lines in your conversational prose — they will render as broken text. They are structured fields, not narrative content.
 
 If the user has a currency preference in their profile, always quote wine prices in that currency using the appropriate symbol (e.g. S$45 for SGD, €30 for EUR, A$55 for AUD). If no preference is set, default to USD.
 
-[Then write your personalised assessment as normal conversational prose — relate it to the user's preferences and history if known, give your honest opinion on whether it's worth trying, mention approximate price range if recognisable, and suggest a food pairing.]
+[Then write your personalised assessment as normal conversational prose. Lead with how the wine fits THE USER'S STATED PALATE PREFERENCES (their flavour tags, structure profile, regions loved, budget). Only reference their past wine journal entries if they actually drank something genuinely similar in style or region — never anchor every recommendation on the same one or two journal wines. The user's palate form is the primary signal; journal entries are supporting context, used sparingly and only when truly relevant. Give your honest opinion on whether the bottle is worth trying, and suggest a food pairing.]
 
 UPDATING THE USER PROFILE:
 When a user explicitly and clearly states their wine experience level (e.g. "I'm a total beginner", "I've been drinking wine seriously for years", "I'm an expert") OR explicitly states wine type preferences (e.g. "I only drink red wine", "I love sparkling", "I hate white wine"), append a profile update block at the very end of your response — on its own line, nothing after it:
@@ -201,17 +205,33 @@ export default async function handler(req, res) {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTH_KEY });
     const isLabelScan = !!image;
 
-    // ── Palate — inject match scoring instructions into the system prompt when ──
-    // the user has a palate digest. Same scoring rubric used by /api/wine-context
-    // so chat scores match cellar/wishlist scores (4c).
+    // ── Build system prompt with optional palate + awards/match instructions ──
+    // Latency optimisation: only inject the (heavy) awards+match rubric when
+    // we actually need it. Plain text chats (no image, no wine-card likely)
+    // get just a compact palate summary so personalisation still works without
+    // bloating the prompt with structured-output instructions.
     let systemPrompt = SYSTEM;
-    if (palate_digest && typeof palate_digest === "object" && palate_digest.summary_prose) {
-      const palateBlock = `\n\nUSER'S PALATE (use this to personalise everything and to compute match scores):\n${JSON.stringify(palate_digest, null, 2)}\n\nMATCH SCORING RULES — when you emit a WINE_CARD or WISHLIST_ADD block, ALSO include these two lines:\n\nawards: {compact JSON, one line} or null\nmatch:  {compact JSON, one line} or null\n\nThe awards JSON shape:\n{\"awards\":[{\"type\":\"classification|critic_score|recognition\",\"label\":\"First Growth\",\"tone\":\"classification|score|recognized|iconic\",\"context\":\"1855 Bordeaux, Pauillac\"}],\"is_flagship\":true,\"confidence\":\"high|medium|low\"}\nEmpty awards: {\"awards\":[],\"is_flagship\":false,\"confidence\":\"high\"} — only include awards that are real and verifiable for this bottle+vintage.\n\nThe match JSON shape — score is computed by you using this rubric:\n  - Style fit (30% weight): structure + flavour profile vs user palate. 0-100.\n  - Region match (30%): regions_loved=high, regions_curious=mid, unknown=30-50.\n  - Budget (20%): inside band=80-100, 20% over=60-75, double=20-40.\n  - Adventure (20%): how well risk level matches adventurousness_band.\nFinal score = round(0.3*style + 0.3*region + 0.2*budget + 0.2*adventure). Use precise values (47, 63, 72, 84, 91), NEVER round numbers (50, 60, 65, 70, 75).\nBand cutoffs: 90+ \"Perfect Match\", 75-89 \"Strong Match\", 60-74 \"Worth Trying\", 45-59 \"A Stretch\", <45 \"Off Profile\".\nShape:\n{\"score\":87,\"band\":\"Strong Match\",\"confidence\":\"high|medium|low\",\"why_short\":\"Bold structured Bordeaux hits your sweet spot.\",\"why_long\":\"Cabernet-dominant Saint-Est\u00e8phe matches your love of structured reds...\",\"factors\":[{\"label\":\"Style fit\",\"alignment\":\"strong\",\"alignment_pct\":92},{\"label\":\"Region match\",\"alignment\":\"strong\",\"alignment_pct\":95},{\"label\":\"Budget\",\"alignment\":\"moderate\",\"alignment_pct\":78},{\"label\":\"Adventure\",\"alignment\":\"moderate\",\"alignment_pct\":60}]}\nwhy_short is max 12 words, second-person. why_long is 2-3 sentences, max 60 words, conversational.\n\nIf you don't have enough info to score honestly, emit \"match: null\" — do not fabricate. Same for awards.`;
-      systemPrompt = SYSTEM + palateBlock;
+    const hasPalate = palate_digest && typeof palate_digest === "object" && palate_digest.summary_prose;
+
+    // Heuristic: emit awards/match instructions only for label scans (which
+    // ALWAYS produce a wine card) or when the most recent user message looks
+    // like it's asking about a specific wine. This keeps casual "what should
+    // I drink with steak?" chats fast.
+    const lastUserMsg = messages.filter(m => m.role === "user").slice(-1)[0]?.content || "";
+    const looksLikeWineQuery = isLabelScan
+      || /\b(ch[a\u00e2]teau|domaine|bodega|tenuta|antinori|pavie|margaux|lafite|latour|recommend|bottle|wine|vintage)\b/i.test(lastUserMsg);
+
+    if (hasPalate) {
+      // Always inject palate as primary personalisation signal (compact form)
+      systemPrompt += `\n\nUSER'S PALATE — this is your PRIMARY personalisation signal. Anchor every recommendation on this, not on their journal entries. The journal is supporting context only, used sparingly when there's a genuine style/region match. Never anchor every recommendation on the same one or two journal wines:\n${JSON.stringify(palate_digest)}`;
+    }
+
+    if (hasPalate && looksLikeWineQuery) {
+      // Full awards+match rubric for wine-specific responses
+      systemPrompt += `\n\nAWARDS+MATCH SECTION (ONLY include inside a WINE_CARD block when emitting one — NEVER as standalone prose):\nawards: compact one-line JSON. Shape: {"awards":[{"type":"classification","label":"First Growth","tone":"classification","context":"1855 Bordeaux"}],"is_flagship":true,"confidence":"high"}. If no real awards verifiable for this bottle+vintage: {"awards":[],"is_flagship":false,"confidence":"high"}. tone ∈ classification|score|recognized|iconic. Never fabricate.\nmatch: compact one-line JSON. Score = round(0.3*style + 0.3*region + 0.2*budget + 0.2*adventure), each factor 0-100. Bands: 90+ Perfect Match, 75-89 Strong Match, 60-74 Worth Trying, 45-59 A Stretch, <45 Off Profile. Use precise factor pcts (84, 91, 63) — never round numbers. Shape: {"score":87,"band":"Strong Match","confidence":"high","why_short":"max 12 words second-person","why_long":"2-3 sentences max 60 words","factors":[{"label":"Style fit","alignment":"strong","alignment_pct":92},{"label":"Region match","alignment":"strong","alignment_pct":95},{"label":"Budget","alignment":"moderate","alignment_pct":78},{"label":"Adventure","alignment":"moderate","alignment_pct":60}]}. If you can't score honestly, emit match: null.`;
     } else if (isLabelScan) {
-      // User has no palate yet — still ask Sommy for awards (evergreen) even
-      // without a match score, so label scans still surface recognition info.
-      systemPrompt = SYSTEM + `\n\nWhen you emit a WINE_CARD block, also include:\nawards: {compact JSON, one line} or null\nmatch: null\n\nThe awards JSON shape:\n{\"awards\":[{\"type\":\"classification|critic_score|recognition\",\"label\":\"First Growth\",\"tone\":\"classification|score|recognized|iconic\",\"context\":\"1855 Bordeaux\"}],\"is_flagship\":true,\"confidence\":\"high|medium|low\"}\nOnly include awards that are real and verifiable for this exact bottle+vintage. If the wine isn't a classified or recognized bottle, return {\"awards\":[],\"is_flagship\":false,\"confidence\":\"high\"}.`;
+      // No palate but still a label scan — emit awards only
+      systemPrompt += `\n\nAWARDS+MATCH SECTION (ONLY inside the WINE_CARD block):\nawards: compact one-line JSON. Shape: {"awards":[{"type":"classification|score|recognition","label":"First Growth","tone":"classification|score|recognized|iconic","context":"1855 Bordeaux"}],"is_flagship":true,"confidence":"high"}. Empty if nothing verifiable: {"awards":[],"is_flagship":false,"confidence":"high"}. Never fabricate.\nmatch: null`;
     }
 
     // Build the Anthropic messages — if an image is included, attach it to the last user message
@@ -252,6 +272,32 @@ export default async function handler(req, res) {
       .filter((b) => b.type === "text")
       .map((b) => b.text)
       .join("");
+
+    // ── Safety net: strip stray awards:/match: JSON lines that leaked out of the ──
+    // WINE_CARD block into the prose. Sometimes Sommy emits them after
+    // WINE_CARD_END or in a follow-up message; the markdown renderer treats
+    // them as broken inline code. Remove them — the structured block remains intact.
+    {
+      const inCardMatch = text.match(/WINE_CARD_START[\s\S]*?WINE_CARD_END/);
+      const inCard = inCardMatch ? inCardMatch[0] : "";
+      const stripLeaks = (s) => s
+        // Lines starting with awards: or match: that contain JSON braces
+        .replace(/^awards:\s*\{[^\n]*\}\s*$/gm, "")
+        .replace(/^match:\s*\{[^\n]*\}\s*$/gm, "")
+        .replace(/^awards:\s*null\s*$/gm, "")
+        .replace(/^match:\s*null\s*$/gm, "");
+      // Strip leaks from everything EXCEPT the WINE_CARD block, then restore the block
+      if (inCard) {
+        const placeholder = "\u0000WINE_CARD_BLOCK\u0000";
+        text = text.replace(inCard, placeholder);
+        text = stripLeaks(text);
+        text = text.replace(placeholder, inCard);
+      } else {
+        text = stripLeaks(text);
+      }
+      // Collapse 3+ newlines created by removed lines
+      text = text.replace(/\n{3,}/g, "\n\n");
+    }
 
     // ── Assessment caching ──────────────────────────────────────────────
     if (isLabelScan) {

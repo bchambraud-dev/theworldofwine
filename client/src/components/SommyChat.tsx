@@ -550,9 +550,10 @@ The more you share — what you enjoy, what you've tried, even what you definite
       // Include palate digest so Sommy can emit match scores inline in WINE_CARDs (4c)
       if (palateDigest) body.palate_digest = palateDigest;
 
-      // 50s client-side timeout (Vercel Pro limit is 60s)
+      // Client-side timeout: label scans + match scoring can push responses
+      // toward Vercel's 60s server limit. Give a small buffer on the client.
       const abort = new AbortController();
-      const abortTimer = setTimeout(() => abort.abort(), 50000);
+      const abortTimer = setTimeout(() => abort.abort(), 58000);
 
       let response: Response;
       try {

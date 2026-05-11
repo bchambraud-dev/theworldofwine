@@ -574,13 +574,26 @@ export default function Cellar() {
       });
       if (!resp.ok) throw new Error(`API ${resp.status}`);
       const json = await resp.json();
+      const nowIso = new Date().toISOString();
+      // Persist cache directly from the client using the user's auth token
+      // (server-side write was failing silently because the service-role key
+      // isn't configured on Vercel — this is more correct anyway since RLS
+      // already restricts writes to the row owner).
+      try {
+        const patch = kind === "tasting"
+          ? { tasting_notes_json: json.data, tasting_notes_generated_at: nowIso }
+          : { food_pairings_json: json.data, food_pairings_generated_at: nowIso };
+        await directUpdate("wine_cellar", wine.id, patch);
+      } catch (cacheErr) {
+        console.warn("Failed to cache wine context to DB:", cacheErr);
+      }
       // Update local state so UI re-renders without a full reload
       setWines(prev => prev.map(w => {
         if (w.id !== wine.id) return w;
         if (kind === "tasting") {
-          return { ...w, tasting_notes_json: json.data, tasting_notes_generated_at: new Date().toISOString() };
+          return { ...w, tasting_notes_json: json.data, tasting_notes_generated_at: nowIso };
         } else {
-          return { ...w, food_pairings_json: json.data, food_pairings_generated_at: new Date().toISOString() };
+          return { ...w, food_pairings_json: json.data, food_pairings_generated_at: nowIso };
         }
       }));
     } catch (e) {

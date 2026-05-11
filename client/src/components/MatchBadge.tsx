@@ -78,13 +78,13 @@ interface MatchBadgeProps {
   hostId: string;
   activeTooltipId: string | null;
   onToggleTooltip: (id: string | null) => void;
-  /** Circle size in px (default 36 — sits comfortably in card top-right without
-      crowding the wine name). Per user feedback May 2026, the original 44 was bulky. */
+  /** Circle size in px (default 40 — fits a stacked score + "MATCH" label
+      without crowding. Slightly larger than 36 to keep both lines readable. */
   size?: number;
 }
 
 export function MatchBadge({
-  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 36,
+  match, stale, hostId, activeTooltipId, onToggleTooltip, size = 40,
 }: MatchBadgeProps) {
   const id = `${hostId}-match`;
   const isActive = activeTooltipId === id;
@@ -116,26 +116,34 @@ export function MatchBadge({
       {/* The circle itself */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggleTooltip(isActive ? null : id); }}
-        aria-label={`${label}, ${score} percent`}
+        aria-label={`${score} percent match`}
         style={{
           width: size, height: size, borderRadius: "50%",
           background: c.fill,
           border: `1.5px solid ${c.ring}`,
           color: c.text,
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
           cursor: "pointer", padding: 0,
           fontFamily: "'Fraunces', serif",
           opacity: stale ? 0.45 : 1,
           transition: "opacity 0.25s ease, transform 0.15s ease",
           transform: isActive ? "scale(0.96)" : "scale(1)",
           boxShadow: isActive ? "none" : `0 1px 3px rgba(26,20,16,0.06)`,
+          lineHeight: 1,
         }}
       >
         <span style={{
-          fontSize: size <= 36 ? "0.68rem" : "0.88rem",
-          fontWeight: 500, lineHeight: 1,
+          fontFamily: "'Fraunces', serif",
+          fontSize: "0.72rem", fontWeight: 500, lineHeight: 1,
           letterSpacing: "-0.01em",
-        }}>{score}<span style={{ fontSize: "0.6em", fontWeight: 400, opacity: 0.78, marginLeft: 1 }}>%</span></span>
+        }}>{score}<span style={{ fontSize: "0.65em", fontWeight: 400, opacity: 0.78, marginLeft: 0.5 }}>%</span></span>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "0.36rem", fontWeight: 500, lineHeight: 1,
+          letterSpacing: "0.12em", marginTop: 2,
+          opacity: 0.78,
+        }}>MATCH</span>
       </button>
 
       {/* Explainer popover — right-aligned with the circle and given a high z-index

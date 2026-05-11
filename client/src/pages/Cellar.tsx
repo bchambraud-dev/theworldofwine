@@ -1664,7 +1664,7 @@ export default function Cellar() {
                   )}
                   {/* Main row */}
                   <button onClick={() => { setExpandedId(isExpanded ? null : wine.id); if (isEditing) setEditingId(null); }}
-                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 54 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                    style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 58 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
                     {/* Thumbnail */}
                     {wine.image_url ? (
                       <img src={wine.image_url} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />

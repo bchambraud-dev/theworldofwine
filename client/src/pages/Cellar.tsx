@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import {
@@ -573,9 +573,10 @@ export default function Cellar() {
   }, [user]);
 
   // Generate-or-fetch tasting notes / food pairings for a wine
-  const generateWineContext = useCallback(async (wine: CellarWine, kind: "tasting" | "pairings") => {
+  const generateWineContext = useCallback(async (wine: CellarWine, kind: "tasting" | "pairings" | "awards") => {
     if (kind === "tasting") setTastingLoadingId(wine.id);
-    else setPairingsLoadingId(wine.id);
+    else if (kind === "pairings") setPairingsLoadingId(wine.id);
+    // "awards" generation runs silently in the background — no loading state
     try {
       const resp = await fetch("/api/wine-context", {
         method: "POST",
@@ -603,7 +604,9 @@ export default function Cellar() {
       try {
         const patch = kind === "tasting"
           ? { tasting_notes_json: json.data, tasting_notes_generated_at: nowIso }
-          : { food_pairings_json: json.data, food_pairings_generated_at: nowIso };
+          : kind === "pairings"
+          ? { food_pairings_json: json.data, food_pairings_generated_at: nowIso }
+          : { awards_json: json.data, awards_generated_at: nowIso };
         await directUpdate("wine_cellar", wine.id, patch);
       } catch (cacheErr) {
         console.warn("Failed to cache wine context to DB:", cacheErr);
@@ -613,18 +616,45 @@ export default function Cellar() {
         if (w.id !== wine.id) return w;
         if (kind === "tasting") {
           return { ...w, tasting_notes_json: json.data, tasting_notes_generated_at: nowIso };
-        } else {
+        } else if (kind === "pairings") {
           return { ...w, food_pairings_json: json.data, food_pairings_generated_at: nowIso };
+        } else {
+          return { ...w, awards_json: json.data, awards_generated_at: nowIso };
         }
       }));
     } catch (e) {
       console.error("wine-context error:", e);
-      setError(`Couldn't generate ${kind === "tasting" ? "tasting notes" : "pairings"} — try again in a moment`);
+      // Awards run silently — don't surface their errors to the user
+      if (kind !== "awards") {
+        setError(`Couldn't generate ${kind === "tasting" ? "tasting notes" : "pairings"} — try again in a moment`);
+      }
     } finally {
       if (kind === "tasting") setTastingLoadingId(null);
-      else setPairingsLoadingId(null);
+      else if (kind === "pairings") setPairingsLoadingId(null);
     }
   }, []);
+
+  // Auto-generate awards in the background for any cellar wines that don't yet
+  // have them. Throttled: one wine at a time, max 6 per session, so we never
+  // blast Sommy with parallel calls. Runs once per cellar load.
+  const awardsBackfillRanRef = useRef(false);
+  useEffect(() => {
+    if (!user || wines.length === 0) return;
+    if (awardsBackfillRanRef.current) return;
+    const missing = wines.filter(w => w.status === "active" && !w.awards_json).slice(0, 6);
+    if (missing.length === 0) return;
+    awardsBackfillRanRef.current = true;
+    (async () => {
+      for (const w of missing) {
+        try {
+          await generateWineContext(w, "awards");
+        } catch {
+          // swallow — don't break the chain on a single failure
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wines.length]);
 
   const loadGoals = useCallback(async () => {
     if (!user) return;

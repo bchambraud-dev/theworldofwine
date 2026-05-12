@@ -12,7 +12,14 @@ export interface UserStats {
   chats: number;
   regions: number;
   guides: number;
+  /** Number of wines in the user's journal (experiences). Historical name retained. */
   wines: number;
+  /** Active wines in the user's cellar (status='active'). */
+  cellar: number;
+  /** Items in the user's wishlist. */
+  wishlist: number;
+  /** Count of notable wines across cellar + journal (is_flagship + non-low confidence). */
+  notable: number;
 }
 
 export interface UserPreferences {
@@ -99,7 +106,7 @@ interface UserDataContextType {
   silentRefresh: () => void;   // re-fetch without showing loading state
 }
 
-const DEFAULT_STATS: UserStats = { chats: 0, regions: 0, guides: 0, wines: 0 };
+const DEFAULT_STATS: UserStats = { chats: 0, regions: 0, guides: 0, wines: 0, cellar: 0, wishlist: 0, notable: 0 };
 const DEFAULT_PREFS: UserPreferences = { preferred_types: [] };
 
 const UserDataContext = createContext<UserDataContextType | null>(null);
@@ -123,8 +130,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     if (!silent) setDataLoading(true);
     try {
       // All queries via raw fetch — bypasses supabase-js auth lock entirely.
-      const [chatRows, regionRows, guideRows, wineIdRows, topicRows, prefRows, goalRows, journalRows, wishlistRows, regionOnlyRows] =
-        await Promise.all([
+      const [
+        chatRows, regionRows, guideRows, wineIdRows, topicRows, prefRows,
+        goalRows, journalRows, wishlistRows, regionOnlyRows,
+        cellarCountRows, cellarNotableRows, journalNotableRows,
+      ] = await Promise.all([
           directSelect("sommy_conversations", `select=user_id&user_id=eq.${uid}&role=eq.user`),
           directSelect("user_activity", `select=user_id&user_id=eq.${uid}&activity_type=eq.region_view`),
           directSelect("user_activity", `select=item_id&user_id=eq.${uid}&activity_type=eq.guide_read`),
@@ -135,13 +145,25 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           directSelect("wine_journal", `select=id,wine_name,producer,vintage,region,grapes,style,notes,personal_rating,price_estimate,date_tasted&user_id=eq.${uid}&order=date_tasted.desc.nullslast&limit=8`),
           directSelect("wine_wishlist", `select=id,wine_name,producer,region,grapes,style,price_estimate,why,source,created_at,vintage,nose,palate,texture,breathing,drink_from,drink_peak_start,drink_peak_end,drink_until,sommy_notes,awards_json,awards_generated_at,match_score_json,match_score_palate_version,match_score_generated_at&user_id=eq.${uid}&order=created_at.desc`),
           directSelect("wine_journal", `select=region&user_id=eq.${uid}`),
+          // Cellar count (active only) + notable bottle counts across cellar + journal
+          directSelect("wine_cellar", `select=id&user_id=eq.${uid}&status=eq.active`),
+          directSelect("wine_cellar", `select=id&user_id=eq.${uid}&awards_json->>is_flagship=eq.true`),
+          directSelect("wine_journal", `select=id&user_id=eq.${uid}&awards_json->>is_flagship=eq.true`),
         ]);
+
+      // Combine notable counts: deduping across cellar + journal isn't worth
+      // the complexity since the same wine appearing in both is rare and the
+      // user-facing number is a celebration count, not an audit.
+      const notableCount = (cellarNotableRows?.length || 0) + (journalNotableRows?.length || 0);
 
       setStats({
         chats:   chatRows.length,
         regions: regionRows.length,
         guides:  guideRows.length,
         wines:   wineIdRows.length,
+        cellar:  cellarCountRows?.length || 0,
+        wishlist: wishlistRows?.length || 0,
+        notable: notableCount,
       });
 
       setCompletedGuideIds(

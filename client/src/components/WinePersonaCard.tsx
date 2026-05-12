@@ -33,7 +33,8 @@ interface Props {
   userId: string;
   /** Called when the persona generates for the first time so parent can refresh. */
   onPersonaReady?: () => void;
-  /** Called when the user taps the "Start palate" CTA. Parent opens the intake sheet. */
+  /** Called when the user taps the "Start palate" CTA or the in-card
+      "edit your palate" link. Parent opens the intake sheet. */
   onStartPalate?: () => void;
 }
 
@@ -269,6 +270,21 @@ export default function WinePersonaCard({ userId, onPersonaReady, onStartPalate 
           </div>
         ))}
       </div>
+
+      {/* Edit-your-palate link — only meaningful when a persona exists, since
+          editing the palate regenerates the persona. Always visible below the
+          trait cards so users always know where to update their preferences. */}
+      {onStartPalate && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+          <button onClick={onStartPalate} style={{
+            background: "none", border: "none", padding: "6px 10px", cursor: "pointer",
+            fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem",
+            letterSpacing: "0.1em", color: "#8C1C2E",
+          }}>
+            EDIT YOUR PALATE →
+          </button>
+        </div>
+      )}
     </CardShell>
   );
 }

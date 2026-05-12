@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { useLocation } from "wouter";
 import { guides } from "@/data/guides";
-import { WINE_COUNTRIES, COUNTRY_SUGGESTIONS } from "@/lib/countryFlags";
+import { WINE_COUNTRIES, COUNTRY_SUGGESTIONS, countryCode } from "@/lib/countryFlags";
 import { CURRENCIES } from "@/lib/currencies";
 import { directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import LoginPrompt from "@/components/LoginPrompt";
@@ -111,6 +111,15 @@ export default function ProfilePage() {
     (user.user_metadata?.name as string | undefined)?.split(" ")[0] ||
     "You";
 
+  // Full display name — prefer profile.display_name, fall back to user_metadata.
+  // Used in the hero header now (per user feedback the firstName-only header
+  // felt too informal).
+  const displayName =
+    profile?.display_name ||
+    (user.user_metadata?.full_name as string | undefined) ||
+    (user.user_metadata?.name as string | undefined) ||
+    firstName;
+
   const wineTypesLabel = (preferences.preferred_types ?? [])
     .map(t => t.charAt(0).toUpperCase() + t.slice(1))
     .join(", ");
@@ -127,13 +136,14 @@ export default function ProfilePage() {
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
 
-        {/* Hero header — redesigned: larger avatar, bigger name, level badge
-            below the name on its own line. Sets up the Profile page as a real
-            identity surface (foundation for future social features). */}
+        {/* Hero header — full name, larger avatar, country flags for explored
+            regions + a Notable badge if the user has tried any flagship wines.
+            (No more "Beginner" label — see user feedback May 2026: experience
+            level moved into guide-driven progression, not a fixed badge.) */}
         <div style={{ marginBottom: 22 }}>
           <div style={{
             fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
-            letterSpacing: "0.12em", color: "#D4D1CA", marginBottom: 14,
+            letterSpacing: "0.12em", color: "#8C1C2E", marginBottom: 14,
           }}>YOUR JOURNEY</div>
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
             {avatarUrl ? (
@@ -155,25 +165,52 @@ export default function ProfilePage() {
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: "'Fraunces', serif", fontSize: "1.7rem", fontWeight: 400,
-                color: "#1A1410", lineHeight: 1.15, wordBreak: "break-word",
+                fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400,
+                color: "#1A1410", lineHeight: 1.2, wordBreak: "break-word",
               }}>
-                {firstName}
+                {displayName}
               </div>
-              {profile?.experience_level && (
-                <div style={{ marginTop: 6 }}>
+              {/* Identity strip: country flags for regions you've explored +
+                  a quiet "notable" badge if you've tried any flagship wines.
+                  Replaces the old "Beginner" experience-level badge. */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                {countriesExplored.slice(0, 8).map((countryName) => {
+                  const cc = countryCode(countryName);
+                  if (!cc) return null;
+                  return (
+                    <img
+                      key={countryName}
+                      src={`https://flagcdn.com/28x21/${cc.toLowerCase()}.png`}
+                      alt={countryName} title={countryName}
+                      width={20} height={15}
+                      style={{ borderRadius: 2, objectFit: "cover", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}
+                    />
+                  );
+                })}
+                {countriesExplored.length > 8 && (
                   <span style={{
-                    fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
-                    letterSpacing: "0.1em",
-                    color: LEVEL_COLOR[profile.experience_level] || "#5A5248",
-                    background: `${LEVEL_COLOR[profile.experience_level]}18`,
-                    padding: "3px 10px", borderRadius: 10,
-                    display: "inline-block",
+                    fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                    letterSpacing: "0.08em", color: "#5A5248",
+                  }}>+{countriesExplored.length - 8}</span>
+                )}
+                {stats.notable > 0 && (
+                  <span title="You've experienced classified or critically-recognised bottles" style={{
+                    display: "inline-flex", alignItems: "center", gap: 3,
+                    padding: "2px 8px", borderRadius: 10,
+                    background: "rgba(212,165,106,0.16)",
+                    border: "1px solid rgba(212,165,106,0.55)",
+                    fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
+                    letterSpacing: "0.08em", textTransform: "uppercase",
+                    color: "#7A5A20",
                   }}>
-                    {LEVEL_LABEL[profile.experience_level]}
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="7" />
+                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                    </svg>
+                    {stats.notable} Notable
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -194,110 +231,31 @@ export default function ProfilePage() {
           marginBottom: 24, overflow: "hidden",
         }}>
           {[
-            { label: "WINES",     value: stats.wines },
-            { label: "COUNTRIES", value: countriesExplored.length },
-            { label: "REGIONS",   value: stats.regions },
-            { label: "GUIDES",    value: stats.guides },
+            { label: "CELLAR",      value: stats.cellar },
+            { label: "WISHLIST",    value: stats.wishlist },
+            { label: "EXPERIENCES", value: stats.wines },
+            { label: "GUIDES",      value: stats.guides },
           ].map(({ label, value }, i) => (
             <div key={label} style={{
-              padding: "14px 8px", textAlign: "center",
+              padding: "14px 6px", textAlign: "center",
               borderRight: i < 3 ? "1px solid #EDEAE3" : "none",
             }}>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.4rem", fontWeight: 400, color: "#8C1C2E" }}>
                 {dataLoading ? "·" : value}
               </div>
-              <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.1em", color: "#D4D1CA", marginTop: 2 }}>
+              <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem", letterSpacing: "0.08em", color: "#5A5248", marginTop: 3 }}>
                 {label}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Edit preferences mode */}
-        {editingPrefs ? (
-          <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "20px", marginBottom: 24 }}>
-            <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 16 }}>
-              EDIT PREFERENCES
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 400, color: "#1A1410", marginBottom: 10 }}>
-                Experience level
-              </div>
-              {LEVELS.map(l => (
-                <button key={l.key} onClick={() => setSelectedLevel(l.key)} style={{
-                  display: "block", width: "100%", padding: "10px 14px", marginBottom: 6,
-                  border: `1.5px solid ${selectedLevel === l.key ? "#8C1C2E" : "#EDEAE3"}`,
-                  borderRadius: 10,
-                  background: selectedLevel === l.key ? "rgba(140,28,46,0.05)" : "white",
-                  cursor: "pointer", textAlign: "left",
-                }}>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: selectedLevel === l.key ? 500 : 400, color: "#1A1410" }}>
-                    {l.label}
-                  </div>
-                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.75rem", fontWeight: 300, color: "#5A5248", marginTop: 2 }}>
-                    {l.desc}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.78rem", fontWeight: 400, color: "#1A1410", marginBottom: 10 }}>
-                What do you usually drink?
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {WINE_TYPES.map(t => (
-                  <button key={t}
-                    onClick={() => setSelectedTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}
-                    style={{
-                      padding: "6px 14px", borderRadius: 20,
-                      border: `1.5px solid ${selectedTypes.includes(t) ? "#8C1C2E" : "#EDEAE3"}`,
-                      background: selectedTypes.includes(t) ? "#8C1C2E" : "white",
-                      color: selectedTypes.includes(t) ? "#F7F4EF" : "#1A1410",
-                      fontFamily: "'Jost', sans-serif", fontSize: "0.82rem",
-                      cursor: "pointer", textTransform: "capitalize",
-                    }}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setEditingPrefs(false)} style={{
-                flex: 1, padding: "11px", border: "1px solid #EDEAE3", borderRadius: 10,
-                background: "white", cursor: "pointer",
-                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 300, color: "#5A5248",
-              }}>Cancel</button>
-              <button onClick={handleSave} disabled={saving} style={{
-                flex: 1, padding: "11px", border: "none", borderRadius: 10,
-                background: saving ? "#D4D1CA" : "#8C1C2E",
-                color: "#F7F4EF", cursor: saving ? "default" : "pointer",
-                fontFamily: "'Jost', sans-serif", fontSize: "0.85rem", fontWeight: 400,
-              }}>{saving ? "Saving..." : "Save"}</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Wine profile card */}
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>
-                WINE PROFILE
-              </div>
-              <div style={{ background: "white", border: "1px solid #EDEAE3", borderRadius: 12, padding: "14px 16px" }}>
-                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 12px" }}>
-                  {profileSummary || "Tell Sommy about your taste and I'll remember it for you."}
-                </p>
-                <button onClick={() => setEditingPrefs(true)} style={{
-                  background: "none", border: "none", padding: 0, cursor: "pointer",
-                  fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", color: "#8C1C2E",
-                }}>
-                  EDIT PREFERENCES →
-                </button>
-              </div>
-            </div>
-
+        {/* Edit-preferences mode + Wine profile card removed in May 2026 —
+            replaced by the WinePersonaCard above (which captures palate +
+            archetype) and by guide-driven experience progression (which will
+            replace the static "Beginner / Intermediate / Expert" badge with
+            a quiz-earned level the user actually moves through). */}
+        <>
             {/* Palate card — ONLY shown when the user is mid-form (started but
                 not finished). The WinePersonaCard above handles both the
                 "not started" CTA ("Start your palate") and the completed state
@@ -548,8 +506,6 @@ export default function ProfilePage() {
                 ))}
               </div>
             </div>
-          </>
-        )}
 
         {/* Settings */}
         <div style={{ marginTop: 24 }}>
@@ -603,6 +559,7 @@ export default function ProfilePage() {
         }}>
           Sign out
         </button>
+        </>
       </div>
 
       {/* Palate intake bottom sheet — mounted when user opens the entry card. */}

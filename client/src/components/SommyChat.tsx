@@ -10,6 +10,7 @@ import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import SommyMarkdown from "@/components/SommyMarkdown";
 import { AwardsRow } from "@/components/AwardsRow";
 import { MatchBadge } from "@/components/MatchBadge";
+import SommyLoading from "@/components/SommyLoading";
 
 // Colour-coded tasting pills — matches the ftag system on producer pages
 const tastingPillColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -204,6 +205,9 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // Track whether the in-flight request is a label scan (image attached) so
+  // we can show the cheeky multi-stage loading state for scans only.
+  const [loadingMode, setLoadingMode] = useState<"scan" | "text">("text");
   const [pendingImage, setPendingImage] = useState<{ data: string; mediaType: string; preview: string } | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [savedWineCards, setSavedWineCards] = useState<Set<number>>(new Set());
@@ -475,6 +479,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
     setMessages(newMessages);
     setInput("");
     setPendingImage(null);
+    setLoadingMode(img ? "scan" : "text");
     setIsLoading(true);
 
     try {
@@ -1023,13 +1028,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
               </div>
             ))}
 
-            {isLoading && (
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                <div style={{ background: "#EDEAE3", borderRadius: "14px 14px 14px 4px", padding: "11px 15px", fontFamily: "'Jost', sans-serif", fontSize: "0.98rem", fontWeight: 300, color: "#5A5248", opacity: 0.6 }}>
-                  Sommy is thinking...
-                </div>
-              </div>
-            )}
+            {isLoading && <SommyLoading mode={loadingMode} />}
             <div ref={messagesEndRef} />
           </div>
 

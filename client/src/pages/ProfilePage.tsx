@@ -8,6 +8,7 @@ import { CURRENCIES } from "@/lib/currencies";
 import { directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import LoginPrompt from "@/components/LoginPrompt";
 import PalateIntakeSheet, { type ExistingPalate } from "@/components/PalateIntakeSheet";
+import WinePersonaCard from "@/components/WinePersonaCard";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -126,44 +127,65 @@ export default function ProfilePage() {
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 20 }}>
+        {/* Hero header — redesigned: larger avatar, bigger name, level badge
+            below the name on its own line. Sets up the Profile page as a real
+            identity surface (foundation for future social features). */}
+        <div style={{ marginBottom: 22 }}>
           <div style={{
             fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
-            letterSpacing: "0.12em", color: "#D4D1CA", marginBottom: 4,
+            letterSpacing: "0.12em", color: "#D4D1CA", marginBottom: 14,
           }}>YOUR JOURNEY</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid #EDEAE3" }} />
+              <img src={avatarUrl} alt="" style={{
+                width: 84, height: 84, borderRadius: "50%", objectFit: "cover",
+                border: "2px solid rgba(140,28,46,0.18)",
+                boxShadow: "0 2px 12px rgba(140,28,46,0.08)",
+              }} />
             ) : (
               <div style={{
-                width: 52, height: 52, borderRadius: "50%",
+                width: 84, height: 84, borderRadius: "50%",
                 background: "#8C1C2E", color: "#F7F4EF",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "'Jost', sans-serif", fontSize: "1.2rem", fontWeight: 500,
+                fontFamily: "'Fraunces', serif", fontSize: "2.2rem", fontWeight: 400,
+                boxShadow: "0 2px 12px rgba(140,28,46,0.18)",
               }}>
                 {firstName[0].toUpperCase()}
               </div>
             )}
-            <div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.3rem", fontWeight: 400, color: "#1A1410" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: "'Fraunces', serif", fontSize: "1.7rem", fontWeight: 400,
+                color: "#1A1410", lineHeight: 1.15, wordBreak: "break-word",
+              }}>
                 {firstName}
               </div>
               {profile?.experience_level && (
-                <span style={{
-                  fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
-                  letterSpacing: "0.1em",
-                  color: LEVEL_COLOR[profile.experience_level] || "#5A5248",
-                  background: `${LEVEL_COLOR[profile.experience_level]}18`,
-                  padding: "2px 8px", borderRadius: 8,
-                  display: "inline-block", marginTop: 4,
-                }}>
-                  {LEVEL_LABEL[profile.experience_level]}
-                </span>
+                <div style={{ marginTop: 6 }}>
+                  <span style={{
+                    fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
+                    letterSpacing: "0.1em",
+                    color: LEVEL_COLOR[profile.experience_level] || "#5A5248",
+                    background: `${LEVEL_COLOR[profile.experience_level]}18`,
+                    padding: "3px 10px", borderRadius: 10,
+                    display: "inline-block",
+                  }}>
+                    {LEVEL_LABEL[profile.experience_level]}
+                  </span>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Wine persona card — Sommy's read on the user's identity.
+            Placed above stats so it anchors the page emotionally. */}
+        {user && (
+          <WinePersonaCard
+            userId={user.id}
+            onStartPalate={() => setPalateOpen(true)}
+          />
+        )}
 
         {/* Stats strip */}
         <div style={{
@@ -276,34 +298,33 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Palate card — entry point to the 5-page Sommy-led intake form. */}
+            {/* Palate card — ONLY shown when the user is mid-form (started but
+                not finished). The WinePersonaCard above handles both the
+                "not started" CTA ("Start your palate") and the completed state
+                (revisit by tapping the persona's refresh affordance).
+                Avoids two competing CTAs on the same page. */}
             {!palateLoading && (() => {
-              const step    = palateExisting?.palate_form_step ?? 0;
-              const isDone  = !!palateExisting?.palate_form_complete;
+              const step      = palateExisting?.palate_form_step ?? 0;
+              const isDone    = !!palateExisting?.palate_form_complete;
               const isPartial = step > 0 && !isDone;
-              const ctaLabel  = isDone ? "REVISIT PALATE →" : isPartial ? `RESUME · PAGE ${Math.min(step + 1, 5)} OF 5 →` : "START PALATE →";
-              const blurb     = isDone
-                ? "Sommy has your palate read. Tap to update it whenever your taste shifts."
-                : isPartial
-                ? "You started telling Sommy about your palate. Want to keep going?"
-                : "A five-page chat with Sommy so I can match wines to your real taste — not just guess from what you've tried.";
+              if (!isPartial) return null;
               return (
                 <div style={{ marginBottom: 24 }}>
                   <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.62rem", letterSpacing: "0.12em", color: "#5A5248", marginBottom: 12 }}>
                     YOUR PALATE
                   </div>
                   <div style={{
-                    background: isDone ? "white" : "linear-gradient(180deg, rgba(140,28,46,0.04) 0%, rgba(212,165,106,0.05) 100%)",
-                    border: `1px solid ${isDone ? "#EDEAE3" : "rgba(140,28,46,0.18)"}`,
+                    background: "linear-gradient(180deg, rgba(140,28,46,0.04) 0%, rgba(212,165,106,0.05) 100%)",
+                    border: "1px solid rgba(140,28,46,0.18)",
                     borderRadius: 12, padding: "14px 16px",
                   }}>
                     <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.5, margin: "0 0 12px" }}>
-                      {blurb}
+                      You started telling Sommy about your palate. Want to keep going?
                     </p>
                     <button onClick={() => setPalateOpen(true)} style={{
                       background: "none", border: "none", padding: 0, cursor: "pointer",
                       fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", color: "#8C1C2E",
-                    }}>{ctaLabel}</button>
+                    }}>{`RESUME · PAGE ${Math.min(step + 1, 5)} OF 5 →`}</button>
                   </div>
                 </div>
               );

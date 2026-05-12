@@ -168,6 +168,40 @@ Other fields:
 Output ONLY the JSON. No prose, no markdown, no commentary.
 `.trim();
 
+// Persona prompt — generates a friendly wine archetype + trait cards from
+// the user's palate digest + lightweight journal aggregate stats.
+// Output is used on the Profile page and is a foundation for future
+// social/community features (find users with similar personas).
+const PERSONA_SYSTEM = `You are Sommy, an expert sommelier. Given a user's wine palate and exploration history, generate a friendly first-person "wine persona" they can see on their profile.
+
+Return ONLY valid JSON with this exact shape:
+
+{
+  "archetype_name": "The Structured Explorer",
+  "headline": "You love what's bold, but you want me to take you somewhere new.",
+  "paragraph": "You reach for full-bodied reds with firm tannin and dark fruit. Bordeaux and Tuscany are your home base, but you're open to a nudge toward Rh\u00f4ne or Mendoza. I'll keep finding you wines that feel both familiar and surprising.",
+  "trait_cards": [
+    { "label": "Body",        "value": "Full-bodied",          "hint": "You like wines with presence" },
+    { "label": "Tannin",      "value": "Firm",                 "hint": "Structured, with grip" },
+    { "label": "Adventure",   "value": "Open to a nudge",      "hint": "Curious about new regions" },
+    { "label": "Sweet spot",  "value": "Bordeaux & Tuscany",   "hint": "Classic Old World structure" },
+    { "label": "Curious about","value": "Rh\u00f4ne, Mendoza",     "hint": "Where I'll nudge you next" },
+    { "label": "Budget",      "value": "Premium",              "hint": "Quality over quantity" }
+  ]
+}
+
+Rules:
+- archetype_name: 2-4 words, evocative, NOT generic ("The Wine Lover" is too vague). Good: "The Structured Explorer", "The Curious Traditionalist", "The Old-World Romantic", "The Adventurous Sipper".
+- headline: ONE LINE, max 14 words, second-person, Sommy's voice. Captures their identity poetically.
+- paragraph: 3-4 sentences, max 80 words, second-person, conversational. Describe their preferences + what Sommy will do for them. End with a forward-looking line.
+- trait_cards: EXACTLY 6 cards. Labels in {"Body","Tannin","Acidity","Adventure","Sweet spot","Curious about","Budget","Experience","Flavour"}. Each value is 1-4 words. Each hint is 3-7 words, second-person, optional but encouraged.
+- No emojis anywhere.
+- If a trait is unclear from the data, use the most-likely-from-the-palate-digest value, never invent.
+- Match the user's experience_level in vocabulary — don't use "phenolics" with a beginner.
+
+Output ONLY the JSON. No prose, no markdown, no commentary.
+`.trim();
+
 const PAIRING_SYSTEM = `You are Sommy, an expert sommelier. Given a wine, suggest 4-6 specific food pairings that complement it well. Return ONLY valid JSON with this exact shape:
 
 {
@@ -253,7 +287,7 @@ export default async function handler(req, res) {
     const wine = body.wine || {};
     const wineId = wine.id;
 
-    const validKinds = ["tasting", "pairings", "awards", "palate_digest", "match"];
+    const validKinds = ["tasting", "pairings", "awards", "palate_digest", "match", "persona"];
     if (!validKinds.includes(kind)) {
       return res.status(400).json({ error: `kind must be one of: ${validKinds.join(", ")}` });
     }
@@ -275,6 +309,27 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ kind: "palate_digest", data: parsed });
     }
+    // persona takes the palate digest + optional journal aggregate stats
+    // and returns a friendly wine archetype + trait cards for the profile page
+    if (kind === "persona") {
+      const palate = body.palate_digest;
+      if (!palate || !palate.summary_prose) {
+        return res.status(400).json({ error: "palate_digest required" });
+      }
+      const journalStats = body.journal_stats || null;
+      const experienceLevel = body.experience_level || "intermediate";
+      const userMessage = `PALATE:\n${JSON.stringify(palate, null, 2)}\n\nEXPERIENCE LEVEL: ${experienceLevel}\n\nJOURNAL STATS (optional, may be sparse):\n${journalStats ? JSON.stringify(journalStats, null, 2) : "(none yet)"}`;
+      const text = await callSommy(PERSONA_SYSTEM, userMessage);
+      let parsed;
+      try { parsed = parseJSON(text); } catch (e) {
+        return res.status(502).json({ error: "Sommy returned malformed persona" });
+      }
+      if (!parsed || !parsed.archetype_name || !parsed.headline || !parsed.paragraph || !Array.isArray(parsed.trait_cards)) {
+        return res.status(502).json({ error: "persona missing required fields" });
+      }
+      return res.status(200).json({ kind: "persona", data: parsed });
+    }
+
     // match needs both palate_digest and wine
     if (kind === "match") {
       const palate = body.palate_digest;

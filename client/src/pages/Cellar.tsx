@@ -1703,11 +1703,15 @@ export default function Cellar() {
                   {/* Main row */}
                   <button onClick={() => { setExpandedId(isExpanded ? null : wine.id); if (isEditing) setEditingId(null); }}
                     style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", padding: "12px 14px", paddingRight: palateReady && wine.match_score_json ? 58 : 14, background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
-                    {/* Thumbnail */}
+                    {/* Thumbnail — tall-rectangular (44×64) so wine labels read
+                        as labels, not cropped squares. objectPosition centers
+                        the upper-middle of the bottle photo where the label
+                        text typically sits, so the wine name is visible at a
+                        glance even at thumbnail size. */}
                     {wine.image_url ? (
-                      <img src={wine.image_url} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                      <img src={wine.image_url} alt="" style={{ width: 44, height: 64, borderRadius: 6, objectFit: "cover", objectPosition: "center 35%", flexShrink: 0, background: "#EDEAE3" }} />
                     ) : (
-                      <div style={{ width: 52, height: 52, borderRadius: 8, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 44, height: 64, borderRadius: 6, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4D1CA" strokeWidth="1.5">
                           <path d="M4 22V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v18" />
                           <path d="M8 22v-8a4 4 0 0 1 8 0v8" />

@@ -1914,10 +1914,14 @@ export default function Journal() {
                       >
                         {/* Thumbnail */}
                         {wine.image_url ? (
-                          <img src={wine.image_url} alt="" style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                          <img src={wine.image_url} alt="" style={{ width: 44, height: 64, borderRadius: 6, objectFit: "cover", objectPosition: "center 35%", flexShrink: 0, background: "#EDEAE3" }} />
                         ) : (
-                          <div style={{ width: 48, height: 48, borderRadius: 8, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", ...mono("0.5rem"), color: "#D4D1CA" }}>
-                            No img
+                          <div style={{ width: 44, height: 64, borderRadius: 6, background: "#EDEAE3", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4D1CA" strokeWidth="1.5">
+                              <path d="M4 22V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v18" />
+                              <path d="M8 22v-8a4 4 0 0 1 8 0v8" />
+                              <line x1="4" y1="22" x2="20" y2="22" />
+                            </svg>
                           </div>
                         )}
                         {/* Info */}

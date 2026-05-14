@@ -4,11 +4,13 @@ import { quizzes } from "@/data/quizzes";
 import { guides } from "@/data/guides";
 import { useTrack } from "@/hooks/use-track";
 import { useActivity } from "@/hooks/use-activity";
+import { useAuth } from "@/lib/auth";
 
 export default function QuizPage() {
   const [, params] = useRoute("/quiz/:quizId");
   const [, setLocation] = useLocation();
   const track = useTrack();
+  const { user, loading } = useAuth();
 
   const quiz = quizzes.find((q) => q.id === params?.quizId);
   const trackActivity = useActivity();
@@ -31,6 +33,205 @@ export default function QuizPage() {
       trackActivity("guide_read", guideId, guideData?.title || guideId);
     }
   }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sign-in gate — quiz scores only have value if they can attach to a
+  // user_id (Learning Path progress, guide-complete flag, eventual paid
+  // certificate). Logged-out users see a soft gate, not a hard error,
+  // with a sign-in CTA that returns them to this exact quiz after login.
+  // Placed AFTER all hooks so React's hook order stays stable.
+  // Decision: May 2026. Quizzes are signed-in only (free trial → paid).
+  if (!loading && !user && quiz) {
+    const quizUrl = `/quiz/${quiz.id}${guideId ? `?guideId=${guideId}` : ""}`;
+    return (
+      <div className="page-scroll" data-testid="quiz-page-locked">
+        <div style={{ maxWidth: 520, margin: "0 auto", padding: "48px 24px 60px" }}>
+          <button
+            onClick={() => setLocation(guideId ? `/guides/${guideId}` : "/guides")}
+            style={{
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: "0.58rem",
+              letterSpacing: "0.12em",
+              color: "#8C7468",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              marginBottom: 28,
+            }}
+          >
+            ← BACK
+          </button>
+
+          {/* Hero gate — same gradient style as the sign-in page so it
+              feels like one continuous on-ramp. */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #8C1C2E 0%, #6B1422 100%)",
+              borderRadius: 16,
+              padding: "28px 24px",
+              color: "#F7F4EF",
+              marginBottom: 16,
+              boxShadow: "0 6px 28px rgba(140,28,46,0.22)",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "0.55rem",
+                letterSpacing: "0.2em",
+                color: "rgba(247,244,239,0.72)",
+                marginBottom: 10,
+              }}
+            >
+              QUIZ · SIGN IN TO TAKE
+            </div>
+            <h1
+              style={{
+                fontFamily: "'Fraunces', serif",
+                fontSize: "1.4rem",
+                fontWeight: 400,
+                lineHeight: 1.2,
+                margin: 0,
+                marginBottom: 10,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {quiz.title}
+            </h1>
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.9rem",
+                fontWeight: 300,
+                lineHeight: 1.55,
+                color: "rgba(247,244,239,0.92)",
+                margin: 0,
+                marginBottom: 18,
+              }}
+            >
+              Sign in to take the quiz, mark this guide complete, and start your Learning Path. We'll keep your scores so you can see how you progress.
+            </p>
+            <button
+              onClick={() => setLocation(`/sign-in?next=${encodeURIComponent(quizUrl)}`)}
+              style={{
+                width: "100%",
+                padding: "13px 20px",
+                border: "none",
+                borderRadius: 12,
+                background: "white",
+                cursor: "pointer",
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.92rem",
+                fontWeight: 500,
+                color: "#1A1410",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+              }}
+            >
+              Sign in to take the quiz
+            </button>
+            <p
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "0.5rem",
+                letterSpacing: "0.14em",
+                color: "rgba(247,244,239,0.6)",
+                textAlign: "center",
+                marginTop: 14,
+                marginBottom: 0,
+              }}
+            >
+              NO CREDIT CARD · TAKES 30 SECONDS
+            </p>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #EDEAE3",
+              borderRadius: 12,
+              padding: "18px 20px",
+              marginBottom: 12,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: "0.55rem",
+                letterSpacing: "0.14em",
+                color: "#8C1C2E",
+                marginBottom: 12,
+              }}
+            >
+              WHY SIGN IN
+            </div>
+            <ul
+              style={{
+                listStyle: "none",
+                padding: 0,
+                margin: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              {[
+                "Your score is saved and attached to your Learning Path",
+                "Pass the quiz to mark this guide complete",
+                "Earn passport stamps and progress toward Beginner → Intermediate → Expert",
+              ].map((line, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.82rem",
+                    fontWeight: 300,
+                    color: "#1A1410",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: "50%",
+                      background: "#8C1C2E",
+                      marginTop: 8,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 18 }}>
+            <button
+              onClick={() => setLocation(guideId ? `/guides/${guideId}` : "/guides")}
+              style={{
+                background: "none",
+                border: "none",
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.82rem",
+                fontWeight: 300,
+                color: "#5A5248",
+                cursor: "pointer",
+                textDecoration: "underline",
+                textDecorationColor: "#D4D1CA",
+              }}
+            >
+              Browse the guide instead
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
 
   if (!quiz) {
     return (

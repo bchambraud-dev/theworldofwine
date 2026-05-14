@@ -223,14 +223,20 @@ Rules:
 
 Output ONLY the JSON.`;
 
-async function callSommy(systemPrompt, userMessage) {
+async function callSommy(systemPrompt, userMessage, opts = {}) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY missing");
   const client = new Anthropic({ apiKey });
 
+  // For structured JSON kinds (awards, match, persona, palate_digest, tasting,
+  // pairings) we want DETERMINISTIC output — the same input should always
+  // produce the same score. Default to temperature 0 unless caller overrides.
+  // This fixes the issue where the same wine scored 84% in cellar and 88%
+  // in chat for the same palate.
   const resp = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 800,
+    temperature: opts.temperature ?? 0,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
   });

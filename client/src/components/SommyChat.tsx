@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/useUserData";
 import { guides } from "@/data/guides";
 import { supabase } from "@/lib/supabase";
-import { directInsert, directSelect, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { directInsert, directSelect, directUpdate, getAccessToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
 import { regionToCountry, countryCode } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import SommyMarkdown from "@/components/SommyMarkdown";
@@ -273,7 +273,7 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       try {
         const rows = await directSelect<any>(
           "sommy_conversations",
-          `select=id,role,content,image_url,created_at&user_id=eq.${user.id}&order=created_at.desc&limit=30`
+          `select=id,role,content,image_url,created_at,awards_json,match_score_json&user_id=eq.${user.id}&order=created_at.desc&limit=30`
         );
 
         if (rows && rows.length > 0) {
@@ -292,7 +292,14 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
               const cleanAfterWishlist = displayText.replace(/WISHLIST_ADD_START[\s\S]*?WISHLIST_ADD_END\n?/g, "").trim();
               const { card, prose } = parseWineCard(cleanAfterWishlist);
               msg.content = prose;
-              if (card) msg.wineCard = card;
+              if (card) {
+                // Hydrate enrichment from DB columns so awards + match badge
+                // survive app restarts (was previously lost — chat looked
+                // bare on reopen even though the card was persisted)
+                if (row.awards_json) card.awards_json = row.awards_json;
+                if (row.match_score_json) card.match_score_json = row.match_score_json;
+                msg.wineCard = card;
+              }
               if (blocks.length > 0) msg.wishlistSuggestions = blocks;
             }
             return msg;
@@ -444,12 +451,35 @@ The more you share — what you enjoy, what you've tried, even what you definite
     if ((!text.trim() && !imageOverride && !pendingImage) || isLoading) return;
     const img = imageOverride || pendingImage;
     const userText = text.trim() || "What wine is this? Tell me about it.";
-    // Upload image to Supabase Storage for persistence (fire in background)
-    let storedImageUrl: string | undefined;
+
+    // FIRST — render the user message instantly with the local preview.
+    // The Supabase Storage upload (used for history persistence) runs in
+    // parallel and writes the final image_url back into the DB row later.
+    // Pre-fix: send tap had a 5-second perceived lag because the upload
+    // resolved BEFORE we showed the message. Now it's optimistic.
+    const userMessage: Message = {
+      role: "user",
+      content: userText,
+      imagePreview: img?.preview,
+      imageUrl: undefined,
+    };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput("");
+    setPendingImage(null);
+    setLoadingMode(img ? "scan" : "text");
+    setIsLoading(true);
+
+    // Upload image to Supabase Storage in the BACKGROUND. The chat API call
+    // doesn't need this URL (it gets the base64 directly via img.data), and
+    // the in-session display already shows the local preview. The URL is
+    // only needed when persisting the message for later history reloads.
+    let storedImageUrlPromise: Promise<string | undefined> = Promise.resolve(undefined);
     if (img && user) {
-      try {
-        const token = getAccessToken();
-        if (token) {
+      storedImageUrlPromise = (async () => {
+        try {
+          const token = await getAccessToken();
+          if (!token) return undefined;
           const byteString = atob(img.data);
           const bytes = new Uint8Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i);
@@ -461,26 +491,14 @@ The more you share — what you enjoy, what you've tried, even what you definite
             body: blob,
           });
           if (uploadRes.ok) {
-            storedImageUrl = `${SUPABASE_URL}/storage/v1/object/public/wine-labels/${path}`;
+            return `${SUPABASE_URL}/storage/v1/object/public/wine-labels/${path}`;
           }
+        } catch (e) {
+          console.error("Image upload error:", e);
         }
-      } catch (e) {
-        console.error("Image upload error:", e);
-      }
+        return undefined;
+      })();
     }
-
-    const userMessage: Message = {
-      role: "user",
-      content: userText,
-      imagePreview: img?.preview,
-      imageUrl: storedImageUrl,
-    };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    setInput("");
-    setPendingImage(null);
-    setLoadingMode(img ? "scan" : "text");
-    setIsLoading(true);
 
     try {
       // Build rich user profile context so Sommy knows who it's talking to
@@ -612,13 +630,46 @@ The more you share — what you enjoy, what you've tried, even what you definite
           }];
         });
 
+        // ── Persist BEFORE enrichment so the assistant row ID exists ──
+        // when background calls below want to PATCH it with awards/match.
+        let assistantRowId: string | null = null;
+        if (user) {
+          // User row — image_url populated when upload resolves (fire-and-forget)
+          storedImageUrlPromise.then(url => {
+            directInsert("sommy_conversations", {
+              user_id: user.id, role: "user", content: userText,
+              has_image: !!img, image_url: url || null,
+            }).catch(e => console.error("Sommy user-row save error:", e));
+          });
+          // Assistant row — await so we can capture the id for enrichment patching
+          try {
+            const inserted = await directInsert<{ id: string }>(
+              "sommy_conversations",
+              {
+                user_id: user.id, role: "assistant", content: data.text,
+                has_image: false, image_url: null,
+              },
+              15000,
+              { returnRow: true },
+            );
+            if (Array.isArray(inserted) && inserted[0]?.id) {
+              assistantRowId = inserted[0].id;
+            }
+          } catch (e) {
+            console.error("Sommy assistant-row save error:", e);
+          }
+        }
+
         // ── Split-flow enrichment: fetch awards + match in the background ──
         // The chat endpoint no longer generates these inline (kept it fast and
         // under the timeout). We fetch them in parallel via /api/wine-context
-        // and patch the wine card when each lands. Failures are silent.
+        // and patch the wine card when each lands. We ALSO persist the result
+        // to the assistant's sommy_conversations row so the card renders fully
+        // when the user reopens the app (bug fix May 2026: cards were going
+        // bare on reload because awards/match weren't being saved).
         if (card?.name && cardMsgIdx >= 0) {
           const wineForContext = {
-            id: `chat-${Date.now()}`, // pseudo-id so awards endpoint doesn't reject
+            id: `chat-${Date.now()}`,
             wine_name: card.name,
             vintage: card.vintage ? Number(card.vintage) : null,
             producer: card.producer,
@@ -627,7 +678,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
             style: card.style,
           };
 
-          // Awards (evergreen — evergreen per bottle, no palate needed)
+          // Awards — evergreen per bottle, no palate needed
           fetch("/api/wine-context", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -641,30 +692,74 @@ The more you share — what you enjoy, what you've tried, even what you definite
                   ? { ...m, wineCard: { ...m.wineCard, awards_json: json.data } }
                   : m
               ));
+              // Persist to the chat history row so it survives reload
+              if (assistantRowId) {
+                directUpdate("sommy_conversations", assistantRowId, {
+                  awards_json: json.data,
+                }).catch(e => console.warn("awards persist failed:", e));
+              }
             })
             .catch(() => { /* silent — awards are optional enrichment */ });
 
           // Match (only when palate exists)
           if (palateDigest) {
-            fetch("/api/wine-context", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                kind: "match",
-                wine: wineForContext,
-                palate_digest: palateDigest,
-              }),
-            })
-              .then(r => r.ok ? r.json() : null)
-              .then(json => {
+            // Prefer the cellar's stored match score if this wine is already
+            // in the user's cellar. This guarantees the chat and cellar show
+            // the SAME score for the same bottle (bug fix May 2026).
+            (async () => {
+              if (user) {
+                try {
+                  const vintageNum = card.vintage ? Number(card.vintage) : null;
+                  const vintageFilter = vintageNum ? `&vintage=eq.${vintageNum}` : "";
+                  const matches = await directSelect<any>(
+                    "wine_cellar",
+                    `select=match_score_json&user_id=eq.${user.id}&wine_name=ilike.${encodeURIComponent(card.name)}${vintageFilter}&match_score_json=not.is.null&limit=1`,
+                  );
+                  if (Array.isArray(matches) && matches[0]?.match_score_json) {
+                    const m = matches[0].match_score_json;
+                    setMessages(prev => prev.map((msg, idx) =>
+                      idx === cardMsgIdx && msg.wineCard
+                        ? { ...msg, wineCard: { ...msg.wineCard, match_score_json: m } }
+                        : msg
+                    ));
+                    if (assistantRowId) {
+                      directUpdate("sommy_conversations", assistantRowId, {
+                        match_score_json: m,
+                      }).catch(e => console.warn("match persist failed:", e));
+                    }
+                    return;
+                  }
+                } catch (e) {
+                  // fall through to fresh generation
+                }
+              }
+
+              // No cellar match — generate fresh
+              try {
+                const resp = await fetch("/api/wine-context", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    kind: "match",
+                    wine: wineForContext,
+                    palate_digest: palateDigest,
+                  }),
+                });
+                if (!resp.ok) return;
+                const json = await resp.json();
                 if (!json?.data) return;
-                setMessages(prev => prev.map((m, idx) =>
-                  idx === cardMsgIdx && m.wineCard
-                    ? { ...m, wineCard: { ...m.wineCard, match_score_json: json.data } }
-                    : m
+                setMessages(prev => prev.map((msg, idx) =>
+                  idx === cardMsgIdx && msg.wineCard
+                    ? { ...msg, wineCard: { ...msg.wineCard, match_score_json: json.data } }
+                    : msg
                 ));
-              })
-              .catch(() => { /* silent */ });
+                if (assistantRowId) {
+                  directUpdate("sommy_conversations", assistantRowId, {
+                    match_score_json: json.data,
+                  }).catch(e => console.warn("match persist failed:", e));
+                }
+              } catch { /* silent */ }
+            })();
           }
         }
 
@@ -690,15 +785,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
           }
         }
 
-        // Fire-and-forget save — store raw content so wine cards can be re-parsed on reload
-        if (user) {
-          const rows = [
-            { user_id: user.id, role: "user", content: userText, has_image: !!img, image_url: storedImageUrl || null },
-            { user_id: user.id, role: "assistant", content: data.text, has_image: false, image_url: null },
-          ];
-          Promise.all(rows.map(r => directInsert("sommy_conversations", r)))
-            .catch(e => console.error("Sommy save error:", e));
-        }
+        // (Persistence happened earlier so enrichment patch could use the row id)
       } else if (data.error) {
         setMessages(prev => [...prev, { role: "assistant", content: data.error }]);
       }

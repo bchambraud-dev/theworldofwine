@@ -73,18 +73,20 @@ function authHeaders(token: string, json = true): Record<string, string> {
   return h;
 }
 
-export async function directInsert(
+export async function directInsert<T = any>(
   table: string,
   row: Record<string, unknown>,
   timeoutMs = 15000,
-): Promise<void> {
+  opts: { returnRow?: boolean } = {},
+): Promise<T[] | undefined> {
   const token = await getValidToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
+  const prefer = opts.returnRow ? "return=representation" : "return=minimal";
   const res = await Promise.race([
     fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: "POST",
-      headers: { ...authHeaders(token), Prefer: "return=minimal" },
+      headers: { ...authHeaders(token), Prefer: prefer },
       body: JSON.stringify(row),
     }),
     new Promise<Response>((_, reject) =>
@@ -96,6 +98,10 @@ export async function directInsert(
     const body = await res.text().catch(() => "");
     throw new Error(body || `Insert failed (${res.status})`);
   }
+  if (opts.returnRow) {
+    try { return (await res.json()) as T[]; } catch { return undefined; }
+  }
+  return undefined;
 }
 
 export async function directUpdate(

@@ -476,8 +476,8 @@ function Page1({ types, setTypes }: { types: string[]; setTypes: (v: string[]) =
   const toggle = (k: string) => setTypes(types.includes(k) ? types.filter(t => t !== k) : [...types, k]);
   return (
     <>
-      <SommyLine>Tell me what you usually pour.</SommyLine>
-      <Question>Pick everything that's in your regular rotation. No wrong answers.</Question>
+      <SommyLine>Which wine types do you enjoy?</SommyLine>
+      <Question>Pick all that apply — you can change this anytime. No wrong answers.</Question>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {WINE_TYPES.map(t => (
           <Chip key={t.key} active={types.includes(t.key)} onClick={() => toggle(t.key)}>{t.label}</Chip>

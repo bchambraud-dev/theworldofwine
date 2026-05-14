@@ -9,6 +9,7 @@ import { directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import LoginPrompt from "@/components/LoginPrompt";
 import PalateIntakeSheet, { type ExistingPalate } from "@/components/PalateIntakeSheet";
 import WinePersonaCard from "@/components/WinePersonaCard";
+import MyWorldToday from "@/components/MyWorldToday";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -136,28 +137,27 @@ export default function ProfilePage() {
     <div style={{ position: "fixed", inset: 0, paddingTop: OFFSET, overflowY: "auto", background: "#F7F4EF", zIndex: 5 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
 
-        {/* Hero header — full name, larger avatar, country flags for explored
-            regions + a Notable badge if the user has tried any flagship wines.
-            (No more "Beginner" label — see user feedback May 2026: experience
-            level moved into guide-driven progression, not a fixed badge.) */}
+        {/* Identity strip — compact anchor at the very top. Avatar + name +
+            flags + notable badge. Smaller than before so the TODAY zone
+            below has room to breathe. (My World redesign, May 2026.) */}
         <div style={{ marginBottom: 22 }}>
           <div style={{
             fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
             letterSpacing: "0.12em", color: "#8C1C2E", marginBottom: 14,
-          }}>YOUR JOURNEY</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          }}>MY WORLD</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             {avatarUrl ? (
               <img src={avatarUrl} alt="" style={{
-                width: 84, height: 84, borderRadius: "50%", objectFit: "cover",
+                width: 56, height: 56, borderRadius: "50%", objectFit: "cover",
                 border: "2px solid rgba(140,28,46,0.18)",
                 boxShadow: "0 2px 12px rgba(140,28,46,0.08)",
               }} />
             ) : (
               <div style={{
-                width: 84, height: 84, borderRadius: "50%",
+                width: 56, height: 56, borderRadius: "50%",
                 background: "#8C1C2E", color: "#F7F4EF",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "'Fraunces', serif", fontSize: "2.2rem", fontWeight: 400,
+                fontFamily: "'Fraunces', serif", fontSize: "1.6rem", fontWeight: 400,
                 boxShadow: "0 2px 12px rgba(140,28,46,0.18)",
               }}>
                 {firstName[0].toUpperCase()}
@@ -165,7 +165,7 @@ export default function ProfilePage() {
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400,
+                fontFamily: "'Fraunces', serif", fontSize: "1.2rem", fontWeight: 400,
                 color: "#1A1410", lineHeight: 1.2, wordBreak: "break-word",
               }}>
                 {displayName}
@@ -173,7 +173,7 @@ export default function ProfilePage() {
               {/* Identity strip: country flags for regions you've explored +
                   a quiet "notable" badge if you've tried any flagship wines.
                   Replaces the old "Beginner" experience-level badge. */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                 {countriesExplored.slice(0, 8).map((countryName) => {
                   const cc = countryCode(countryName);
                   if (!cc) return null;
@@ -215,8 +215,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* TODAY zone — Sommy prompt, dismissible task cards for setup,
+            and a compact cellar pulse when there's something to flag.
+            Sits above the persona because action beats reflection on a
+            home screen. (My World redesign, May 2026.) */}
+        <MyWorldToday
+          paletteComplete={!!palateExisting?.palate_form_complete}
+          cellarCount={stats.cellar}
+          onStartPalate={() => setPalateOpen(true)}
+        />
+
         {/* Wine persona card — Sommy's read on the user's identity.
-            Placed above stats so it anchors the page emotionally. */}
+            Placed below TODAY so action takes priority over reflection. */}
         {user && (
           <WinePersonaCard
             userId={user.id}

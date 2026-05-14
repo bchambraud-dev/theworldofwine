@@ -192,7 +192,7 @@ function usePageContext() {
     }
     if (location.startsWith("/explore")) return { context: "The user is exploring the wine map.", chips: ["Which region should I explore first?", "Most underrated wine region?", "Surprise me"] };
     if (location === "/guides") return { context: "The user is browsing the guides.", chips: ["Where do I start?", "Best beginner guide?", "What should I learn first?"] };
-    return { context: "", chips: ["What should I drink tonight?", "I'm new to wine — where do I start?", "Best wine with steak?", "Explain tannins"] };
+    return { context: "", chips: ["Recommend me a wine", "I'm new to wine — where do I start?", "Best wine with steak?", "Explain tannins"] };
   }, [location]);
 }
 
@@ -313,21 +313,41 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
 
       // Step 2: no history — first-ever session. Use a reliable personalised
       // greeting rather than an API call that can fail silently.
+      //
+      // Two variants:
+      //   - Just-finished-onboarding: ?welcome=1 in URL. Use the styles they
+      //     just picked so Sommy feels like she heard them.
+      //   - Cold open: generic warm intro keyed to experience level.
+      // Copy is time-of-day neutral — no "tonight", no "in your glass",
+      // no daily-drinking nudge.
       hasGreeted.current = user.id;
       const name = profile?.display_name?.split(" ")[0] || "";
       const level = profile?.experience_level || "beginner";
+      const isPostOnboarding = typeof window !== "undefined" && window.location.search.includes("welcome=1");
+      const types = preferences.preferred_types || [];
 
-      const openingQuestion: Record<string, string> = {
-        beginner:     "What draws you to wine right now? Are you exploring something new, looking for a great bottle for tonight, or just curious about where to start?",
-        intermediate: "What are you looking to discover right now — a region you haven't explored, a style you want to get deeper into, or the perfect pairing for something specific?",
-        expert:       "What are you exploring lately? Is there a producer, vintage, or appellation that's caught your attention recently?",
-      };
+      let greeting: string;
+      if (isPostOnboarding && types.length > 0) {
+        const typesPhrase = types.length === 1
+          ? `${types[0]} wines`
+          : types.length === 2
+            ? `${types[0]} and ${types[1]} wines`
+            : `${types.slice(0, -1).join(", ")}, and ${types[types.length - 1]} wines`;
+        greeting = `Welcome${name ? `, ${name}` : ""}. You mentioned you enjoy ${typesPhrase} — that's a great starting point.
 
-      const greeting = `Hey${name ? ` ${name}` : ""}! I'm Sommy — your personal wine companion here at The World of Wine. I'm starting fresh, which means I get to learn what you love as we go.
+Tell me about a wine you've tried and loved, or scan a label you're curious about. I'll take it from there.`;
+      } else {
+        const openingQuestion: Record<string, string> = {
+          beginner:     "What draws you to wine? Are you exploring something new, looking for a great bottle for an occasion, or just curious about where to start?",
+          intermediate: "What are you looking to discover — a region you haven't explored, a style you want to go deeper into, or a pairing for something specific?",
+          expert:       "What are you exploring lately? A producer, vintage, or appellation that's caught your attention?",
+        };
+        greeting = `Hey${name ? ` ${name}` : ""}. I'm Sommy — your wine companion at The World of Wine. I'm starting fresh, which means I get to learn what you love as we go.
 
 ${openingQuestion[level] || openingQuestion.beginner}
 
 The more you share — what you enjoy, what you've tried, even what you definitely don't like — the better I can point you toward wines that'll genuinely excite you.`;
+      }
 
       setMessages([{ role: "assistant", content: greeting }]);
     };

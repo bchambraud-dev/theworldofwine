@@ -70,7 +70,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import Cellar from "@/pages/Cellar";
 import WishlistPage from "@/pages/Wishlist";
 
-type NavTab = "map" | "academy" | "list" | "news" | "cellar" | "experiences" | "wishlist";
+type NavTab = "map" | "academy" | "list" | "news" | "myworld" | "cellar" | "experiences" | "wishlist";
 
 const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "map", label: "MAP", href: "/explore" },
@@ -78,18 +78,24 @@ const navTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "list", label: "LIST", href: "/explore/list" },
 ];
 
+// Personal tabs (drawer) — "MY WORLD" anchors the namespace; the rest
+// inherit ownership implicitly (no need to repeat "My" on each line).
 const personalTabs: { key: NavTab; label: string; href: string }[] = [
-  { key: "cellar", label: "MY CELLAR", href: "/journey/cellar" },
-  { key: "experiences", label: "MY EXPERIENCES", href: "/journey/journal" },
-  { key: "wishlist", label: "MY WISHLIST", href: "/journey/wishlist" },
+  { key: "myworld",     label: "MY WORLD",    href: "/" },
+  { key: "cellar",      label: "CELLAR",      href: "/journey/cellar" },
+  { key: "experiences", label: "EXPERIENCES", href: "/journey/journal" },
+  { key: "wishlist",    label: "WISHLIST",    href: "/journey/wishlist" },
 ];
 
 function getActiveTab(path: string): NavTab | null {
+  if (path === "/") return "myworld";
+  if (path === "/about") return null;
   if (path === "/explore/list") return "list";
   if (path.startsWith("/explore")) return "map";
   if (path.startsWith("/journey/cellar")) return "cellar";
   if (path.startsWith("/journey/journal")) return "experiences";
   if (path.startsWith("/journey/wishlist")) return "wishlist";
+  if (path.startsWith("/journey/profile")) return "myworld";
   if (path.startsWith("/journal")) return "experiences";
   if (path.startsWith("/guides") || path.startsWith("/quiz")) return "academy";
   if (path.startsWith("/news")) return "news";
@@ -334,18 +340,18 @@ function NavBar() {
               {tab.label}
             </button>
           ))}
-          {user && (
-            <button
-              className="mobile-menu-link"
-              onClick={() => handleNavLink("/journey/profile")}
-              data-testid="mobile-nav-profile"
-            >
-              MY PROFILE
-            </button>
-          )}
 
-          {/* Auth */}
+          {/* Utility section — About lives here so it's discoverable for
+              sharing without crowding the primary nav. Sign-out below. */}
           <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+          <button
+            className="mobile-menu-link"
+            onClick={() => handleNavLink("/about")}
+            data-testid="mobile-nav-about"
+            style={{ color: "#5A5248" }}
+          >
+            ABOUT
+          </button>
           {user ? (
             <button
               className="mobile-menu-link"
@@ -381,17 +387,32 @@ function Redirect({ to }: { to: string }) {
   return null;
 }
 
+// Root route handler — logged-in users see their personal hub (My World);
+// visitors see the marketing landing page. The marketing page is always
+// reachable at /about for sharing or revisiting.
+function RootRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) {
+    return <JourneyLayout><ProfilePage /></JourneyLayout>;
+  }
+  return <Landing />;
+}
+
 function AppRouter() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={RootRoute} />
+      <Route path="/about" component={Landing} />
       <Route path="/explore/region/:regionId" component={Explore} />
       <Route path="/explore/producer/:producerId" component={Explore} />
       <Route path="/news/:newsId" component={News} />
       <Route path="/explore" component={Explore} />
       <Route path="/explore/list" component={Explore} />
       <Route path="/journeys" component={JourneysBrowse} />
-      {/* My Journey section — specific routes before the :id wildcard */}
+      {/* My Journey section — specific routes before the :id wildcard.
+          /journey/profile kept as alias for backward compat (deep links,
+          old bookmarks). Renders the same My World hub. */}
       <Route path="/journey/profile">{() => <JourneyLayout><ProfilePage /></JourneyLayout>}</Route>
       <Route path="/journey/cellar">{() => <JourneyLayout><Cellar /></JourneyLayout>}</Route>
       <Route path="/journey/journal">{() => <JourneyLayout><Journal /></JourneyLayout>}</Route>

@@ -183,7 +183,7 @@ export default function MyWorldToday({
         <TaskCard
           icon="palate"
           title="Tell me your taste"
-          body="Sommy works best when she knows what you enjoy. 5 minutes."
+          body="Sommy works best when your taste is on record. Takes 5 minutes."
           cta="Start"
           onAction={onStartPalate}
           onDismiss={() => handleDismiss("palate")}

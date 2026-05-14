@@ -80,6 +80,9 @@ const navTabs: { key: NavTab; label: string; href: string }[] = [
 
 // Personal tabs (drawer) — "MY WORLD" anchors the namespace; the rest
 // inherit ownership implicitly (no need to repeat "My" on each line).
+// `href` here is the LOGGED-IN destination. When logged out, all personal
+// tabs route to /sign-in (handled by NavBar) so the sign-in page can sell
+// the benefits rather than dumping users on a silent marketing page.
 const personalTabs: { key: NavTab; label: string; href: string }[] = [
   { key: "myworld",     label: "MY WORLD",    href: "/" },
   { key: "cellar",      label: "CELLAR",      href: "/journey/cellar" },
@@ -132,6 +135,18 @@ function NavBar() {
     setMenuOpen(false);
   };
 
+  // Tap a personal tab while logged out — route to sign-in instead of
+  // dropping the user on the public landing page (which feels unresponsive).
+  // We pass the intended destination as ?next= so post-login lands them there.
+  const handlePersonalLink = (href: string) => {
+    if (!user) {
+      setLocation(`/sign-in?next=${encodeURIComponent(href)}`);
+    } else {
+      setLocation(href);
+    }
+    setMenuOpen(false);
+  };
+
   return (
     <>
       <header className="topbar" data-testid="topbar">
@@ -168,20 +183,9 @@ function NavBar() {
           />
         </div>
 
-        {/* Desktop nav tabs */}
+        {/* Desktop nav tabs — Log A Wine button removed May 2026; creation
+            now lives inside each tab so the topbar stays focused on nav. */}
         <div className="nav-tabs-desktop" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          <Link href="/journey/journal?log=1" style={{ textDecoration: "none", marginRight: 4 }}>
-            <button
-              className="nav-btn"
-              data-testid="nav-log-wine"
-              style={{
-                background: "#8C1C2E", color: "#F7F4EF",
-                borderRadius: 20, padding: "6px 14px",
-                fontFamily: "'Geist Mono', monospace", fontSize: "0.52rem",
-                letterSpacing: "0.08em", border: "none", cursor: "pointer",
-              }}
-            >+ LOG A WINE</button>
-          </Link>
           {navTabs.map((tab) => (
             <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
               <button
@@ -195,16 +199,22 @@ function NavBar() {
 
           {/* Divider between main and personal tabs */}
           <div style={{ width: 1, height: 16, background: "#EDEAE3", margin: "0 6px", flexShrink: 0 }} />
-          {personalTabs.map((tab) => (
-            <Link key={tab.key} href={tab.href} style={{ textDecoration: "none" }}>
-              <button
-                className={`nav-btn ${activeTab === tab.key ? "active" : ""}`}
-                data-testid={`nav-${tab.key}`}
-              >
-                {tab.label}
-              </button>
-            </Link>
-          ))}
+          {personalTabs.map((tab) => {
+            // Logged-out users get sent to /sign-in with the intended path
+            // as ?next= so we can route them back after login. Avoids the
+            // "taps MY WORLD, nothing happens" feel.
+            const href = user ? tab.href : `/sign-in?next=${encodeURIComponent(tab.href)}`;
+            return (
+              <Link key={tab.key} href={href} style={{ textDecoration: "none" }}>
+                <button
+                  className={`nav-btn ${activeTab === tab.key ? "active" : ""}`}
+                  data-testid={`nav-${tab.key}`}
+                >
+                  {tab.label}
+                </button>
+              </Link>
+            );
+          })}
 
           {/* User avatar / sign in */}
           {user ? (
@@ -297,25 +307,10 @@ function NavBar() {
           </span>
         </div>
 
-        {/* Nav links */}
+        {/* Nav links — Log A Wine button removed from drawer May 2026.
+            Creation is done from inside each tab (Cellar, Experiences) so the
+            drawer stays focused on navigation, not actions. */}
         <nav className="mobile-menu-nav">
-          {/* LOG A WINE button */}
-          <button
-            className="mobile-menu-link"
-            onClick={() => handleNavLink("/journey/journal?log=1")}
-            data-testid="mobile-nav-log-wine"
-            style={{
-              background: "#8C1C2E", color: "#F7F4EF",
-              borderRadius: 8, padding: "10px 16px", marginBottom: 8,
-              fontFamily: "'Geist Mono', monospace", fontSize: "0.6rem",
-              letterSpacing: "0.1em", border: "none", cursor: "pointer",
-              textAlign: "center", width: "100%",
-            }}
-          >+ LOG A WINE</button>
-
-          {/* Divider */}
-          <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
-
           {/* Main nav tabs */}
           {navTabs.map((tab) => (
             <button
@@ -334,7 +329,7 @@ function NavBar() {
             <button
               key={tab.key}
               className={`mobile-menu-link ${activeTab === tab.key ? "active" : ""}`}
-              onClick={() => handleNavLink(tab.href)}
+              onClick={() => handlePersonalLink(tab.href)}
               data-testid={`mobile-nav-${tab.key}`}
             >
               {tab.label}

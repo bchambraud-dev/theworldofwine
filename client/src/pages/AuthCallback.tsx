@@ -18,10 +18,22 @@ export default function AuthCallback() {
           .eq("id", session.user.id)
           .single();
 
+        // Honour ?next= from /sign-in when present (deep-link return path).
+        // Stored in sessionStorage before the OAuth redirect because OAuth
+        // strips our own query params.
+        let next = "/";
+        try {
+          const stored = sessionStorage.getItem("signin_next");
+          if (stored && stored.startsWith("/") && !stored.startsWith("//")) {
+            next = stored;
+          }
+          sessionStorage.removeItem("signin_next");
+        } catch {}
+
         if (data && !data.onboarding_complete) {
           setLocation("/onboarding");
         } else {
-          setLocation("/");
+          setLocation(next);
         }
       } else {
         // Wait briefly for Supabase to parse the hash and establish session

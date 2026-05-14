@@ -316,7 +316,7 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
       //
       // Two variants:
       //   - Just-finished-onboarding: ?welcome=1 in URL. Use the styles they
-      //     just picked so Sommy feels like she heard them.
+      //     just picked so Sommy feels like the onboarding was heard.
       //   - Cold open: generic warm intro keyed to experience level.
       // Copy is time-of-day neutral — no "tonight", no "in your glass",
       // no daily-drinking nudge.
@@ -535,8 +535,8 @@ The more you share — what you enjoy, what you've tried, even what you definite
       // Journal context — AGGREGATE ONLY. We never send specific wine names
       // to Sommy. This was a continuous source of frustration: Sommy would
       // anchor on the same 1-2 highly-rated wines (Tronquoy, Zinfandel) and
-      // reference them in every response, even after the prompt told her not
-      // to. The only reliable fix is removing them from her context entirely.
+      // reference them in every response, even after the prompt explicitly
+      // said not to. The only reliable fix is removing them from context entirely.
       // The palate digest (from the form) is the primary signal; the journal
       // contributes only style awareness (regions/grapes the user has explored).
       if (journal.length > 0) {

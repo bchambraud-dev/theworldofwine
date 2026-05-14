@@ -291,8 +291,10 @@ export default async function handler(req, res) {
     if (!validKinds.includes(kind)) {
       return res.status(400).json({ error: `kind must be one of: ${validKinds.join(", ")}` });
     }
-    // wine.id only required for kinds that persist a cache row
-    if (["tasting", "pairings", "awards"].includes(kind) && !wineId) {
+    // wine.id only required for kinds that ACTUALLY write back to wine_cellar.
+    // Awards is a pure compute (no cellar write) so it works for ephemeral
+    // chat-side enrichment too. Only tasting + pairings persist to the cellar.
+    if (["tasting", "pairings"].includes(kind) && !wineId) {
       return res.status(400).json({ error: "wine.id required" });
     }
     // palate_digest doesn't need a wine — it takes palate form data

@@ -596,12 +596,77 @@ The more you share — what you enjoy, what you've tried, even what you definite
         cleanText = afterWishlist;
 
         const { card, prose } = parseWineCard(cleanText);
-        setMessages(prev => [...prev, {
-          role: "assistant",
-          content: prose,
-          wineCard: card || undefined,
-          wishlistSuggestions: wishlistBlocks.length > 0 ? wishlistBlocks : undefined,
-        }]);
+        // The card index where it'll land in messages — used by the split-flow
+        // enrichment below so it can patch the right message when awards/match
+        // arrive asynchronously. We compute this BEFORE setMessages so the
+        // patch can match by message position rather than content (which the
+        // user could trigger to change by sending another message quickly).
+        let cardMsgIdx = -1;
+        setMessages(prev => {
+          cardMsgIdx = prev.length;
+          return [...prev, {
+            role: "assistant",
+            content: prose,
+            wineCard: card || undefined,
+            wishlistSuggestions: wishlistBlocks.length > 0 ? wishlistBlocks : undefined,
+          }];
+        });
+
+        // ── Split-flow enrichment: fetch awards + match in the background ──
+        // The chat endpoint no longer generates these inline (kept it fast and
+        // under the timeout). We fetch them in parallel via /api/wine-context
+        // and patch the wine card when each lands. Failures are silent.
+        if (card?.name && cardMsgIdx >= 0) {
+          const wineForContext = {
+            id: `chat-${Date.now()}`, // pseudo-id so awards endpoint doesn't reject
+            wine_name: card.name,
+            vintage: card.vintage ? Number(card.vintage) : null,
+            producer: card.producer,
+            region: card.region,
+            grapes: card.grapes,
+            style: card.style,
+          };
+
+          // Awards (evergreen — evergreen per bottle, no palate needed)
+          fetch("/api/wine-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ kind: "awards", wine: wineForContext }),
+          })
+            .then(r => r.ok ? r.json() : null)
+            .then(json => {
+              if (!json?.data) return;
+              setMessages(prev => prev.map((m, idx) =>
+                idx === cardMsgIdx && m.wineCard
+                  ? { ...m, wineCard: { ...m.wineCard, awards_json: json.data } }
+                  : m
+              ));
+            })
+            .catch(() => { /* silent — awards are optional enrichment */ });
+
+          // Match (only when palate exists)
+          if (palateDigest) {
+            fetch("/api/wine-context", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                kind: "match",
+                wine: wineForContext,
+                palate_digest: palateDigest,
+              }),
+            })
+              .then(r => r.ok ? r.json() : null)
+              .then(json => {
+                if (!json?.data) return;
+                setMessages(prev => prev.map((m, idx) =>
+                  idx === cardMsgIdx && m.wineCard
+                    ? { ...m, wineCard: { ...m.wineCard, match_score_json: json.data } }
+                    : m
+                ));
+              })
+              .catch(() => { /* silent */ });
+          }
+        }
 
         // Apply profile update if Sommy detected clear user preferences
         if (profileUpdateMatch && user) {
@@ -639,8 +704,13 @@ The more you share — what you enjoy, what you've tried, even what you definite
       }
     } catch (e: any) {
       console.error("Sommy error:", e?.message || e);
+      // Friendlier timeout copy + suggest what to try next. The previous
+      // generic "too long" line gave no direction. Image scans of poor-quality
+      // labels are the most common cause.
       const msg = e?.name === "AbortError"
-        ? "That one took too long — try asking me something more specific."
+        ? (img
+            ? "Sommy needs a moment longer than usual on this label. Try a clearer, head-on photo of the front — or describe the wine in text and I'll pick it up."
+            : "That took longer than usual. Try again, or rephrase — something specific helps me think faster.")
         : "Sorry, having trouble connecting. Try again in a moment.";
       setMessages(prev => [...prev, { role: "assistant", content: msg }]);
     } finally {

@@ -1,7 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 // Increase Vercel function timeout to 60s (conversation history makes responses slower)
-export const config = { maxDuration: 60 };
+// 90s allows label scans (image vision is slow) to complete without
+// edge-case timeouts. Awards + match are NO LONGER generated in this call
+// — see split-flow comment below. Without those two JSON blobs the call is
+// already faster, but the extra headroom prevents the user-facing 'took too
+// long' message on borderline cases.
+export const config = { maxDuration: 90 };
 
 const SUPABASE_URL = "https://auth.theworldofwine.org";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZ3hjenZzeGlpbHF6dnl6cHNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc3NjEzMSwiZXhwIjoyMDg3MzUyMTMxfQ.JEXkuSX8vPCTMf8v5w1Wm5t-vIGMgYRLvPSQBgp5Vlk";
@@ -231,17 +236,17 @@ export default async function handler(req, res) {
       systemPrompt += `\n\nUSER'S PALATE:\n${JSON.stringify(palate_digest)}\n\nABSOLUTE RULES — these override everything else:\n\nRULE A: TALK ABOUT CHARACTERISTICS, NOT LABELS.\nWhen explaining your reasoning, describe wines by their attributes (\"the firm tannin you enjoy\", \"the structured red style\", \"the dark-fruit profile you reach for\") — NOT by repeating region labels like \"Bordeaux\" or \"Tuscany\" in every sentence. The user is tired of seeing the same region words parroted back.\n\nRULE B: ${adventurousNote}\n\nRULE C: NEVER name a specific wine from the user's journal repeatedly across responses. If the journal includes wines they've rated, treat them as known exploration history only — do not anchor recommendations on them. Recommending wine X because the user once enjoyed wine Y is lazy — use their stated palate (the structured digest above) as the primary signal.\n\nRECOMMENDATION DECISION TREE:\n\n1) FOOD PAIRING ("what pairs with X", "wine for steak/fish"):\n   - Food appropriateness FIRST. Within food-appropriate options, lean toward the user's palate where there's overlap.\n   - If the right pairing is OUTSIDE the user's palate (e.g. white for fish from a red-lover), recommend it anyway and say so briefly: \"You usually reach for bigger reds, but for this dish a crisp white will sing.\"\n   - Do not force a red on fish just because they like reds.\n\n2) SPECIFIC WINE (label scan, "tell me about [bottle]"):\n   - Be honest about palate fit. If outside their wheelhouse, acknowledge that, never inflate.\n\n3) OPEN-ENDED ("what should I drink tonight", "recommend something"):\n   - Anchor on palate characteristics (not labels).\n   - Vary suggestions — different producers, different countries within their preferred style. Avoid recommending the same region twice in a row.`;
     }
 
-    if (hasPalate && looksLikeWineQuery) {
-      // Full awards+match rubric for wine-specific responses.
-      // Note: match score is PALATE-HONEST — we never inflate the score because
-      // the wine is contextually right. If you're recommending outside the lane
-      // (e.g. fish pairing for a red-lover), the score stays honest about palate fit
-      // and the optional context_note field carries the "but for this moment..." reason.
-      systemPrompt += `\n\nAWARDS+MATCH SECTION (ONLY include inside a WINE_CARD block when emitting one — NEVER as standalone prose):\nawards: compact one-line JSON. Shape: {"awards":[{"type":"classification","label":"First Growth","tone":"classification","context":"1855 Bordeaux"}],"is_flagship":true,"confidence":"high"}. If no real awards verifiable for this bottle+vintage: {"awards":[],"is_flagship":false,"confidence":"high"}. tone ∈ classification|score|recognized|iconic. Never fabricate.\nmatch: compact one-line JSON. THE SCORE IS ALWAYS PALATE-HONEST — reflect how this wine matches the user's GENERAL palate, NEVER inflate because it's contextually right for a dish/moment. Score = round(0.3*style + 0.3*region + 0.2*budget + 0.2*adventure), each factor 0-100. Bands: 90+ Perfect Match, 75-89 Strong Match, 60-74 Worth Trying, 45-59 A Stretch, <45 Off Profile. Use precise factor pcts (84, 91, 63) — never round numbers.\nWhen you are recommending this wine OUTSIDE the user's usual palate for a context reason (food pairing, weather, occasion), include a "context_note" field in the match JSON: a short 12-word friendly first-person line, e.g. "I picked this for the sole, even though it's lighter than your usual lane." When the wine IS in their wheelhouse, omit context_note entirely.\nShape: {"score":87,"band":"Strong Match","confidence":"high","why_short":"max 12 words second-person","why_long":"2-3 sentences max 60 words","factors":[{"label":"Style fit","alignment":"strong","alignment_pct":92},{"label":"Region match","alignment":"strong","alignment_pct":95},{"label":"Budget","alignment":"moderate","alignment_pct":78},{"label":"Adventure","alignment":"moderate","alignment_pct":60}],"context_note":"optional, see above"}. If you can't score honestly, emit match: null.`;
-    } else if (isLabelScan) {
-      // No palate but still a label scan — emit awards only
-      systemPrompt += `\n\nAWARDS+MATCH SECTION (ONLY inside the WINE_CARD block):\nawards: compact one-line JSON. Shape: {"awards":[{"type":"classification|score|recognition","label":"First Growth","tone":"classification|score|recognized|iconic","context":"1855 Bordeaux"}],"is_flagship":true,"confidence":"high"}. Empty if nothing verifiable: {"awards":[],"is_flagship":false,"confidence":"high"}. Never fabricate.\nmatch: null`;
-    }
+    // SPLIT FLOW (May 2026): awards + match are NO LONGER generated inline in
+    // this chat call. They're fetched in the background by the client via
+    // /api/wine-context (kinds "awards" and "match") after the wine card lands.
+    // This was the right call for two reasons:
+    //   1) Label scans were regularly hitting the 58s client timeout because
+    //      the model was generating wine card + awards JSON + match JSON +
+    //      conversational prose all in one vision-enabled call.
+    //   2) Awards are evergreen per (wine_name, vintage, producer) so caching
+    //      them through /api/wine-context lets them be shared across users.
+    // The chat system prompt no longer asks Sommy for awards or match — just
+    // the wine card and the conversational reasoning.
 
     // Build the Anthropic messages — if an image is included, attach it to the last user message
     const anthropicMessages = messages.map((m, i) => {
@@ -282,31 +287,17 @@ export default async function handler(req, res) {
       .map((b) => b.text)
       .join("");
 
-    // ── Safety net: strip stray awards:/match: JSON lines that leaked out of the ──
-    // WINE_CARD block into the prose. Sometimes Sommy emits them after
-    // WINE_CARD_END or in a follow-up message; the markdown renderer treats
-    // them as broken inline code. Remove them — the structured block remains intact.
-    {
-      const inCardMatch = text.match(/WINE_CARD_START[\s\S]*?WINE_CARD_END/);
-      const inCard = inCardMatch ? inCardMatch[0] : "";
-      const stripLeaks = (s) => s
-        // Lines starting with awards: or match: that contain JSON braces
-        .replace(/^awards:\s*\{[^\n]*\}\s*$/gm, "")
-        .replace(/^match:\s*\{[^\n]*\}\s*$/gm, "")
-        .replace(/^awards:\s*null\s*$/gm, "")
-        .replace(/^match:\s*null\s*$/gm, "");
-      // Strip leaks from everything EXCEPT the WINE_CARD block, then restore the block
-      if (inCard) {
-        const placeholder = "\u0000WINE_CARD_BLOCK\u0000";
-        text = text.replace(inCard, placeholder);
-        text = stripLeaks(text);
-        text = text.replace(placeholder, inCard);
-      } else {
-        text = stripLeaks(text);
-      }
-      // Collapse 3+ newlines created by removed lines
-      text = text.replace(/\n{3,}/g, "\n\n");
-    }
+    // ── Safety net: strip ANY awards:/match: lines wherever they appear ──
+    // Even though we no longer ask Sommy for them, some chat history may
+    // contain old responses that did, and the model occasionally still emits
+    // them out of habit. Remove all of them — the client now fetches them
+    // through the split background flow.
+    text = text
+      .replace(/^awards:\s*\{[^\n]*\}\s*$/gm, "")
+      .replace(/^match:\s*\{[^\n]*\}\s*$/gm, "")
+      .replace(/^awards:\s*null\s*$/gm, "")
+      .replace(/^match:\s*null\s*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n");
 
     // ── Assessment caching ──────────────────────────────────────────────
     if (isLabelScan) {

@@ -63,23 +63,12 @@ export default function SignIn() {
       style={{
         minHeight: "100vh",
         background: "#F7F4EF",
-        padding: "32px 20px 48px",
+        padding: "24px 20px 48px",
       }}
     >
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
-        {/* Logo + tagline */}
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <svg width="36" height="44" viewBox="0 0 40 48" fill="none" style={{ marginBottom: 14 }}>
-            <path d="M20 2C20 2 6 18 6 28C6 36.8 12.3 44 20 44C27.7 44 34 36.8 34 28C34 18 20 2 20 2Z" fill="#8C1C2E"/>
-            <ellipse cx="16" cy="26" rx="5" ry="3" fill="rgba(255,255,255,0.2)"/>
-          </svg>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: "1.5rem", fontWeight: 400, color: "#1A1410", lineHeight: 1.1 }}>
-            The World of <span style={{ color: "#8C1C2E" }}>Wine</span>
-          </div>
-          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.2em", color: "#8C7468", marginTop: 8 }}>
-            YOUR JOURNEY THROUGH WINE
-          </div>
-        </div>
+        {/* Big wordmark + tagline removed May 2026 — the topbar already
+            shows the brand, and the red CTA card greets the user faster. */}
 
         {/* Already signed in — keep the recovery flow */}
         {!loading && user ? (

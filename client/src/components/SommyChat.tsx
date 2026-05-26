@@ -562,12 +562,24 @@ The more you share — what you enjoy, what you've tried, even what you definite
       if (profile?.base_country) {
         profileParts.push(`Based in: ${profile.base_country}`);
       }
-      // Include cellar data so Sommy can suggest pairings from owned wines
+      // Include cellar data so Sommy can suggest pairings from owned wines.
+      // Bug May 26 2026: Brice asked Sommy about a Tignanello he owned and
+      // Sommy denied it twice — because the cellar fetch was capped at the
+      // first 10 wines AND had no ORDER BY, so Postgres returned an arbitrary
+      // 10 of his 20 wines on each request. Tignanello (position ~15) never
+      // reached the model. Fix: order deterministically by added_at DESC and
+      // send up to 50 wines (~4KB context, trivial). For users with >50
+      // wines, system prompt instructs Sommy to acknowledge the truncation
+      // honestly rather than pretend a wine doesn't exist.
       try {
-        const cellarWines = await directSelect<any>("wine_cellar", `select=wine_name,producer,vintage,region,grapes,style,quantity,drink_from,drink_peak_start,drink_peak_end,drink_until,status&user_id=eq.${user!.id}&status=eq.active`, 5000);
+        const cellarWines = await directSelect<any>(
+          "wine_cellar",
+          `select=wine_name,producer,vintage,region,grapes,style,quantity,drink_from,drink_peak_start,drink_peak_end,drink_until,status,created_at&user_id=eq.${user!.id}&status=eq.active&order=created_at.desc.nullslast,wine_name.asc&limit=50`,
+          5000,
+        );
         if (cellarWines.length > 0) {
           const now = new Date().getFullYear();
-          const cellarLines = cellarWines.slice(0, 10).map((w: any) => {
+          const cellarLines = cellarWines.map((w: any) => {
             const parts = [w.wine_name];
             if (w.vintage) parts[0] += ` ${w.vintage}`;
             if (w.producer) parts.push(w.producer);
@@ -579,7 +591,11 @@ The more you share — what you enjoy, what you've tried, even what you definite
             }
             return `- ${parts.join(" | ")}`;
           });
-          profileParts.push(`Wine Cellar (${cellarWines.reduce((s: number, w: any) => s + (w.quantity || 1), 0)} bottles):\n${cellarLines.join("\n")}`);
+          const totalBottles = cellarWines.reduce((s: number, w: any) => s + (w.quantity || 1), 0);
+          const truncatedNote = cellarWines.length === 50
+            ? " — NOTE: this list shows the 50 most recently added wines; older bottles may exist that aren't listed here. If asked about a specific wine not in this list, say you don't see it in the recent additions and offer to look it up."
+            : "";
+          profileParts.push(`Wine Cellar (${totalBottles} bottles, ${cellarWines.length} unique wines shown${truncatedNote}):\n${cellarLines.join("\n")}`);
         }
       } catch { /* cellar fetch failed silently */ }
       const userProfile = profileParts.length > 0 ? `[User Profile]\n${profileParts.join("\n")}` : "";

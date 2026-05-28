@@ -80,10 +80,13 @@ const C = {
 const ADMIN_EMAIL = "bchambraud@gmail.com";
 
 // ─── RPC fetch ───────────────────────────────────────────────────────────────
-async function fetchAdminStats(userId: string): Promise<AdminData> {
+async function fetchAdminStats(_userId: string): Promise<AdminData> {
   const token = await getValidToken();
   if (!token) throw new Error("Not authenticated");
 
+  // get_admin_stats now reads auth.uid() server-side (post May 2026
+  // security hardening) so we no longer pass admin_uid. The signed JWT
+  // proves identity; the function verifies the email matches admin.
   const res = await Promise.race([
     fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_stats`, {
       method: "POST",
@@ -92,7 +95,7 @@ async function fetchAdminStats(userId: string): Promise<AdminData> {
         Authorization: `Bearer ${token}`,
         apikey: ANON_KEY,
       },
-      body: JSON.stringify({ admin_uid: userId }),
+      body: JSON.stringify({}),
     }),
     new Promise<Response>((_, rej) =>
       setTimeout(() => rej(new Error("Request timed out")), 20000),

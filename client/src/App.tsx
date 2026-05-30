@@ -68,6 +68,7 @@ import ProfilePanel from "@/components/ProfilePanel";
 import JourneyLayout from "@/components/JourneyLayout";
 import ProfilePage from "@/pages/ProfilePage";
 import Cellar from "@/pages/Cellar";
+import PublicCellar from "@/pages/PublicCellar";
 import WishlistPage from "@/pages/Wishlist";
 
 type NavTab = "map" | "academy" | "list" | "news" | "myworld" | "cellar" | "experiences" | "wishlist";
@@ -399,6 +400,7 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={RootRoute} />
       <Route path="/about" component={Landing} />
+      <Route path="/cellar/:slug" component={PublicCellar} />
       <Route path="/explore/region/:regionId" component={Explore} />
       <Route path="/explore/producer/:producerId" component={Explore} />
       <Route path="/news/:newsId" component={News} />

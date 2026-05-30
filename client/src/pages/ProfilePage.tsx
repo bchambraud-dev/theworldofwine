@@ -10,6 +10,8 @@ import LoginPrompt from "@/components/LoginPrompt";
 import PalateIntakeSheet, { type ExistingPalate } from "@/components/PalateIntakeSheet";
 import WinePersonaCard from "@/components/WinePersonaCard";
 import MyWorldToday from "@/components/MyWorldToday";
+import CellarSharingCard from "@/components/CellarSharingCard";
+import FollowingList from "@/components/FollowingList";
 
 const LEVEL_LABEL: Record<string, string> = {
   beginner: "Beginner",
@@ -225,6 +227,10 @@ export default function ProfilePage() {
           onStartPalate={() => setPalateOpen(true)}
         />
 
+        {/* Following list — hidden when empty so it never feels naggy.
+            (Phase 1 social, May 30 2026.) */}
+        <FollowingList />
+
         {/* Wine persona card — Sommy's read on the user's identity.
             Placed below TODAY so action takes priority over reflection. */}
         {user && (
@@ -233,6 +239,10 @@ export default function ProfilePage() {
             onStartPalate={() => setPalateOpen(true)}
           />
         )}
+
+        {/* Cellar sharing controls — opt-in by default. Generates a public
+            slug URL the user can copy/share. (Phase 1 social.) */}
+        <CellarSharingCard />
 
         {/* Stats strip */}
         <div style={{

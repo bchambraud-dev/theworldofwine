@@ -61,7 +61,7 @@ type CellarWine = {
   drink_peak_start: number | null;
   drink_peak_end: number | null;
   awards_json: any | null;
-  thumbnail_url: string | null;
+  image_url: string | null;
   purchase_price: number | null;
   purchase_currency: string | null;
 };
@@ -85,9 +85,10 @@ export default function PublicCellar() {
     (async () => {
       setLoading(true);
       setError(null);
+      let p: OwnerProfile | null = null;
+
+      // Stage 1: profile lookup. Profile-not-found is a hard error.
       try {
-        // Public profile read. Anonymous fetch is fine (anon key + RLS
-        // policy "Public profiles visible by slug" allows this).
         const profileRes = await fetch(
           `${SUPABASE_URL}/rest/v1/user_profiles?select=id,display_name,avatar_url,base_country,public_cellar_slug,cellar_visibility,share_purchase_prices,share_tasting_notes,followers_count,following_count,wine_persona_json&public_cellar_slug=eq.${encodeURIComponent(params.slug)}&limit=1`,
           { headers: { apikey: ANON_KEY } },
@@ -95,25 +96,38 @@ export default function PublicCellar() {
         if (!profileRes.ok) throw new Error("Cellar not found");
         const profiles: OwnerProfile[] = await profileRes.json();
         if (!profiles.length) throw new Error("Cellar not found");
-        const p = profiles[0];
+        p = profiles[0];
         if (!mounted) return;
         setOwner(p);
+      } catch (e: any) {
+        if (mounted) {
+          setError(e?.message || "Cellar not found");
+          setLoading(false);
+        }
+        return;
+      }
 
-        // Fetch wines via the public-read RLS path. Purchase price columns
-        // requested only if owner opted in; otherwise we don't ask for them
-        // so they never appear in the network payload either.
-        const baseCols = "id,wine_name,vintage,producer,region,grapes,style,quantity,drink_from,drink_until,drink_peak_start,drink_peak_end,awards_json,thumbnail_url";
+      // Stage 2: wines. If this fails we keep the profile shown and just
+      // show an empty cellar — don't bury the profile under a generic error.
+      try {
+        const baseCols = "id,wine_name,vintage,producer,region,grapes,style,quantity,drink_from,drink_until,drink_peak_start,drink_peak_end,awards_json,image_url";
         const priceCols = p.share_purchase_prices ? ",purchase_price,purchase_currency" : "";
         const wineRes = await fetch(
           `${SUPABASE_URL}/rest/v1/wine_cellar?select=${baseCols}${priceCols}&user_id=eq.${p.id}&status=eq.active&order=created_at.desc.nullslast`,
           { headers: { apikey: ANON_KEY } },
         );
-        if (!wineRes.ok) throw new Error("Could not load cellar");
-        const w: CellarWine[] = await wineRes.json();
-        if (!mounted) return;
-        setWines(w);
+        if (wineRes.ok) {
+          const w: CellarWine[] = await wineRes.json();
+          if (mounted) setWines(w);
+        } else {
+          console.error("PublicCellar wine fetch failed", wineRes.status, await wineRes.text());
+        }
+      } catch (e) {
+        console.error("PublicCellar wine fetch threw", e);
+      }
 
-        // If viewer is logged in, check whether they already follow this owner
+      // Stage 3: follow status (logged-in viewers only). Best-effort.
+      try {
         if (user) {
           const followRes = await directSelect<any>(
             "cellar_follows",
@@ -122,11 +136,11 @@ export default function PublicCellar() {
           );
           if (mounted) setFollowing((followRes || []).length > 0);
         }
-      } catch (e: any) {
-        if (mounted) setError(e?.message || "Cellar not found");
-      } finally {
-        if (mounted) setLoading(false);
+      } catch (e) {
+        console.error("PublicCellar follow check failed", e);
       }
+
+      if (mounted) setLoading(false);
     })();
     return () => { mounted = false; };
   }, [params?.slug, user]);
@@ -328,8 +342,8 @@ function WineRow({ w, showPrice }: { w: CellarWine; showPrice: boolean }) {
       background: "white", border: "1px solid #EDEAE3", borderRadius: 12,
       padding: 12, display: "flex", gap: 12, alignItems: "stretch",
     }}>
-      {w.thumbnail_url ? (
-        <img src={w.thumbnail_url} alt="" style={{
+      {w.image_url ? (
+        <img src={w.image_url} alt="" style={{
           width: 44, height: 64, objectFit: "cover", objectPosition: "center 35%",
           borderRadius: 4, flexShrink: 0,
         }} />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { getValidToken, SUPABASE_URL, ANON_KEY } from "@/lib/supabaseDirectFetch";
+import { getValidToken, SUPABASE_URL, ANON_KEY, directSelect, directUpdate } from "@/lib/supabaseDirectFetch";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -1316,6 +1316,126 @@ function AccessDenied() {
 }
 
 // ─── Main Dashboard ─────────────────────────────────────────────────────────
+// ─── Feedback triage section ─────────────────────────────────────────────────────────
+function FeedbackSection() {
+  type Row = {
+    id: string; created_at: string; user_email: string | null;
+    category: string; message: string; page_url: string | null;
+    status: string; admin_notes: string | null;
+  };
+  const [rows, setRows] = useState<Row[]>([]);
+  const [filter, setFilter] = useState<"all" | "new" | "triaged" | "addressed" | "wontfix">("new");
+
+  const load = async () => {
+    try {
+      const data = await directSelect<Row>(
+        "user_feedback",
+        `select=id,created_at,user_email,category,message,page_url,status,admin_notes&order=created_at.desc&limit=200`,
+        10000,
+      );
+      setRows(data || []);
+    } catch {}
+  };
+  useEffect(() => { load(); }, []);
+
+  const setStatus = async (id: string, status: string) => {
+    try {
+      await directUpdate("user_feedback", id, { status });
+      setRows((rs) => rs.map((r) => r.id === id ? { ...r, status } : r));
+    } catch {}
+  };
+
+  const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  const counts = {
+    new: rows.filter((r) => r.status === "new").length,
+    triaged: rows.filter((r) => r.status === "triaged").length,
+    addressed: rows.filter((r) => r.status === "addressed").length,
+    wontfix: rows.filter((r) => r.status === "wontfix").length,
+  };
+
+  const catBadge = (c: string) => {
+    const map: Record<string, { bg: string; fg: string; label: string }> = {
+      feature:    { bg: C.accentLight, fg: C.accent, label: "FEATURE" },
+      bug:        { bg: "rgba(192,56,56,0.10)", fg: C.red,    label: "BUG" },
+      general:    { bg: C.goldBg,      fg: C.gold,   label: "GENERAL" },
+      compliment: { bg: C.greenBg,     fg: C.green,  label: "THANKS" },
+    };
+    const s = map[c] || map.general;
+    return (
+      <span style={{
+        display: "inline-block", padding: "2px 8px", borderRadius: 4,
+        fontFamily: C.fontMono, fontSize: "0.5rem", fontWeight: 600,
+        letterSpacing: "0.08em", background: s.bg, color: s.fg,
+      }}>{s.label}</span>
+    );
+  };
+
+  if (rows.length === 0) {
+    return (
+      <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 24, color: C.muted, fontFamily: C.fontBody, fontSize: "0.85rem" }}>
+        No feedback yet. The form is live; this updates as users submit.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Filter pills */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        {([["new",counts.new],["triaged",counts.triaged],["addressed",counts.addressed],["wontfix",counts.wontfix],["all",rows.length]] as const).map(([k, n]) => (
+          <button key={k} onClick={() => setFilter(k as any)} style={{
+            padding: "5px 11px", borderRadius: 20, border: "1px solid " + (filter === k ? C.accent : C.cardBorder),
+            background: filter === k ? C.accent : C.card, color: filter === k ? "white" : C.text,
+            fontFamily: C.fontMono, fontSize: "0.55rem", letterSpacing: "0.08em",
+            cursor: "pointer", textTransform: "uppercase",
+          }}>{k} · {n}</button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {filtered.map((r) => (
+          <div key={r.id} style={{
+            background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 10,
+            padding: "12px 14px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+              {catBadge(r.category)}
+              <span style={{ fontFamily: C.fontMono, fontSize: "0.58rem", color: C.muted }}>
+                {new Date(r.created_at).toLocaleString()}
+              </span>
+              {r.user_email && (
+                <a href={`mailto:${r.user_email}`} style={{ fontFamily: C.fontMono, fontSize: "0.58rem", color: C.accent, marginLeft: "auto", textDecoration: "none" }}>
+                  {r.user_email}
+                </a>
+              )}
+            </div>
+            <div style={{ fontFamily: C.fontBody, fontSize: "0.88rem", color: C.text, lineHeight: 1.5, marginBottom: 10, whiteSpace: "pre-wrap" }}>
+              {r.message}
+            </div>
+            {r.page_url && (
+              <div style={{ fontFamily: C.fontMono, fontSize: "0.55rem", color: C.muted, marginBottom: 8 }}>
+                from {r.page_url}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {(["new","triaged","addressed","wontfix"] as const).map((s) => (
+                <button key={s} onClick={() => setStatus(r.id, s)} disabled={r.status === s} style={{
+                  padding: "4px 10px", borderRadius: 6,
+                  border: "1px solid " + (r.status === s ? C.accent : C.cardBorder),
+                  background: r.status === s ? C.accent : C.card,
+                  color: r.status === s ? "white" : C.muted,
+                  fontFamily: C.fontMono, fontSize: "0.5rem", letterSpacing: "0.08em",
+                  cursor: r.status === s ? "default" : "pointer", textTransform: "uppercase",
+                }}>{s}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<AdminData | null>(null);
@@ -1536,6 +1656,12 @@ export default function Admin() {
             </div>
           </>
         )}
+
+        {/* ── User Feedback (June 4 2026) ── */}
+        <SectionLabel>User Feedback</SectionLabel>
+        <div style={{ marginBottom: 28 }}>
+          <FeedbackSection />
+        </div>
 
         {/* ── Cellar Insights + Activity Chart ── */}
         {data && (

@@ -69,6 +69,7 @@ import JourneyLayout from "@/components/JourneyLayout";
 import ProfilePage from "@/pages/ProfilePage";
 import Cellar from "@/pages/Cellar";
 import PublicCellar from "@/pages/PublicCellar";
+import FeedbackModal from "@/components/FeedbackModal";
 import WishlistPage from "@/pages/Wishlist";
 
 type NavTab = "map" | "academy" | "list" | "news" | "myworld" | "cellar" | "experiences" | "wishlist";
@@ -107,6 +108,9 @@ function getActiveTab(path: string): NavTab | null {
 }
 
 function NavBar() {
+  // Feedback modal state — opened from drawer "SEND FEEDBACK" link.
+  // June 4 2026: added to capture organic user feedback as we ramp up traffic.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -340,6 +344,16 @@ function NavBar() {
           {/* Utility section — About lives here so it's discoverable for
               sharing without crowding the primary nav. Sign-out below. */}
           <div style={{ height: 1, background: "#EDEAE3", margin: "8px 0" }} />
+          {user && (
+            <button
+              className="mobile-menu-link"
+              onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}
+              data-testid="mobile-nav-feedback"
+              style={{ color: "#5A5248" }}
+            >
+              SEND FEEDBACK
+            </button>
+          )}
           <button
             className="mobile-menu-link"
             onClick={() => handleNavLink("/about")}
@@ -372,6 +386,10 @@ function NavBar() {
           )}
         </nav>
       </div>
+
+      {/* Feedback modal mounts at the NavBar level so it overlays any page.
+          (June 4 2026 — launch-feedback channel.) */}
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 }

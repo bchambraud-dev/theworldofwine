@@ -45,6 +45,7 @@ type OwnerProfile = {
   followers_count: number;
   following_count: number;
   wine_persona_json: any | null;
+  currency_code: string | null;
 };
 
 type CellarWine = {
@@ -63,7 +64,6 @@ type CellarWine = {
   awards_json: any | null;
   image_url: string | null;
   purchase_price: number | null;
-  purchase_currency: string | null;
 };
 
 export default function PublicCellar() {
@@ -90,7 +90,7 @@ export default function PublicCellar() {
       // Stage 1: profile lookup. Profile-not-found is a hard error.
       try {
         const profileRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/user_profiles?select=id,display_name,avatar_url,base_country,public_cellar_slug,cellar_visibility,share_purchase_prices,share_tasting_notes,followers_count,following_count,wine_persona_json&public_cellar_slug=eq.${encodeURIComponent(params.slug)}&limit=1`,
+          `${SUPABASE_URL}/rest/v1/user_profiles?select=id,display_name,avatar_url,base_country,public_cellar_slug,cellar_visibility,share_purchase_prices,share_tasting_notes,followers_count,following_count,wine_persona_json,currency_code&public_cellar_slug=eq.${encodeURIComponent(params.slug)}&limit=1`,
           { headers: { apikey: ANON_KEY } },
         );
         if (!profileRes.ok) throw new Error("Cellar not found");
@@ -110,8 +110,11 @@ export default function PublicCellar() {
       // Stage 2: wines. If this fails we keep the profile shown and just
       // show an empty cellar — don't bury the profile under a generic error.
       try {
+        // Currency lives on the OWNER's profile (currency_code), not per
+        // bottle. So we only request purchase_price here — currency is
+        // applied at render time using owner.currency_code.
         const baseCols = "id,wine_name,vintage,producer,region,grapes,style,quantity,drink_from,drink_until,drink_peak_start,drink_peak_end,awards_json,image_url";
-        const priceCols = p.share_purchase_prices ? ",purchase_price,purchase_currency" : "";
+        const priceCols = p.share_purchase_prices ? ",purchase_price" : "";
         const wineRes = await fetch(
           `${SUPABASE_URL}/rest/v1/wine_cellar?select=${baseCols}${priceCols}&user_id=eq.${p.id}&status=eq.active&order=created_at.desc.nullslast`,
           { headers: { apikey: ANON_KEY } },
@@ -307,7 +310,14 @@ export default function PublicCellar() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {wines.map((w) => <WineRow key={w.id} w={w} showPrice={owner.share_purchase_prices} />)}
+            {wines.map((w) => (
+              <WineRow
+                key={w.id}
+                w={w}
+                showPrice={owner.share_purchase_prices}
+                currency={owner.currency_code || "SGD"}
+              />
+            ))}
           </div>
         )}
 
@@ -325,7 +335,7 @@ export default function PublicCellar() {
   );
 }
 
-function WineRow({ w, showPrice }: { w: CellarWine; showPrice: boolean }) {
+function WineRow({ w, showPrice, currency }: { w: CellarWine; showPrice: boolean; currency: string }) {
   const country = w.region ? regionToCountry(w.region) : null;
   const flag = country ? countryCode(country) : null;
   const phase = useMemo(() => {
@@ -387,7 +397,7 @@ function WineRow({ w, showPrice }: { w: CellarWine; showPrice: boolean }) {
           )}
           {showPrice && w.purchase_price && (
             <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: "0.58rem", color: "#5A5248", marginLeft: "auto" }}>
-              {w.purchase_currency || "SGD"} {Number(w.purchase_price).toFixed(0)}
+              {currency} {Number(w.purchase_price).toFixed(0)}
             </span>
           )}
         </div>

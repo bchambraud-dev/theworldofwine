@@ -8,6 +8,7 @@ import { trackWineScan, trackWineLog, trackWishlistAdd, trackTastingComplete } f
 import { regionToCountry, countryCode, COUNTRY_FACTS } from "@/lib/countryFlags";
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
+import RatingGradient from "@/components/RatingGradient";
 import { AwardsRow } from "@/components/AwardsRow";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
@@ -144,17 +145,14 @@ function BookmarkIcon({ filled = false, size = 16, color = "#8C1C2E" }: { filled
 
 // ── Subcomponents ───────────────────────────────────────────────────────────────
 
+// Stars deprecated June 6 2026 — replaced by RatingGradient (colour-mapped
+// 1-5 emotional scale). This shim keeps existing call sites working while
+// we migrate. The `size` prop maps to the gradient's size buckets.
 function Stars({ value, onChange, size = "1.1rem" }: { value: number; onChange?: (n: number) => void; size?: string }) {
-  return (
-    <div style={{ display: "flex", gap: 4 }}>
-      {[1, 2, 3, 4, 5].map(n => (
-        <button key={n} type="button" onClick={() => onChange?.(n)}
-          style={{ background: "none", border: "none", cursor: onChange ? "pointer" : "default", padding: 0, fontSize: size, color: n <= value ? "#8C1C2E" : "#EDEAE3" }}>
-          ●
-        </button>
-      ))}
-    </div>
-  );
+  const bucket: "sm" | "md" | "lg" =
+    parseFloat(size) >= 1.3 ? "lg" :
+    parseFloat(size) >= 0.9 ? "md" : "sm";
+  return <RatingGradient value={value} onChange={onChange} size={bucket} />;
 }
 
 function SortChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {

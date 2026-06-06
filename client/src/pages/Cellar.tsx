@@ -10,6 +10,7 @@ import { displayPriceSync, preloadRates, convertToUSD } from "@/lib/currencyConv
 import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
 import { AwardsRow } from "@/components/AwardsRow";
+import RatingGradient from "@/components/RatingGradient";
 import { MatchBadge, type MatchScore } from "@/components/MatchBadge";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
@@ -447,17 +448,13 @@ function DrinkingWindowBar({ wine }: { wine: CellarWine }) {
 
 // ── Stars (for consumed log) ────────────────────────────────────────────────────
 
+// Stars deprecated June 6 2026 — thin shim over RatingGradient so existing
+// Cellar call sites keep working. Same 1-5 numeric value, colour-mapped UI.
 function Stars({ value, onChange, size = "1rem" }: { value: number; onChange?: (n: number) => void; size?: string }) {
-  return (
-    <div style={{ display: "flex", gap: 2 }}>
-      {[1, 2, 3, 4, 5].map(n => (
-        <span key={n} onClick={() => onChange?.(n === value ? 0 : n)} style={{
-          cursor: onChange ? "pointer" : "default", fontSize: size,
-          color: n <= value ? "#C8962E" : "#EDEAE3",
-        }}>&#9733;</span>
-      ))}
-    </div>
-  );
+  const bucket: "sm" | "md" | "lg" =
+    parseFloat(size) >= 1.3 ? "lg" :
+    parseFloat(size) >= 0.9 ? "md" : "sm";
+  return <RatingGradient value={value} onChange={onChange} size={bucket} />;
 }
 
 // ── Main Component ──────────────────────────────────────────────────────────────

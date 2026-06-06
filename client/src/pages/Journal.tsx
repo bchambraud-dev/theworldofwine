@@ -11,6 +11,7 @@ import LoginPrompt from "@/components/LoginPrompt";
 import RatingGradient from "@/components/RatingGradient";
 import { AwardsRow } from "@/components/AwardsRow";
 import SommyFeedbackCard, { type SommyFeedback } from "@/components/SommyFeedbackCard";
+import SommyMarkdown from "@/components/SommyMarkdown";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,10 @@ interface Wine {
   breathing: string | null;
   tasting_data: Record<string, unknown> | null;
   sommy_comparison: string | null;
+  // Structured Sommy-as-teacher feedback (June 6 2026). When present we
+  // render the three-section cards; sommy_comparison stays as fallback
+  // for entries written before this column existed.
+  sommy_feedback_json: import("@/components/SommyFeedbackCard").SommyFeedback | null;
   awards_json: {
     awards?: { type: string; label: string; tone: string; context?: string }[];
     is_flagship?: boolean;
@@ -1058,6 +1063,7 @@ export default function Journal() {
         breathing: cleanField(cardData?.breathing) || null,
         tasting_data: tastingJson,
         sommy_comparison: sommyComparison || null,
+        sommy_feedback_json: sommyFeedback || null,
         achievement,
       };
 
@@ -2109,9 +2115,11 @@ export default function Journal() {
                               </div>
                             </div>
                           )}
-                          {/* Sommy's comparison (tasting mode) — collapsible */}
-                          {wine.sommy_comparison && (() => {
-                            const compKey = `comp_${wine.id}`;
+                          {/* Sommy's tutor feedback (tasting mode) — collapsible.
+                              Renders the structured labelled-section cards when
+                              `sommy_feedback_json` is present (post June 6 2026);
+                              falls back to plain prose for older entries. */}
+                          {(wine.sommy_feedback_json || wine.sommy_comparison) && (() => {
                             const isFirstView = !comparisonSeen.has(wine.id);
                             const isCollapsed = !isFirstView && !expandedComparisons.has(wine.id);
                             return (
@@ -2135,24 +2143,27 @@ export default function Journal() {
                                     }
                                   }}
                                 >
-                                  <div style={{ ...mono("0.56rem"), color: "#8C1C2E" }}>SOMMY'S COMPARISON</div>
+                                  <div style={{ ...mono("0.56rem"), color: "#8C1C2E" }}>SOMMY'S TUTOR NOTES</div>
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C1C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s", transform: isCollapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
                                     <polyline points="6 9 12 15 18 9" />
                                   </svg>
                                 </div>
-                                <div style={{ maxHeight: isCollapsed ? 0 : 600, overflow: "hidden", transition: "max-height 0.3s ease", marginTop: isCollapsed ? 0 : 8 }}>
-                                  <div style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.65 }}>
-                                    {wine.sommy_comparison}
-                                  </div>
+                                <div style={{ maxHeight: isCollapsed ? 0 : 1200, overflow: "hidden", transition: "max-height 0.3s ease", marginTop: isCollapsed ? 0 : 8 }}>
+                                  <SommyFeedbackCard
+                                    feedback={wine.sommy_feedback_json || undefined}
+                                    fallbackText={!wine.sommy_feedback_json ? wine.sommy_comparison || "" : undefined}
+                                  />
                                 </div>
                               </div>
                             );
                           })()}
-                          {/* Sommy's description */}
+                          {/* Sommy's description — routed through SommyMarkdown so
+                              embedded [wine:NAME] pills render as styled chips
+                              instead of literal text. (Bug fix June 6 2026.) */}
                           {wine.sommy_description && (
-                            <p style={{ fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300, color: "#1A1410", lineHeight: 1.65, margin: "0 0 10px" }}>
-                              {wine.sommy_description}
-                            </p>
+                            <div style={{ margin: "0 0 10px" }}>
+                              <SommyMarkdown text={wine.sommy_description} />
+                            </div>
                           )}
                           {/* User notes */}
                           {wine.notes && (

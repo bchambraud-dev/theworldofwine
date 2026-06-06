@@ -51,6 +51,25 @@ function findRegionId(name: string): string | null {
   return r?.id ?? null;
 }
 
+// Strip `**` markers that wrap inline [tag:...] tokens. Without this, lines
+// like "**[wine:X] [vintage:Y]**" leak literal asterisks because tokenize()
+// splits the line on tags and the opening/closing ** end up in separate
+// text segments — the renderInline bold regex needs both markers in the
+// same segment to match. The tags already carry their own visual emphasis
+// (coloured pills, chips, price tags) so removing the now-redundant bold
+// markers is the right semantic move. (Bug fix June 6 2026.)
+function stripBoldAroundTags(line: string): string {
+  // Match ** …content with at least one [tag]… ** and strip the markers.
+  // Repeat until no more matches in case multiple bold-wrapped spans exist.
+  let prev = "";
+  let out = line;
+  while (prev !== out) {
+    prev = out;
+    out = out.replace(/\*\*([^*]*\[[^\]]+\][^*]*)\*\*/g, "$1");
+  }
+  return out;
+}
+
 // Split a string by inline tags. Returns tokens of either { type:'text', value } or { type:'tag', kind, payload }
 type Token =
   | { kind: "text"; value: string }
@@ -268,7 +287,10 @@ export default function SommyMarkdown({ text, isUser = false, onWineTap }: Props
   const state = { wineSeen: new Set<string>(), regionSeen: new Set<string>() };
 
   const renderLineNodes = (line: string, keyPrefix: string): React.ReactNode[] => {
-    const tokens = tokenize(line);
+    // Pre-strip ** markers that wrap inline tags so we don't leak literal
+    // asterisks. In-segment **bold** (e.g. **important**, **$120-180**) is
+    // still handled by renderInline's regex.
+    const tokens = tokenize(stripBoldAroundTags(line));
     return tokens.flatMap((tok, idx) => {
       if (tok.kind === "text") {
         return renderInline(tok.value, `${keyPrefix}-${idx}`);

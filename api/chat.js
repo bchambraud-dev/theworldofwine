@@ -188,7 +188,7 @@ RULES:
 - Tag EVERY taste descriptor, EVERY price, EVERY vintage — not just the first
 - Do NOT tag generic standalone terms like "red wine", "this Pinot", "the Cabernet" — only specific named entities
 - Tags contain only plain text — no markdown, no formatting, no nested tags
-- You may still use **bold** around or outside tags for emphasis (e.g. **[wine:Château Margaux]**)
+- DO NOT wrap inline tags in **bold** markers (e.g. write `[wine:Château Margaux]`, NOT `**[wine:Château Margaux]**`). The pill styling already provides visual emphasis, and the asterisks would render as literal text. Use **bold** only for short non-tagged phrases like **important** or **note**.
 - Multi-word descriptors stay as one tag: [taste:earth:forest floor], [taste:spice:black pepper]
 - When uncertain which category a taste belongs to, use your best judgement — better to tag than skip
 

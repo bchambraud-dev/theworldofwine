@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { directSelect } from "@/lib/supabaseDirectFetch";
+import CellarCoach from "@/components/CellarCoach";
 
 type Pulse = {
   inPeak: number;
@@ -108,6 +109,12 @@ export default function MyWorldToday({
       >
         TODAY
       </div>
+
+      {/* CellarCoach — proactive Sommy coaching ping. Renders the single
+          highest-priority condition (peak bottles, past-peak heavy, narrow
+          style) and hides itself entirely when none apply. Dismissals are
+          per-condition + 30-day TTL so it never feels naggy. */}
+      <CellarCoach />
 
       {/* Sommy prompt — always present. Invitational, no time-of-day. */}
       <button

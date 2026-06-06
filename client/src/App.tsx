@@ -478,6 +478,10 @@ function GlobalFilterBar() {
 
 function App() {
   const [sommyOpen, setSommyOpen] = useState(false);
+  // When CellarCoach (or any other surface) dispatches open-sommy with a
+  // `prompt` detail, we seed the chat with that initial message so the
+  // user can keep tapping rather than retype. Cleared after consumption.
+  const [seededPrompt, setSeededPrompt] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   // Profile panel no longer used (profile is now a full page at /journey/profile)
   const toggleSommy = useCallback(() => setSommyOpen(o => !o), []);
@@ -491,9 +495,17 @@ function App() {
     }
   }, []);
 
-  // Global "open Sommy" event — any page can dispatch this
+  // Global "open Sommy" event — any page can dispatch this.
+  // Optional `detail.prompt` seeds the chat with a pre-typed message
+  // (used by CellarCoach to deep-link "Ask Sommy" into a specific topic).
   useEffect(() => {
-    const handler = () => setSommyOpen(true);
+    const handler = (e: Event) => {
+      const prompt = (e as CustomEvent).detail?.prompt;
+      if (typeof prompt === "string" && prompt.length > 0) {
+        setSeededPrompt(prompt);
+      }
+      setSommyOpen(true);
+    };
     window.addEventListener("open-sommy", handler);
     return () => window.removeEventListener("open-sommy", handler);
   }, []);
@@ -524,7 +536,12 @@ function App() {
               <NavBar />
               <GlobalFilterBar />
               <AppRouter />
-              <SommyChat isOpen={sommyOpen} onToggle={toggleSommy} />
+              <SommyChat
+                isOpen={sommyOpen}
+                onToggle={toggleSommy}
+                seededPrompt={seededPrompt}
+                onConsumeSeededPrompt={() => setSeededPrompt(null)}
+              />
               {/* ProfilePanel kept as component file but no longer rendered here — profile is at /journey/profile */}
             </div>
           </UserDataProvider>

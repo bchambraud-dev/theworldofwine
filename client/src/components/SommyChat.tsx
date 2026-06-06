@@ -199,9 +199,14 @@ function usePageContext() {
 interface SommyChatProps {
   isOpen: boolean;
   onToggle: () => void;
+  /** Optional pre-typed user message. When set, gets auto-sent on next
+      chat open so coaching pings can deep-link Sommy into a topic. */
+  seededPrompt?: string | null;
+  /** Called after the seeded prompt is consumed so App can clear state. */
+  onConsumeSeededPrompt?: () => void;
 }
 
-export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
+export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSeededPrompt }: SommyChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -234,6 +239,24 @@ export default function SommyChat({ isOpen, onToggle }: SommyChatProps) {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
+
+  // Consume a seeded prompt when one arrives. We wait for the chat to be
+  // open, the user to be loaded, and the initial greeting to be rendered
+  // before auto-sending so the new turn doesn't race against history load.
+  // (CellarCoach feature, June 6 2026.)
+  const seededConsumed = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isOpen || !seededPrompt || !user) return;
+    if (seededConsumed.current === seededPrompt) return;
+    if (isLoading) return;
+    // Wait one tick to let the greeting message render first
+    const t = setTimeout(() => {
+      seededConsumed.current = seededPrompt;
+      sendMessage(seededPrompt);
+      onConsumeSeededPrompt?.();
+    }, 400);
+    return () => clearTimeout(t);
+  }, [isOpen, seededPrompt, user, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Toast auto-dismiss
   useEffect(() => {

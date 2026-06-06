@@ -10,6 +10,7 @@ import ImageCapture, { GalleryIcon } from "@/components/ImageCapture";
 import LoginPrompt from "@/components/LoginPrompt";
 import RatingGradient from "@/components/RatingGradient";
 import { AwardsRow } from "@/components/AwardsRow";
+import SommyFeedbackCard, { type SommyFeedback } from "@/components/SommyFeedbackCard";
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -670,6 +671,11 @@ export default function Journal() {
   // Tasting mode state
   const [tastingData, setTastingData] = useState<TastingState>(INITIAL_TASTING);
   const [sommyComparison, setSommyComparison] = useState("");
+  // Structured feedback (Sommy-as-teacher rewrite, June 6 2026). When the
+  // API returns the new shape we render this via SommyFeedbackCard. The
+  // flat-text `sommyComparison` is still kept for backwards compatibility
+  // with the wine_journal.sommy_comparison column.
+  const [sommyFeedback, setSommyFeedback] = useState<SommyFeedback | null>(null);
   const [comparingWithSommy, setComparingWithSommy] = useState(false);
   const [tastingMode, setTastingMode] = useState(false); // tracks if current scan is tasting mode
   const [activeAwardTooltip, setActiveAwardTooltip] = useState<string | null>(null);
@@ -953,11 +959,13 @@ export default function Journal() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setSommyComparison(data.text || "");
+      setSommyFeedback(data.feedback || null);
       setStep("tasting_reveal");
     } catch (e) {
       console.error("Tasting compare error:", e);
       // Still go to reveal even if comparison fails
       setSommyComparison("I wasn't able to generate my comparison this time, but your tasting notes are saved. Let's compare next time.");
+      setSommyFeedback(null);
       setStep("tasting_reveal");
     } finally {
       setComparingWithSommy(false);
@@ -1694,15 +1702,15 @@ export default function Journal() {
               </div>
             )}
 
-            {/* Sommy's reflective comparison */}
-            {sommyComparison && (
-              <div style={{
-                fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
-                color: "#1A1410", lineHeight: 1.65, marginBottom: 20,
-                padding: "16px", background: "rgba(140,28,46,0.03)", borderRadius: 12,
-              }}>
-                {sommyComparison}
-              </div>
+            {/* Sommy's structured tutor response (June 6 2026 rewrite).
+                If `sommyFeedback` is present, render the labelled-sections
+                card. Otherwise fall back to the flat-text version so
+                users never see an empty reveal. */}
+            {(sommyFeedback || sommyComparison) && (
+              <SommyFeedbackCard
+                feedback={sommyFeedback}
+                fallbackText={!sommyFeedback ? sommyComparison : undefined}
+              />
             )}
 
             <div style={{ display: "flex", gap: 8 }}>
@@ -1731,18 +1739,20 @@ export default function Journal() {
               Update anything after seeing Sommy's perspective
             </p>
 
-            {/* Collapsed Sommy comparison reference */}
-            {sommyComparison && (
+            {/* Collapsed Sommy feedback reference — lets the user re-read
+                Sommy's tutor response while refining their own notes. */}
+            {(sommyFeedback || sommyComparison) && (
               <details style={{ marginBottom: 18 }}>
                 <summary style={{
                   fontFamily: "'Geist Mono', monospace", fontSize: "0.56rem", letterSpacing: "0.1em",
                   color: "#8C1C2E", cursor: "pointer", padding: "8px 0",
-                }}>SOMMY'S COMPARISON</summary>
-                <div style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "0.88rem", fontWeight: 300,
-                  color: "#5A5248", lineHeight: 1.65, padding: "10px 14px",
-                  background: "rgba(140,28,46,0.03)", borderRadius: 10, marginTop: 6,
-                }}>{sommyComparison}</div>
+                }}>SOMMY'S TUTOR NOTES</summary>
+                <div style={{ marginTop: 8 }}>
+                  <SommyFeedbackCard
+                    feedback={sommyFeedback}
+                    fallbackText={!sommyFeedback ? sommyComparison : undefined}
+                  />
+                </div>
               </details>
             )}
 

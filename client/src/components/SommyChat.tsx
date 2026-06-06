@@ -230,7 +230,11 @@ export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSee
   const { user, profile, refreshProfile } = useAuth();
   const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData, silentRefresh } = useUserData();
   const hasGreeted = useRef<string | null>(null);
-  const historyLoaded = useRef<string | null>(null);
+  // `initCompleted` flips true after the history load + greeting render flow
+  // finishes for the current user. The seeded-prompt effect waits for this
+  // before sending, so we never race against history hydration and wipe the
+  // user's prior conversation view. (Bug fix June 7 2026.)
+  const initCompleted = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -241,22 +245,25 @@ export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSee
   useEffect(() => { if (isOpen) setTimeout(() => inputRef.current?.focus(), 300); }, [isOpen]);
 
   // Consume a seeded prompt when one arrives. We wait for the chat to be
-  // open, the user to be loaded, and the initial greeting to be rendered
-  // before auto-sending so the new turn doesn't race against history load.
-  // (CellarCoach feature, June 6 2026.)
+  // open AND for init() to finish loading history (initCompleted ref tracks
+  // the same user.id we initialised against). Without this gate, a fast tap
+  // on the cellar-coaching button races against the DB history load and
+  // wipes the in-memory view of prior conversation. (Race fix June 7 2026.)
   const seededConsumed = useRef<string | null>(null);
   useEffect(() => {
     if (!isOpen || !seededPrompt || !user) return;
     if (seededConsumed.current === seededPrompt) return;
     if (isLoading) return;
-    // Wait one tick to let the greeting message render first
+    if (initCompleted.current !== user.id) return; // wait for history load
+    // History is hydrated. Send the seeded message in the next tick so the
+    // greeting/history has a chance to paint before the new turn appears.
     const t = setTimeout(() => {
       seededConsumed.current = seededPrompt;
       sendMessage(seededPrompt);
       onConsumeSeededPrompt?.();
-    }, 400);
+    }, 120);
     return () => clearTimeout(t);
-  }, [isOpen, seededPrompt, user, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, seededPrompt, user, isLoading, messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Toast auto-dismiss
   useEffect(() => {
@@ -328,6 +335,7 @@ export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSee
             return msg;
           });
           setMessages(history);
+          initCompleted.current = user.id;
           return;
         }
       } catch (e) {
@@ -373,6 +381,7 @@ The more you share — what you enjoy, what you've tried, even what you definite
       }
 
       setMessages([{ role: "assistant", content: greeting }]);
+      initCompleted.current = user.id;
     };
 
     init();

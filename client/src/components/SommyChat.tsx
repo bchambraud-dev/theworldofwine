@@ -230,10 +230,13 @@ export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSee
   const { user, profile, refreshProfile } = useAuth();
   const { stats, preferences, completedGuideIds, journal, refresh: refreshUserData, silentRefresh } = useUserData();
   const hasGreeted = useRef<string | null>(null);
-  // `initCompleted` flips true after the history load + greeting render flow
-  // finishes for the current user. The seeded-prompt effect waits for this
-  // before sending, so we never race against history hydration and wipe the
-  // user's prior conversation view. (Bug fix June 7 2026.)
+  // Two-stage gate for the init effect (fix June 7 2026):
+  //   `initStarted`  is set IMMEDIATELY when init() runs to prevent
+  //                  concurrent re-entry if profile updates mid-load.
+  //   `initCompleted` is set AFTER history is hydrated (or greeting is
+  //                  rendered). The seeded-prompt effect waits on this
+  //                  to avoid wiping the in-memory conversation view.
+  const initStarted = useRef<string | null>(null);
   const initCompleted = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -293,10 +296,12 @@ export default function SommyChat({ isOpen, onToggle, seededPrompt, onConsumeSee
     })();
   }, [user]);
 
-  // Single sequential effect: load history first, then greet if no history
+  // Single sequential effect: load history first, then greet if no history.
+  // `initStarted` prevents concurrent runs; `initCompleted` is the done-marker
+  // the seeded-prompt effect waits on.
   useEffect(() => {
-    if (!isOpen || !user || historyLoaded.current === user.id) return;
-    historyLoaded.current = user.id;
+    if (!isOpen || !user || initStarted.current === user.id) return;
+    initStarted.current = user.id;
 
     const init = async () => {
       // Step 1: load history via directSelect (avoids auth lock)

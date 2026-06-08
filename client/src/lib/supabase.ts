@@ -15,6 +15,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 export type ExperienceLevel = "beginner" | "intermediate" | "expert";
 
+export type SubscriptionTier = 'trial' | 'free' | 'premium' | 'cancelled';
+
 export interface UserProfile {
   id: string;
   display_name: string | null;
@@ -24,6 +26,16 @@ export interface UserProfile {
   base_country: string | null;
   currency_code: string | null;
   created_at: string;
+  // Subscription columns (added 2026-06-08 in migration: add_subscription_tier_columns_to_user_profiles)
+  tier: SubscriptionTier;
+  trial_ends_at: string | null;
+  grandfathered: boolean;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_end: string | null;
+  subscription_status: string | null;
+  subscription_canceled_at: string | null;
+  subscription_cancel_at_period_end: boolean;
 }
 
 export interface WineJournalEntry {

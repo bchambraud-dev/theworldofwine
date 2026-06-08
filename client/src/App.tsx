@@ -60,6 +60,8 @@ import Methodology from "@/pages/Methodology";
 import DeleteAccount from "@/pages/DeleteAccount";
 import Journal from "@/pages/Journal";
 import Admin from "@/pages/Admin";
+import Premium from "@/pages/Premium";
+import PremiumWelcome from "@/pages/PremiumWelcome";
 import VintageGuide from "@/pages/VintageGuide";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -453,6 +455,8 @@ function AppRouter() {
       <Route path="/methodology" component={Methodology} />
       <Route path="/delete-account" component={DeleteAccount} />
       <Route path="/admin" component={Admin} />
+      <Route path="/premium/welcome" component={PremiumWelcome} />
+      <Route path="/premium" component={Premium} />
       <Route component={NotFound} />
     </Switch>
   );

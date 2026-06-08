@@ -17,6 +17,20 @@ export type ExperienceLevel = "beginner" | "intermediate" | "expert";
 
 export type SubscriptionTier = 'trial' | 'free' | 'premium' | 'cancelled';
 
+// Premium aesthetic accent (used for gold logo + gold accents on My World).
+export const TWOW_GOLD = '#C9A961';
+export const TWOW_GOLD_DEEP = '#A88947';
+export const TWOW_GOLD_BG_SOFT = 'rgba(201,169,97,0.08)';
+
+// Single source of truth for "this user gets the Premium visual treatment".
+// Returns true for grandfathered, paid premium, and trial users — they all
+// have the full Premium experience. Free / cancelled / null → false.
+export function isPremiumExperience(profile: { tier?: SubscriptionTier; grandfathered?: boolean } | null | undefined): boolean {
+  if (!profile) return false;
+  if (profile.grandfathered === true) return true;
+  return profile.tier === 'premium' || profile.tier === 'trial';
+}
+
 export interface UserProfile {
   id: string;
   display_name: string | null;

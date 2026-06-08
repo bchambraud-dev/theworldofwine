@@ -65,6 +65,7 @@ import PremiumWelcome from "@/pages/PremiumWelcome";
 import VintageGuide from "@/pages/VintageGuide";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { isPremiumExperience, TWOW_GOLD } from "@/lib/supabase";
 import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
 import JourneyLayout from "@/components/JourneyLayout";
@@ -157,24 +158,32 @@ function NavBar() {
   return (
     <>
       <header className="topbar" data-testid="topbar">
-        {/* Logo */}
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          <svg
-            viewBox="0 0 80 100"
-            style={{ width: 22, height: 28, color: "var(--wine)" }}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            aria-label="The World of Wine"
-          >
-            <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
-            <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
-            <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
-            <path d="M40 46 C40 46, 30 56, 30 64" strokeWidth="1" opacity="0.25" />
-            <path d="M40 46 C40 46, 50 56, 50 64" strokeWidth="1" opacity="0.25" />
-          </svg>
-          <span className="logo-text"><span style={{ color: 'var(--text)' }}>The World of </span><span style={{ color: 'var(--wine)' }}>Wine</span></span>
-        </Link>
+        {/* Logo — droplet + wordmark. Switches to antique champagne gold for
+            users with the Premium experience (grandfathered / paid / trial).
+            See lib/supabase.ts → isPremiumExperience. */}
+        {(() => {
+          const goldLogo = isPremiumExperience(profile);
+          const accentColor = goldLogo ? TWOW_GOLD : "var(--wine)";
+          return (
+            <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }} data-premium-logo={goldLogo ? "true" : undefined}>
+              <svg
+                viewBox="0 0 80 100"
+                style={{ width: 22, height: 28, color: accentColor }}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                aria-label="The World of Wine"
+              >
+                <path d="M40 8 C40 8, 12 48, 12 64 C12 80.6 24.5 92 40 92 C55.5 92 68 80.6 68 64 C68 48 40 8 40 8Z" />
+                <ellipse cx="40" cy="64" rx="18" ry="18" strokeWidth="1.2" opacity="0.35" />
+                <path d="M22 64 L58 64" strokeWidth="1" opacity="0.25" />
+                <path d="M40 46 C40 46, 30 56, 30 64" strokeWidth="1" opacity="0.25" />
+                <path d="M40 46 C40 46, 50 56, 50 64" strokeWidth="1" opacity="0.25" />
+              </svg>
+              <span className="logo-text"><span style={{ color: 'var(--text)' }}>The World of </span><span style={{ color: accentColor }}>Wine</span></span>
+            </Link>
+          );
+        })()}
 
         <div className="topbar-divider desktop-only" />
 

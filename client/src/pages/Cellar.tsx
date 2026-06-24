@@ -1062,15 +1062,56 @@ export default function Cellar() {
         });
       }
 
-      // If consumed and last bottle, offer to log in journal
+      // If consumed and last bottle, create the journal entry directly from
+      // what the user already filled in (notes + rating + date). We carry over
+      // the image and all wine metadata from the cellar row so the journal
+      // entry looks correct, with no re-prompt for the same info.
+      // Bug fix 2026-06-24: prior code redirected to /journey/journal?log=1 which
+      // dropped image_url and forced the user to re-enter notes.
+      let newJournalId: string | null = null;
       if (actionType === "consumed" && newQty <= 0) {
-        setLocation(`/journey/journal?log=1&name=${encodeURIComponent(wine.wine_name)}&region=${encodeURIComponent(wine.region || "")}`);
+        try {
+          const journalRow: Record<string, unknown> = {
+            user_id: user!.id,
+            wine_name: wine.wine_name,
+            producer: wine.producer || null,
+            vintage: wine.vintage ?? null,
+            region: wine.region || null,
+            grapes: wine.grapes || null,
+            style: wine.style || null,
+            image_url: wine.image_url || null,
+            notes: actionNotes.trim() || null,
+            personal_rating: actionRating > 0 ? actionRating : null,
+            date_tasted: actionDate || new Date().toISOString().split("T")[0],
+            awards_json: (wine as any).awards_json ?? null,
+          };
+          const inserted = await directInsert<{ id: string }>(
+            "wine_journal",
+            journalRow,
+            15000,
+            { returnRow: true },
+          );
+          newJournalId = inserted?.[0]?.id ?? null;
+          if (newJournalId) {
+            // Link the cellar row to its new journal entry (for future updates).
+            await directUpdate("wine_cellar", actionId, { journal_entry_id: newJournalId });
+          }
+        } catch (jErr) {
+          console.error("Journal auto-log failed:", jErr);
+          // Don't block the consumed-save; the user can manually log later.
+        }
       }
 
       setActionId(null); setActionType(null);
       setActionNotes(""); setActionRating(0);
       setExpandedId(null);
       await loadCellar();
+
+      // After the cellar refresh, send the user to their new journal entry
+      // (or to the journal list if the insert failed silently).
+      if (actionType === "consumed" && newQty <= 0) {
+        setLocation(newJournalId ? `/journey/journal#entry-${newJournalId}` : "/journey/journal");
+      }
     } catch (e: any) {
       console.error("Action error:", e);
     } finally {

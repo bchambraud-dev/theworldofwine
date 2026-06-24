@@ -33,15 +33,22 @@ export default async function handler(req, res) {
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    // List available models (lets us see what's current after Anthropic deprecations).
-    let available_models = null;
+    // 1. Actually ping the model to verify it accepts messages.
+    const resp = await client.messages.create({
+      model: out.anthropic.model_used,
+      max_tokens: 16,
+      messages: [{ role: "user", content: "ping" }],
+    });
+    out.anthropic.reachable = true;
+    out.anthropic.response_id = resp.id || null;
+    out.anthropic.first_text = (resp?.content?.[0]?.text || "").slice(0, 80);
+    // 2. Optionally list available models too.
     try {
       const list = await client.models.list();
-      available_models = (list?.data || []).map((m) => ({ id: m.id, display_name: m.display_name, created_at: m.created_at }));
+      out.anthropic.available_models = (list?.data || []).map((m) => ({ id: m.id, display_name: m.display_name }));
     } catch (le) {
       out.anthropic.list_error = le.message || String(le);
     }
-    out.anthropic.available_models = available_models;
     return res.status(200).json({ ok: true, ...out });
   } catch (e) {
     out.anthropic.error_status = e.status || null;

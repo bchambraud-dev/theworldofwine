@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     const prompt = `Here is my cellar:\n${cellarSummary}\n\nMy goals:\n${goalsText}${user_context ? `\n\nAdditional context: ${user_context}` : ""}`;
 
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 512,
       system: SYSTEM,
       messages: [{ role: "user", content: prompt }],

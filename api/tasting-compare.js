@@ -105,7 +105,7 @@ Now produce your structured response as JSON, following all the tone and format 
     // temperature 0.3 — keep tone consistent + structured output deterministic
     // but allow some variety in phrasing across users
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1500,
       temperature: 0.3,
       system: SYSTEM,

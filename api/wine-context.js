@@ -234,7 +234,7 @@ async function callSommy(systemPrompt, userMessage, opts = {}) {
   // This fixes the issue where the same wine scored 84% in cellar and 88%
   // in chat for the same palate.
   const resp = await client.messages.create({
-    model: "claude-sonnet-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 800,
     temperature: opts.temperature ?? 0,
     system: systemPrompt,

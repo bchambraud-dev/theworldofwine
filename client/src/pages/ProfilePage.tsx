@@ -8,6 +8,7 @@ import { CURRENCIES } from "@/lib/currencies";
 import { directUpdate, directSelect } from "@/lib/supabaseDirectFetch";
 import LoginPrompt from "@/components/LoginPrompt";
 import { isPremiumExperience, TWOW_GOLD, TWOW_GOLD_DEEP } from "@/lib/supabase";
+import TierBadge from "@/components/TierBadge";
 import PalateIntakeSheet, { type ExistingPalate } from "@/components/PalateIntakeSheet";
 import WinePersonaCard from "@/components/WinePersonaCard";
 import MyWorldToday from "@/components/MyWorldToday";
@@ -180,22 +181,7 @@ export default function ProfilePage() {
                 display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
               }}>
                 <span>{displayName}</span>
-                {isPremiumExperience(profile) && (
-                  <span
-                    style={{
-                      fontFamily: "'Geist Mono', monospace", fontSize: "0.55rem",
-                      letterSpacing: "0.14em", color: TWOW_GOLD_DEEP,
-                      padding: "3px 8px", borderRadius: 4,
-                      border: `1px solid ${TWOW_GOLD}`,
-                      background: "rgba(201,169,97,0.06)",
-                      textTransform: "uppercase", whiteSpace: "nowrap",
-                      lineHeight: 1,
-                    }}
-                    data-testid="premium-badge"
-                  >
-                    Premium
-                  </span>
-                )}
+                <TierBadge profile={profile} />
               </div>
               {/* Identity strip: country flags for regions you've explored +
                   a quiet "notable" badge if you've tried any flagship wines.

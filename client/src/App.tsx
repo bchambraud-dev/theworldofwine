@@ -66,6 +66,7 @@ import VintageGuide from "@/pages/VintageGuide";
 import SommyChat from "@/components/SommyChat";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { isPremiumExperience, TWOW_GOLD } from "@/lib/supabase";
+import { useSessionPing } from "@/hooks/useSessionPing";
 import { UserDataProvider } from "@/lib/useUserData";
 import ProfilePanel from "@/components/ProfilePanel";
 import JourneyLayout from "@/components/JourneyLayout";
@@ -111,6 +112,11 @@ function getActiveTab(path: string): NavTab | null {
 }
 
 function NavBar() {
+  // Session heartbeat — updates user_profiles.last_active_at on mount + every 15 min
+  // while tab is visible. Feeds DAU / streak / "used today" metrics in admin dashboard.
+  // Silent, no UI. Mounted here because NavBar is the topmost long-lived component.
+  useSessionPing();
+
   // Feedback modal state — opened from drawer "SEND FEEDBACK" link.
   // June 4 2026: added to capture organic user feedback as we ramp up traffic.
   const [feedbackOpen, setFeedbackOpen] = useState(false);

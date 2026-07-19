@@ -7,10 +7,37 @@ import { getValidToken, SUPABASE_URL, ANON_KEY, directSelect, directUpdate } fro
 interface UserProfile {
   id: string;
   display_name: string | null;
+  email?: string | null;
   avatar_url: string | null;
   created_at: string;
   experience_level: string | null;
   base_country: string | null;
+  // Session tracking (added 2026-07-20)
+  last_active_at?: string | null;
+  // Subscription tier (added 2026-06-08)
+  tier?: 'trial' | 'free' | 'premium' | 'cancelled';
+  grandfathered?: boolean;
+  trial_ends_at?: string | null;
+  subscription_status?: string | null;
+  subscription_canceled_at?: string | null;
+  subscription_cancel_at_period_end?: boolean;
+  current_period_end?: string | null;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+}
+
+// ─── Unified Activity Feed types (added 2026-07-20) ─────────────────────
+interface ActivityEvent {
+  event_id: string;
+  event_type: string;
+  user_id: string;
+  user_email: string | null;
+  user_display_name: string | null;
+  user_avatar_url: string | null;
+  item_title: string | null;
+  item_context: string | null;
+  item_ref: string | null;
+  created_at: string;
 }
 interface WineEntry {
   id: string;
@@ -116,6 +143,26 @@ async function fetchAdminStats(_userId: string): Promise<AdminData> {
     activities: raw.activities || [],
     cellar: raw.cellar || [],
   };
+}
+
+async function fetchActivityFeed(limit = 100): Promise<ActivityEvent[]> {
+  const token = await getValidToken();
+  if (!token) throw new Error("Not authenticated");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_activity_feed`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      apikey: ANON_KEY,
+    },
+    body: JSON.stringify({ feed_limit: limit }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(body || `Activity feed RPC failed (${res.status})`);
+  }
+  const raw = await res.json();
+  return Array.isArray(raw) ? raw : [];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1301,6 +1348,223 @@ function Skeleton({ width, height }: { width: number | string; height: number })
   );
 }
 
+// ─── Activity Feed (top of page, 2026-07-20) ────────────────────────────────
+const EVENT_STYLES: Record<string, { label: string; color: string }> = {
+  signed_up:              { label: "Signed up",              color: "#4A7A52" },
+  logged_experience:      { label: "Logged experience",      color: "#8C1C2E" },
+  added_to_cellar:        { label: "Added to cellar",        color: "#8C1C2E" },
+  consumed_wine:          { label: "Consumed wine",          color: "#5A5248" },
+  wishlisted:             { label: "Wishlisted",             color: "#B8963E" },
+  chatted_with_sommy:     { label: "Sommy chat",             color: "#6B4C8A" },
+  updated_taste_prefs:    { label: "Updated palate",         color: "#6B4C8A" },
+  read_guide:             { label: "Read a guide",           color: "#5A5248" },
+  submitted_feedback:     { label: "Sent feedback",          color: "#B8963E" },
+  shared_cellar:          { label: "Followed a cellar",      color: "#4A7A52" },
+  subscribed_premium:     { label: "Upgraded to Premium",    color: "#B8963E" },
+  cancelled_subscription: { label: "Cancelled subscription", color: "#C03838" },
+};
+
+const FILTER_CHIPS: Array<{ key: string; label: string; types: string[] | null }> = [
+  { key: "all",       label: "All",           types: null },
+  { key: "signup",    label: "Signups",       types: ["signed_up"] },
+  { key: "cellar",    label: "Cellar",        types: ["added_to_cellar", "consumed_wine"] },
+  { key: "journal",   label: "Experiences",   types: ["logged_experience"] },
+  { key: "sommy",     label: "Sommy",         types: ["chatted_with_sommy"] },
+  { key: "palate",    label: "Palate",        types: ["updated_taste_prefs"] },
+  { key: "wishlist",  label: "Wishlist",      types: ["wishlisted"] },
+  { key: "sub",       label: "Subscription",  types: ["subscribed_premium", "cancelled_subscription"] },
+  { key: "feedback",  label: "Feedback",      types: ["submitted_feedback"] },
+];
+
+function ActivityFeed({ events, loading }: { events: ActivityEvent[]; loading: boolean }) {
+  const [filter, setFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    const chip = FILTER_CHIPS.find(c => c.key === filter);
+    if (!chip || !chip.types) return events;
+    const set = new Set(chip.types);
+    return events.filter(e => set.has(e.event_type));
+  }, [events, filter]);
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: 0, overflow: "hidden" }}>
+      {/* Filter chips */}
+      <div style={{
+        display: "flex", gap: 6, padding: "12px 14px 10px", borderBottom: `1px solid ${C.cardBorder}`,
+        overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
+      }}>
+        {FILTER_CHIPS.map(chip => (
+          <button key={chip.key} onClick={() => setFilter(chip.key)}
+            style={{
+              padding: "5px 12px", borderRadius: 999, whiteSpace: "nowrap",
+              fontFamily: C.fontMono, fontSize: "0.55rem", letterSpacing: "0.04em",
+              border: filter === chip.key ? `1px solid ${C.text}` : `1px solid ${C.cardBorder}`,
+              background: filter === chip.key ? C.text : "transparent",
+              color: filter === chip.key ? C.card : C.muted,
+              cursor: "pointer", textTransform: "uppercase",
+            }}>
+            {chip.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Feed list */}
+      <div style={{ maxHeight: 480, overflowY: "auto" }}>
+        {loading && events.length === 0 && (
+          <div style={{ padding: 40, textAlign: "center", color: C.muted, fontSize: "0.72rem" }}>Loading activity…</div>
+        )}
+        {!loading && filtered.length === 0 && (
+          <div style={{ padding: 40, textAlign: "center", color: C.muted, fontSize: "0.72rem" }}>No events in this window.</div>
+        )}
+        {filtered.map(e => {
+          const style = EVENT_STYLES[e.event_type] || { label: e.event_type, color: C.muted };
+          const name = e.user_display_name || (e.user_email ? e.user_email.split("@")[0] : "Unknown");
+          return (
+            <div key={e.event_id} style={{
+              display: "flex", alignItems: "flex-start", gap: 10,
+              padding: "11px 14px", borderBottom: `1px solid ${C.cardBorder}`,
+            }}>
+              <Avatar name={name} url={e.user_avatar_url} size={26} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: C.fontBody, fontSize: "0.78rem", color: C.text, fontWeight: 500 }}>{name}</span>
+                  <span style={{
+                    fontFamily: C.fontMono, fontSize: "0.5rem", letterSpacing: "0.05em",
+                    color: style.color, textTransform: "uppercase",
+                    padding: "1px 7px", borderRadius: 4,
+                    background: `${style.color}12`,
+                    border: `1px solid ${style.color}30`,
+                  }}>{style.label}</span>
+                  <span style={{ ...mono("0.52rem"), color: C.muted, marginLeft: "auto", whiteSpace: "nowrap" }}>{relativeTime(e.created_at)}</span>
+                </div>
+                {(e.item_title || e.item_context) && (
+                  <div style={{ fontFamily: C.fontBody, fontSize: "0.72rem", color: C.muted, marginTop: 2, wordBreak: "break-word" }}>
+                    {e.item_title}{e.item_title && e.item_context ? " · " : ""}{e.item_context}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Session KPIs (DAU / WAU / MAU / streak) ────────────────────────────────
+function SessionKpis({ users }: { users: UserProfile[] }) {
+  const now = Date.now();
+  const day = 86400000;
+  const dau = users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < day).length;
+  const wau = users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < 7 * day).length;
+  const mau = users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < 30 * day).length;
+  return (
+    <div className="admin-kpi-grid" style={{ display: "grid", gap: 12, marginBottom: 16 }}>
+      <KpiCard label="DAU" value={fmtNum(dau)} sub="last 24h" periodLabel="" />
+      <KpiCard label="WAU" value={fmtNum(wau)} sub="last 7d" periodLabel="" />
+      <KpiCard label="MAU" value={fmtNum(mau)} sub="last 30d" periodLabel="" />
+      <KpiCard label="DAU / MAU" value={mau > 0 ? Math.round((dau / mau) * 100) + "%" : "—"} sub="stickiness" periodLabel="" />
+    </div>
+  );
+}
+
+// ─── Subscription Funnel ────────────────────────────────────────────────────
+function SubscriptionFunnel({ users }: { users: UserProfile[] }) {
+  const realUsers = users.filter(u => u.email !== "twow.review@gmail.com");
+  const total = realUsers.length;
+  const grandfathered = realUsers.filter(u => u.grandfathered === true).length;
+  const trialing = realUsers.filter(u => u.tier === "trial").length;
+  const paid = realUsers.filter(u => u.tier === "premium" && u.grandfathered === false).length;
+  const cancelled = realUsers.filter(u => u.tier === "cancelled").length;
+  const free = realUsers.filter(u => u.tier === "free" && u.grandfathered === false).length;
+
+  // MRR estimate: assume monthly SGD 4.99 * paid subs (yearly plans divided by 12 not tracked separately here)
+  // A better calculation would use the actual price ID; punt for MVP.
+  const mrrEstimate = paid * 4.99;
+
+  const row = (label: string, count: number, color: string, sub?: string) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: `1px solid ${C.cardBorder}` }}>
+      <div>
+        <div style={{ fontFamily: C.fontBody, fontSize: "0.78rem", color: C.text }}>{label}</div>
+        {sub && <div style={{ fontFamily: C.fontMono, fontSize: "0.52rem", color: C.muted, marginTop: 2 }}>{sub}</div>}
+      </div>
+      <div style={{ fontFamily: C.fontDisplay, fontSize: "1.35rem", color }}>{count}</div>
+    </div>
+  );
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, overflow: "hidden" }}>
+      {row("Total real users", total, C.text)}
+      {row("Grandfathered (lifetime)", grandfathered, C.gold)}
+      {row("Trialing", trialing, C.purple)}
+      {row("Paid Premium", paid, C.green, `~SGD ${fmtNum(Math.round(mrrEstimate * 100) / 100)} MRR (monthly est.)`)}
+      {row("Free", free, C.muted)}
+      {row("Cancelled", cancelled, C.red)}
+    </div>
+  );
+}
+
+// ─── Streak Leaderboard ─────────────────────────────────────────────────────
+// Uses last_active_at as a proxy for "active today" and counts distinct active days
+// over the last 30 days for each user (from wine_journal + wine_cellar + sommy_conversations).
+function StreakLeaderboard({ users, wines, cellar, conversations }: { users: UserProfile[]; wines: WineEntry[]; cellar: CellarEntry[]; conversations: ConversationEntry[] }) {
+  const now = Date.now();
+  const day = 86400000;
+  const thirtyAgo = now - 30 * day;
+
+  // For each user, compute set of distinct YYYY-MM-DD (UTC) days with any activity
+  const dayKey = (iso: string) => new Date(iso).toISOString().slice(0, 10);
+  const daysByUser = new Map<string, Set<string>>();
+  const push = (uid: string, iso: string) => {
+    const t = new Date(iso).getTime();
+    if (t < thirtyAgo || t > now) return;
+    if (!daysByUser.has(uid)) daysByUser.set(uid, new Set());
+    daysByUser.get(uid)!.add(dayKey(iso));
+  };
+  wines.forEach(w => push(w.user_id, w.created_at));
+  cellar.forEach(c => push(c.user_id, c.created_at));
+  conversations.forEach(c => push(c.user_id, c.created_at));
+
+  const rows = users.map(u => ({
+    user: u,
+    daysActive: daysByUser.get(u.id)?.size || 0,
+  }))
+  .filter(r => r.user.email !== "twow.review@gmail.com")
+  .sort((a, b) => b.daysActive - a.daysActive)
+  .slice(0, 10);
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, overflow: "hidden" }}>
+      {rows.length === 0 && <div style={{ padding: 40, textAlign: "center", color: C.muted, fontSize: "0.72rem" }}>No activity yet.</div>}
+      {rows.map((r, i) => {
+        const name = r.user.display_name || r.user.email?.split("@")[0] || "Unknown";
+        const activeToday = r.user.last_active_at && (now - new Date(r.user.last_active_at).getTime()) < day;
+        return (
+          <div key={r.user.id} style={{
+            display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+            borderBottom: `1px solid ${C.cardBorder}`,
+          }}>
+            <div style={{ ...mono("0.62rem"), color: C.muted, width: 20 }}>#{i + 1}</div>
+            <Avatar name={name} url={r.user.avatar_url} size={26} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: "0.78rem", color: C.text, fontWeight: 500 }}>{name}</span>
+                {activeToday && <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, display: "inline-block" }} title="Active today" />}
+              </div>
+              <div style={{ ...mono("0.52rem"), color: C.muted, marginTop: 2 }}>
+                {r.user.last_active_at ? `last seen ${relativeTime(r.user.last_active_at)}` : "never active"}
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: C.fontDisplay, fontSize: "1.1rem", color: C.text }}>{r.daysActive}</div>
+              <div style={{ ...mono("0.48rem"), color: C.muted }}>DAYS / 30</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Access Denied ──────────────────────────────────────────────────────────
 function AccessDenied() {
   const [, setLocation] = useLocation();
@@ -1439,7 +1703,9 @@ function FeedbackSection() {
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<AdminData | null>(null);
+  const [activityFeed, setActivityFeed] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -1453,15 +1719,20 @@ export default function Admin() {
     setRefreshing(true);
     setError(null);
     try {
-      const result = await fetchAdminStats(user.id);
+      // Fetch both in parallel — activity feed is lightweight so it usually finishes first
+      const [result, feed] = await Promise.all([
+        fetchAdminStats(user.id),
+        fetchActivityFeed(150).catch(err => { console.error("activity feed failed:", err); return [] as ActivityEvent[]; }),
+      ]);
       if (!mountedRef.current) return;
       setData(result);
+      setActivityFeed(feed);
       setLastRefresh(new Date().toLocaleTimeString());
     } catch (e: any) {
       if (!mountedRef.current) return;
       setError(e.message || "Failed to load data");
     } finally {
-      if (mountedRef.current) { setLoading(false); setRefreshing(false); }
+      if (mountedRef.current) { setLoading(false); setFeedLoading(false); setRefreshing(false); }
     }
   }, [user?.id]);
 
@@ -1563,9 +1834,28 @@ export default function Admin() {
       <style>{`
         @keyframes admin-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes admin-spin { to { transform: rotate(360deg); } }
+
+        /* Mobile-responsive layout (added 2026-07-20) */
+        .admin-container { max-width: 1200px; margin: 0 auto; padding: 24px 24px 80px; }
+        .admin-kpi-grid { grid-template-columns: repeat(5, 1fr); }
+        .admin-kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .admin-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .admin-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+
+        @media (max-width: 900px) {
+          .admin-container { padding: 16px 12px 80px; }
+          .admin-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .admin-kpi-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+          .admin-two-col { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+          .admin-kpi-grid, .admin-kpi-grid-4 { grid-template-columns: 1fr !important; }
+          .admin-header-row h1 { font-size: 1.25rem !important; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px 80px" }}>
+      <div className="admin-container">
 
         {/* ── Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
@@ -1612,10 +1902,43 @@ export default function Admin() {
           </div>
         )}
 
+        {/* ── USER ACTIVITY — top of page (2026-07-20) ── */}
+        <SectionLabel>User Activity</SectionLabel>
+        <div style={{ marginBottom: 28 }}>
+          <ActivityFeed events={activityFeed} loading={feedLoading} />
+        </div>
+
+        {/* ── Session KPIs — DAU/WAU/MAU (2026-07-20) ── */}
+        <SectionLabel>Sessions</SectionLabel>
+        {data ? (
+          <div className="admin-kpi-grid-4" style={{ display: "grid", gap: 12, marginBottom: 28 }}>
+            {(() => {
+              const now = Date.now(); const day = 86400000;
+              const dau = data.users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < day).length;
+              const wau = data.users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < 7 * day).length;
+              const mau = data.users.filter(u => u.last_active_at && (now - new Date(u.last_active_at).getTime()) < 30 * day).length;
+              return <>
+                <KpiCard label="DAU" value={fmtNum(dau)} sub="last 24h" periodLabel="" />
+                <KpiCard label="WAU" value={fmtNum(wau)} sub="last 7d" periodLabel="" />
+                <KpiCard label="MAU" value={fmtNum(mau)} sub="last 30d" periodLabel="" />
+                <KpiCard label="DAU / MAU" value={mau > 0 ? Math.round((dau / mau) * 100) + "%" : "—"} sub="stickiness ratio" periodLabel="" />
+              </>;
+            })()}
+          </div>
+        ) : (
+          <div className="admin-kpi-grid-4" style={{ display: "grid", gap: 12, marginBottom: 28 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: "18px 20px" }}>
+                <Skeleton width={60} height={10} /><div style={{ height: 10 }} /><Skeleton width={70} height={28} />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── KPI Grid ── */}
         <SectionLabel>Growth</SectionLabel>
         {loading || !kpis ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 28 }}>
+          <div className="admin-kpi-grid" style={{ display: "grid", gap: 12, marginBottom: 28 }}>
             {[0,1,2,3,4].map(i => (
               <div key={i} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.radius, padding: "18px 20px" }}>
                 <Skeleton width={60} height={10} />
@@ -1628,7 +1951,7 @@ export default function Admin() {
           </div>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+            <div className="admin-kpi-grid" style={{ display: "grid", gap: 12, marginBottom: 16 }}>
               <KpiCard label="USERS" value={fmtNum(kpis.users.total)} delta={kpis.deltas?.users} periodLabel={kpis.periodLabel} />
               <KpiCard label="WEEKLY ACTIVE" value={fmtNum(kpis.weeklyActive)} sub={`of ${kpis.users.total} total`} periodLabel={kpis.periodLabel} />
               <KpiCard label="SOMMY CONVERSATIONS" value={fmtNum(kpis.chats.total)} sub={`${kpis.chats.avgPerUser} avg/user`} delta={kpis.deltas?.chats} periodLabel={kpis.periodLabel} />
@@ -1637,7 +1960,7 @@ export default function Admin() {
             </div>
 
             <SectionLabel>Engagement</SectionLabel>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 28 }}>
+            <div className="admin-kpi-grid" style={{ display: "grid", gap: 12, marginBottom: 28 }}>
               <KpiCard label="WINES LOGGED" value={fmtNum(kpis.wines.total)} sub={`${kpis.wines.avgPerUser} avg/user`} delta={kpis.deltas?.wines} periodLabel={kpis.periodLabel} />
               <KpiCard label="TASTING SESSIONS" value={fmtNum(kpis.tastings.total)} periodLabel={kpis.periodLabel} />
               <KpiCard label="CELLAR BOTTLES" value={fmtNum(kpis.cellarBottles)} delta={kpis.deltas?.cellar} periodLabel={kpis.periodLabel} />
@@ -1645,6 +1968,20 @@ export default function Admin() {
               <KpiCard label="WISHLIST ITEMS" value={fmtNum(kpis.wishlist.total)} delta={kpis.deltas?.wishlist} periodLabel={kpis.periodLabel} />
             </div>
           </>
+        )}
+
+        {/* ── Subscription funnel + Streak leaderboard ── */}
+        {data && (
+          <div className="admin-two-col" style={{ marginBottom: 28 }}>
+            <div>
+              <SectionLabel>Subscription Funnel</SectionLabel>
+              <SubscriptionFunnel users={data.users} />
+            </div>
+            <div>
+              <SectionLabel>Top Streaks (30d)</SectionLabel>
+              <StreakLeaderboard users={data.users} wines={data.wines} cellar={data.cellar} conversations={data.conversations} />
+            </div>
+          </div>
         )}
 
         {/* ── User Table ── */}
@@ -1665,23 +2002,21 @@ export default function Admin() {
 
         {/* ── Cellar Insights + Activity Chart ── */}
         {data && (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
-              <div>
-                <SectionLabel>Cellar Insights</SectionLabel>
-                <CellarInsights data={data} />
-              </div>
-              <div>
-                <SectionLabel>Daily Activity</SectionLabel>
-                <ActivityChart data={data} period={period} />
-              </div>
+          <div className="admin-two-col" style={{ marginBottom: 28 }}>
+            <div>
+              <SectionLabel>Cellar Insights</SectionLabel>
+              <CellarInsights data={data} />
             </div>
-          </>
+            <div>
+              <SectionLabel>Daily Activity</SectionLabel>
+              <ActivityChart data={data} period={period} />
+            </div>
+          </div>
         )}
 
         {/* ── Top Regions + Feature Adoption ── */}
         {data && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
+          <div className="admin-two-col" style={{ marginBottom: 28 }}>
             <div>
               <SectionLabel>Top Regions</SectionLabel>
               <TopRegions wines={data.wines} />
@@ -1715,15 +2050,12 @@ export default function Admin() {
           <SearchPerformance />
         </div>
 
-        {/* ── Recent Activity Feed ── */}
-        {data && (
-          <>
-            <SectionLabel>Recent Activity</SectionLabel>
-            <div style={{ marginBottom: 28 }}>
-              <RecentActivity data={data} />
-            </div>
-          </>
-        )}
+        {/*
+          The old RecentActivity section (formerly at the bottom) is superseded by
+          the top-of-page ActivityFeed which pulls from the unified
+          get_admin_activity_feed RPC. RecentActivity component is retained
+          in the file for reference / backward compat but no longer rendered.
+        */}
 
       </div>
     </div>

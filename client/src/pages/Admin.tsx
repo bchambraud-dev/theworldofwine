@@ -1349,20 +1349,49 @@ function Skeleton({ width, height }: { width: number | string; height: number })
 }
 
 // ─── Activity Feed (top of page, 2026-07-20) ────────────────────────────────
-const EVENT_STYLES: Record<string, { label: string; color: string }> = {
-  signed_up:              { label: "Signed up",              color: "#4A7A52" },
-  logged_experience:      { label: "Logged experience",      color: "#8C1C2E" },
-  added_to_cellar:        { label: "Added to cellar",        color: "#8C1C2E" },
-  consumed_wine:          { label: "Consumed wine",          color: "#5A5248" },
-  wishlisted:             { label: "Wishlisted",             color: "#B8963E" },
-  chatted_with_sommy:     { label: "Sommy chat",             color: "#6B4C8A" },
-  updated_taste_prefs:    { label: "Updated palate",         color: "#6B4C8A" },
-  read_guide:             { label: "Read a guide",           color: "#5A5248" },
-  submitted_feedback:     { label: "Sent feedback",          color: "#B8963E" },
-  shared_cellar:          { label: "Followed a cellar",      color: "#4A7A52" },
-  subscribed_premium:     { label: "Upgraded to Premium",    color: "#B8963E" },
-  cancelled_subscription: { label: "Cancelled subscription", color: "#C03838" },
+// EVENT_STYLES defines the small colored dot per category (no badge text — the
+// verb tells the story in-line). Colors chosen so cellar/wine events read
+// burgundy, Sommy/palate events read purple, subscription reads gold, cancel
+// reads red. Aligns with existing palette.
+const EVENT_STYLES: Record<string, { color: string }> = {
+  signed_up:              { color: "#4A7A52" },
+  logged_experience:      { color: "#8C1C2E" },
+  added_to_cellar:        { color: "#8C1C2E" },
+  consumed_wine:          { color: "#5A5248" },
+  wishlisted:             { color: "#B8963E" },
+  chatted_with_sommy:     { color: "#6B4C8A" },
+  updated_taste_prefs:    { color: "#6B4C8A" },
+  read_guide:             { color: "#5A5248" },
+  submitted_feedback:     { color: "#B8963E" },
+  shared_cellar:          { color: "#4A7A52" },
+  subscribed_premium:     { color: "#B8963E" },
+  cancelled_subscription: { color: "#C03838" },
 };
+
+// Build a natural-language sentence for each event (readable feed vs technical labels)
+function eventSentence(e: ActivityEvent): { verb: string; object: string | null; context: string | null } {
+  const t = e.item_title;
+  const c = e.item_context;
+  switch (e.event_type) {
+    case "signed_up":              return { verb: "signed up",                object: null,           context: null };
+    case "logged_experience":      return { verb: "logged",                   object: t || "a wine",  context: c };
+    case "added_to_cellar":        return { verb: "added",                    object: t || "a wine",  context: c ? `to cellar · ${c}` : "to cellar" };
+    case "consumed_wine":          return { verb: "consumed",                 object: t || "a wine",  context: c };
+    case "wishlisted":             return { verb: "wishlisted",               object: t || "a wine",  context: c };
+    case "chatted_with_sommy":
+      if ((t || "").toLowerCase().includes("scan")) {
+        return { verb: "scanned a label with Sommy", object: null, context: c || null };
+      }
+      return { verb: "chatted with Sommy", object: null, context: c || null };
+    case "updated_taste_prefs":    return { verb: "updated their palate",     object: null,           context: c };
+    case "read_guide":             return { verb: "read",                     object: t || "a guide", context: null };
+    case "submitted_feedback":     return { verb: "sent feedback",            object: null,           context: t || c };
+    case "shared_cellar":          return { verb: "followed a cellar",        object: null,           context: null };
+    case "subscribed_premium":     return { verb: "upgraded to Premium",      object: null,           context: null };
+    case "cancelled_subscription": return { verb: "cancelled their subscription", object: null,      context: null };
+    default:                       return { verb: e.event_type,               object: t,              context: c };
+  }
+}
 
 const FILTER_CHIPS: Array<{ key: string; label: string; types: string[] | null }> = [
   { key: "all",       label: "All",           types: null },
@@ -1417,32 +1446,30 @@ function ActivityFeed({ events, loading }: { events: ActivityEvent[]; loading: b
           <div style={{ padding: 40, textAlign: "center", color: C.muted, fontSize: "0.72rem" }}>No events in this window.</div>
         )}
         {filtered.map(e => {
-          const style = EVENT_STYLES[e.event_type] || { label: e.event_type, color: C.muted };
+          const style = EVENT_STYLES[e.event_type] || { color: C.muted };
           const name = e.user_display_name || (e.user_email ? e.user_email.split("@")[0] : "Unknown");
+          const s = eventSentence(e);
           return (
             <div key={e.event_id} style={{
-              display: "flex", alignItems: "flex-start", gap: 10,
-              padding: "11px 14px", borderBottom: `1px solid ${C.cardBorder}`,
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 14px", borderBottom: `1px solid ${C.cardBorder}`,
             }}>
+              {/* Category dot */}
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: style.color, flexShrink: 0 }} title={e.event_type} />
               <Avatar name={name} url={e.user_avatar_url} size={26} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                  <span style={{ fontFamily: C.fontBody, fontSize: "0.78rem", color: C.text, fontWeight: 500 }}>{name}</span>
-                  <span style={{
-                    fontFamily: C.fontMono, fontSize: "0.5rem", letterSpacing: "0.05em",
-                    color: style.color, textTransform: "uppercase",
-                    padding: "1px 7px", borderRadius: 4,
-                    background: `${style.color}12`,
-                    border: `1px solid ${style.color}30`,
-                  }}>{style.label}</span>
-                  <span style={{ ...mono("0.52rem"), color: C.muted, marginLeft: "auto", whiteSpace: "nowrap" }}>{relativeTime(e.created_at)}</span>
-                </div>
-                {(e.item_title || e.item_context) && (
-                  <div style={{ fontFamily: C.fontBody, fontSize: "0.72rem", color: C.muted, marginTop: 2, wordBreak: "break-word" }}>
-                    {e.item_title}{e.item_title && e.item_context ? " · " : ""}{e.item_context}
-                  </div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: "0.78rem", color: C.text, lineHeight: 1.45 }}>
+                <span style={{ fontWeight: 500 }}>{name}</span>{" "}
+                <span style={{ color: C.muted, fontWeight: 300 }}>{s.verb}</span>
+                {s.object && (
+                  <>{" "}<span style={{ color: C.text }}>{s.object}</span></>
+                )}
+                {s.context && (
+                  <>{" "}<span style={{ color: C.muted, fontWeight: 300 }}>· {s.context}</span></>
                 )}
               </div>
+              <span style={{ ...mono("0.52rem"), color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>
+                {relativeTime(e.created_at)}
+              </span>
             </div>
           );
         })}
@@ -1722,7 +1749,7 @@ export default function Admin() {
       // Fetch both in parallel — activity feed is lightweight so it usually finishes first
       const [result, feed] = await Promise.all([
         fetchAdminStats(user.id),
-        fetchActivityFeed(150).catch(err => { console.error("activity feed failed:", err); return [] as ActivityEvent[]; }),
+        fetchActivityFeed(500).catch(err => { console.error("activity feed failed:", err); return [] as ActivityEvent[]; }),
       ]);
       if (!mountedRef.current) return;
       setData(result);
